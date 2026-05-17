@@ -39,6 +39,10 @@ class PreferenceManager(context: Context) {
         get() = sharedPreferences.getBoolean(KEY_IS_MONITORING_ENABLED, false)
         set(value) = sharedPreferences.edit().putBoolean(KEY_IS_MONITORING_ENABLED, value).apply()
 
+    var fcmToken: String?
+        get() = sharedPreferences.getString(KEY_FCM_TOKEN, null)
+        set(value) = sharedPreferences.edit().putString(KEY_FCM_TOKEN, value).apply()
+
     fun clear() {
         sharedPreferences.edit().clear().apply()
     }
@@ -50,5 +54,6 @@ class PreferenceManager(context: Context) {
         private const val KEY_CHILD_ID = "child_id"
         private const val KEY_CHILD_NAME = "child_name"
         private const val KEY_IS_MONITORING_ENABLED = "is_monitoring_enabled"
+        private const val KEY_FCM_TOKEN = "fcm_token"
     }
 }

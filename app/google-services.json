@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "440061838057",
+    "project_id": "anis-dev",
+    "storage_bucket": "anis-dev.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:440061838057:android:07c0e0d8cb87d8e9b7e678",
+        "android_client_info": {
+          "package_name": "com.anis.child"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAsdXf4UN8pzxqfCIeAt9IMlRTWzUt-O0s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:440061838057:android:fff5ad02c5bceff4b7e678",
+        "android_client_info": {
+          "package_name": "com.example.anis_parent_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAsdXf4UN8pzxqfCIeAt9IMlRTWzUt-O0s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

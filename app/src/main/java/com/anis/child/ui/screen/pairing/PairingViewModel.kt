@@ -9,13 +9,13 @@ import com.anis.child.data.ChildData
 import com.anis.child.data.PairingRequest
 import com.anis.child.data.PreferenceManager
 import com.anis.child.data.QrData
-import com.anis.child.network.NetworkProvider
+import com.anis.child.data.repository.AuthRepository
+import com.anis.child.network.ApiResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import retrofit2.HttpException
 
 sealed class PairingUiState {
     data object Scanning : PairingUiState()
@@ -26,8 +26,7 @@ sealed class PairingUiState {
 
 class PairingViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val apiService = NetworkProvider.provideApiService(application)
-    private val preferenceManager = PreferenceManager(application)
+    private val authRepository = AuthRepository(PreferenceManager(application))
     private val json = Json { ignoreUnknownKeys = true }
 
     private val _uiState = MutableStateFlow<PairingUiState>(PairingUiState.Scanning)
@@ -66,43 +65,20 @@ class PairingViewModel(application: Application) : AndroidViewModel(application)
         val request = PairingRequest(
             childId = qrData.childId,
             token = qrData.token,
+            fcmToken = authRepository.savedFcmToken ?: "",
             deviceId = deviceId,
             deviceName = deviceName
         )
 
         viewModelScope.launch {
             _uiState.value = PairingUiState.Loading
-            try {
-                val response = apiService.pairDevice(request)
-                
-                if (response.success && response.accessToken != null) {
-                    preferenceManager.accessToken = response.accessToken
-                    preferenceManager.isLoggedIn = true
-                    response.data?.let { child ->
-                        preferenceManager.childId = child.id
-                        preferenceManager.childName = child.name
-                        _uiState.value = PairingUiState.Success(child)
-                    }
-                } else {
-                    val errors = response.errors
-                    if (!errors.isNullOrEmpty()) {
-                        val errorMessages = errors.joinToString("\n") { "${it.field}: ${it.message}" }
-                        _uiState.value = PairingUiState.Error(
-                            message = response.message ?: "Validation failed",
-                            details = errorMessages
-                        )
-                    } else {
-                        _uiState.value = PairingUiState.Error(response.message ?: "Pairing failed")
-                    }
+            when (val result = authRepository.pairDevice(request)) {
+                is ApiResult.Success -> {
+                    _uiState.value = PairingUiState.Success(result.data)
                 }
-            } catch (e: HttpException) {
-                val errorBody = e.response()?.errorBody()?.string()
-                _uiState.value = PairingUiState.Error(
-                    message = "HTTP ${e.code()}: ${e.message()}",
-                    details = errorBody
-                )
-            } catch (e: Exception) {
-                _uiState.value = PairingUiState.Error(e.message ?: "Network error")
+                is ApiResult.Error -> {
+                    _uiState.value = PairingUiState.Error(result.message, result.details)
+                }
             }
         }
     }

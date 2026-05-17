@@ -5,16 +5,15 @@ import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.anis.child.data.LogManager
 import com.anis.child.data.LogType
-import com.anis.child.data.PreferenceManager
-import com.anis.child.data.TelemetryRequest
 import com.anis.child.data.local.AppDatabase
-import com.anis.child.network.ApiService
-import com.anis.child.network.NetworkProvider
+import com.anis.child.data.repository.LocationRepository
+import com.anis.child.network.ApiResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
@@ -25,26 +24,13 @@ class LocationTelemetryWorker(
     workerParams: WorkerParameters
 ) : CoroutineWorker(context, workerParams) {
 
-    private val apiService = NetworkProvider.provideApiService(context)
+    private val locationRepository = LocationRepository(context)
     private val database = AppDatabase.getInstance(context)
     private val dao = database.locationTelemetryDao()
-    private val preferenceManager = PreferenceManager(context)
     private val logManager = LogManager(context)
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         try {
-            val accessToken = preferenceManager.accessToken
-            if (accessToken.isNullOrEmpty()) {
-                logManager.log("Worker: No access token, skipping", LogType.ERROR)
-                return@withContext Result.success()
-            }
-
-            val childId = preferenceManager.childId
-            if (childId.isNullOrEmpty()) {
-                logManager.log("Worker: No child ID, skipping", LogType.ERROR)
-                return@withContext Result.success()
-            }
-
             val unsentLocations = dao.getUnsentLocations()
             if (unsentLocations.isEmpty()) {
                 logManager.log("Worker: No unsent locations", LogType.INFO)
@@ -55,7 +41,7 @@ class LocationTelemetryWorker(
 
             var failedCount = 0
             for (location in unsentLocations) {
-                val result = sendSingleLocation(location, childId, accessToken)
+                val result = sendSingleLocation(location)
                 when {
                     result -> {
                         dao.delete(location.id)
@@ -97,20 +83,13 @@ class LocationTelemetryWorker(
     }
 
     private suspend fun sendSingleLocation(
-        location: com.anis.child.data.local.LocationTelemetryEntity,
-        childId: String,
-        token: String
+        location: com.anis.child.data.local.LocationTelemetryEntity
     ): Boolean {
         return try {
-            val response = apiService.sendTelemetry(
-                token = "Bearer $token",
-                request = TelemetryRequest(
-                    childId = childId,
-                    lat = location.latitude,
-                    lng = location.longitude
-                )
+            val result = locationRepository.sendTelemetry(
+                location.latitude, location.longitude
             )
-            response.success
+            if (result is ApiResult.Success) result.data.success else false
         } catch (e: Exception) {
             logManager.log("Send failed: ${e.message}", LogType.ERROR)
             false
@@ -150,6 +129,16 @@ class LocationTelemetryWorker(
 
         fun cancel(context: Context) {
             WorkManager.getInstance(context).cancelUniqueWork(WORK_NAME)
+        }
+
+        fun triggerImmediateSync(context: Context) {
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
+            val workRequest = OneTimeWorkRequestBuilder<LocationTelemetryWorker>()
+                .setConstraints(constraints)
+                .build()
+            WorkManager.getInstance(context).enqueue(workRequest)
         }
     }
 }

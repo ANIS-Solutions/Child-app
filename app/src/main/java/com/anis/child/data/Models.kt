@@ -7,6 +7,7 @@ import kotlinx.serialization.Serializable
 data class PairingRequest(
     @SerialName("childId") val childId: String,
     @SerialName("token") val token: String,
+    @SerialName("fcmToken") val fcmToken: String = "",
     @SerialName("deviceId") val deviceId: String,
     @SerialName("deviceName") val deviceName: String
 )
@@ -51,6 +52,17 @@ data class TelemetryRequest(
 
 @Serializable
 data class TelemetryResponse(
+    @SerialName("success") val success: Boolean,
+    @SerialName("message") val message: String? = null
+)
+
+@Serializable
+data class FcmTokenRequest(
+    @SerialName("fcmToken") val fcmToken: String
+)
+
+@Serializable
+data class FcmTokenResponse(
     @SerialName("success") val success: Boolean,
     @SerialName("message") val message: String? = null
 )

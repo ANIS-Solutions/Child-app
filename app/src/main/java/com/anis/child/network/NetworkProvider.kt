@@ -11,44 +11,56 @@ import java.util.concurrent.TimeUnit
 
 object NetworkProvider {
 
-    private const val BASE_URL = "https://saggy-giggle-majestic.ngrok-free.dev"
+    private var appContext: Context? = null
+    private var okHttpClient: OkHttpClient? = null
+    private var retrofit: Retrofit? = null
+    private var apiService: ApiService? = null
 
     private val json = Json {
         ignoreUnknownKeys = true
         coerceInputValues = true
     }
 
+    fun init(context: Context) {
+        appContext = context.applicationContext
+    }
+
     private fun provideOkHttpClient(): OkHttpClient {
-        val loggingInterceptor = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
-        }
-
-        return OkHttpClient.Builder()
-            .addInterceptor { chain ->
-                val original = chain.request()
-                val request = original.newBuilder()
-                    .header("Content-Type", "application/json")
-                    .method(original.method, original.body)
-                    .build()
-                chain.proceed(request)
+        if (okHttpClient == null) {
+            val ctx = appContext
+                ?: throw IllegalStateException("NetworkProvider not initialized. Call init(context) in Application.onCreate().")
+            val loggingInterceptor = HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
             }
-            .addInterceptor(loggingInterceptor)
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .writeTimeout(30, TimeUnit.SECONDS)
-            .build()
+            okHttpClient = OkHttpClient.Builder()
+                .addInterceptor(AuthInterceptor(ctx))
+                .addInterceptor { chain ->
+                    val original = chain.request()
+                    val request = original.newBuilder()
+                        .header("Content-Type", "application/json")
+                        .method(original.method, original.body)
+                        .build()
+                    chain.proceed(request)
+                }
+                .addInterceptor(loggingInterceptor)
+                .connectTimeout(ApiConfig.CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .readTimeout(ApiConfig.READ_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .writeTimeout(ApiConfig.WRITE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .build()
+        }
+        return okHttpClient!!
     }
 
-    fun provideRetrofit(context: Context): Retrofit {
-        val contentType = "application/json".toMediaType()
-        return Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(provideOkHttpClient())
-            .addConverterFactory(json.asConverterFactory(contentType))
-            .build()
-    }
-
-    fun provideApiService(context: Context): ApiService {
-        return provideRetrofit(context).create(ApiService::class.java)
+    fun provideApiService(): ApiService {
+        if (apiService == null) {
+            val contentType = "application/json".toMediaType()
+            retrofit = Retrofit.Builder()
+                .baseUrl(ApiConfig.BASE_URL)
+                .client(provideOkHttpClient())
+                .addConverterFactory(json.asConverterFactory(contentType))
+                .build()
+            apiService = retrofit!!.create(ApiService::class.java)
+        }
+        return apiService!!
     }
 }

@@ -6,10 +6,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anis.child.data.LogManager
 import com.anis.child.data.LogType
-import com.anis.child.data.PreferenceManager
-import com.anis.child.data.TelemetryRequest
-import com.anis.child.network.ApiService
-import com.anis.child.network.NetworkProvider
+import com.anis.child.data.repository.LocationRepository
+import com.anis.child.network.ApiResult
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
@@ -40,20 +38,7 @@ class HomeViewModel : ViewModel() {
     @SuppressLint("MissingPermission")
     private suspend fun sendLocationNow(context: Context) {
         val logManager = LogManager(context)
-        val apiService = NetworkProvider.provideApiService(context)
-        val preferenceManager = PreferenceManager(context)
-
-        val accessToken = preferenceManager.accessToken
-        if (accessToken.isNullOrEmpty()) {
-            logManager.log("No access token", LogType.ERROR)
-            return
-        }
-
-        val childId = preferenceManager.childId
-        if (childId.isNullOrEmpty()) {
-            logManager.log("No child ID", LogType.ERROR)
-            return
-        }
+        val locationRepository = LocationRepository(context)
 
         val fusedLocationClient: FusedLocationProviderClient =
             LocationServices.getFusedLocationProviderClient(context)
@@ -67,31 +52,21 @@ class HomeViewModel : ViewModel() {
         locationTask.addOnSuccessListener { location ->
             if (location != null) {
                 viewModelScope.launch {
-                    try {
-                        val response = apiService.sendTelemetry(
-                            token = "Bearer $accessToken",
-                            request = TelemetryRequest(
-                                childId = childId,
-                                lat = location.latitude,
-                                lng = location.longitude
-                            )
-                        )
-                        if (response.success) {
+                    when (val result = locationRepository.sendTelemetry(
+                        location.latitude, location.longitude
+                    )) {
+                        is ApiResult.Success -> {
                             logManager.log(
                                 "Manual: ${String.format("%.6f", location.latitude)}, ${String.format("%.6f", location.longitude)}",
                                 LogType.SUCCESS
                             )
-                        } else {
+                        }
+                        is ApiResult.Error -> {
                             logManager.log(
-                                "Send failed: ${response.message ?: "Unknown error"}",
+                                "Send failed: ${result.message}",
                                 LogType.ERROR
                             )
                         }
-                    } catch (e: Exception) {
-                        logManager.log(
-                            "Send error: ${e.message}",
-                            LogType.ERROR
-                        )
                     }
                 }
             } else {
