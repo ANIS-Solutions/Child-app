@@ -21,8 +21,28 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    val ksFile = file("anis-release-keystore.jks")
+    val ksPass = System.getenv("KEYSTORE_PASSWORD")
+    val ksAlias = System.getenv("KEY_ALIAS")
+    val ksKeyPass = System.getenv("KEY_PASSWORD")
+    val useSigning = ksFile.exists() && ksPass != null && ksAlias != null && ksKeyPass != null
+
+    if (useSigning) {
+        signingConfigs {
+            create("release") {
+                storeFile = ksFile
+                storePassword = ksPass
+                keyAlias = ksAlias
+                keyPassword = ksKeyPass
+            }
+        }
+    }
+
     buildTypes {
         release {
+            if (useSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
