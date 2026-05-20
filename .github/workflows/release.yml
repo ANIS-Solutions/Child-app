@@ -29,19 +29,14 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-
-      - name: Get version info
-        id: version
-        run: |
-          echo "version_code=$(grep versionCode app/build.gradle.kts | grep -oE '[0-9]+' | head -1)" >> "$GITHUB_OUTPUT"
-          echo "version_name=$(grep versionName app/build.gradle.kts | grep -oE '"[^"]*"' | head -1 | tr -d '"')" >> "$GITHUB_OUTPUT"
-          echo "sha=$(echo ${{ github.sha }} | cut -c1-7)" >> "$GITHUB_OUTPUT"
+          VERSION_CODE: ${{ github.run_number }}
+          VERSION_NAME: "1.0"
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.version.outputs.version_name }}-${{ steps.version.outputs.sha }}
-          name: Release v${{ steps.version.outputs.version_name }}
+          tag_name: v1.0-${{ github.run_number }}
+          name: Release v1.0 (build ${{ github.run_number }})
           body: |
             Automated release from commit ${{ github.sha }}
           files: app/build/outputs/apk/release/app-release.apk
