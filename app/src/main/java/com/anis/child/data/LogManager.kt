@@ -16,7 +16,7 @@ data class LogEntry(
 )
 
 enum class LogType {
-    INFO, SUCCESS, ERROR, LOCATION
+    INFO, SUCCESS, ERROR, LOCATION, HTTP
 }
 
 class LogManager(private val context: Context) {

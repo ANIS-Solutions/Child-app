@@ -148,6 +148,7 @@ private fun LogItem(
         LogType.SUCCESS -> AppColors.success500.copy(alpha = 0.1f)
         LogType.ERROR -> AppColors.error500.copy(alpha = 0.1f)
         LogType.LOCATION -> AppColors.primary01.copy(alpha = 0.1f)
+        LogType.HTTP -> AppColors.warning500.copy(alpha = 0.1f)
     }
 
     val textColor = when (entry.type) {
@@ -155,6 +156,7 @@ private fun LogItem(
         LogType.SUCCESS -> AppColors.success500
         LogType.ERROR -> AppColors.error500
         LogType.LOCATION -> AppColors.primary01
+        LogType.HTTP -> AppColors.warning500
     }
 
     Row(

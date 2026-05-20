@@ -1,6 +1,7 @@
 package com.anis.child.network
 
 import android.content.Context
+import com.anis.child.data.LogManager
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
@@ -33,8 +34,11 @@ object NetworkProvider {
             val loggingInterceptor = HttpLoggingInterceptor().apply {
                 level = HttpLoggingInterceptor.Level.BODY
             }
+            val logManager = LogManager(ctx)
+
             okHttpClient = OkHttpClient.Builder()
                 .addInterceptor(AuthInterceptor(ctx))
+                .addInterceptor(AppLoggingInterceptor(logManager))
                 .addInterceptor { chain ->
                     val original = chain.request()
                     val request = original.newBuilder()
