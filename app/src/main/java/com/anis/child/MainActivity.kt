@@ -9,6 +9,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -130,17 +131,40 @@ private fun MainNavigation(
     val logManager = remember { LogManager(context) }
     val homeViewModel: HomeViewModel = viewModel()
     val isSending by homeViewModel.isSending.collectAsState()
+    val isSendingApps by homeViewModel.isSendingApps.collectAsState()
+    val isFetchingChild by homeViewModel.isFetchingChild.collectAsState()
     val preferenceManager = remember { PreferenceManager(context) }
+
+    LaunchedEffect(Unit) {
+        if (preferenceManager.needsInitialAppSync) {
+            preferenceManager.needsInitialAppSync = false
+            homeViewModel.sendInstalledApps(context)
+            homeViewModel.fetchChildMe(context)
+        }
+    }
 
     var showSettings by remember { mutableStateOf(false) }
 
     if (showSettings) {
         SettingsScreen(
+            logManager = logManager,
             isDarkMode = isDarkMode,
             isMonitoringEnabled = isMonitoringEnabled,
             childId = preferenceManager.childId,
             onDarkModeChange = onDarkModeChange,
             onMonitoringChange = onMonitoringChange,
+            onSendLocationClick = {
+                homeViewModel.sendCurrentLocation(context)
+            },
+            isSending = isSending,
+            onSendAppsClick = {
+                homeViewModel.sendInstalledApps(context)
+            },
+            isSendingApps = isSendingApps,
+            onGetMeClick = {
+                homeViewModel.fetchChildMe(context)
+            },
+            isFetchingChild = isFetchingChild,
             onLogout = {
                 onLogout()
                 showSettings = false
@@ -149,11 +173,6 @@ private fun MainNavigation(
     } else {
         HomeScreen(
             childName = childName,
-            logManager = logManager,
-            onSendLocationClick = {
-                homeViewModel.sendCurrentLocation(context)
-            },
-            isSending = isSending,
             onSettingsClick = { showSettings = true }
         )
     }

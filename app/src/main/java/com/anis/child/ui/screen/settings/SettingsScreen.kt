@@ -11,13 +11,18 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -29,15 +34,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import com.anis.child.data.LogManager
+import com.anis.child.ui.screen.home.LogSection
 import com.anis.child.ui.theme.AppColors
 
 @Composable
 fun SettingsScreen(
+    logManager: LogManager,
     isDarkMode: Boolean,
     isMonitoringEnabled: Boolean,
     childId: String?,
     onDarkModeChange: (Boolean) -> Unit,
     onMonitoringChange: (Boolean) -> Unit,
+    onSendLocationClick: () -> Unit,
+    isSending: Boolean,
+    onSendAppsClick: () -> Unit,
+    isSendingApps: Boolean,
+    onGetMeClick: () -> Unit,
+    isFetchingChild: Boolean,
     onLogout: () -> Unit
 ) {
     val context = LocalContext.current
@@ -46,10 +60,15 @@ fun SettingsScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(AppColors.surface50)
-            .padding(24.dp)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .padding(24.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
         Text(
             text = "Settings",
             style = MaterialTheme.typography.headlineMedium,
@@ -77,6 +96,105 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.weight(1f))
 
         Button(
+            onClick = onSendLocationClick,
+            enabled = !isSending,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = AppColors.primary01
+            )
+        ) {
+            if (isSending) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = AppColors.darkTextPrimary,
+                    strokeWidth = 2.dp
+                )
+                Text(
+                    text = "Sending Location...",
+                    color = AppColors.darkTextPrimary,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.LocationOn,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Text(
+                    text = "Send Location",
+                    color = AppColors.darkTextPrimary,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
+        }
+
+        Button(
+            onClick = onSendAppsClick,
+            enabled = !isSendingApps,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = AppColors.primary01
+            )
+        ) {
+            if (isSendingApps) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = AppColors.darkTextPrimary,
+                    strokeWidth = 2.dp
+                )
+                Text(
+                    text = "Sending Apps...",
+                    color = AppColors.darkTextPrimary,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Apps,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Text(
+                    text = "Send Apps",
+                    color = AppColors.darkTextPrimary,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
+        }
+
+        Button(
+            onClick = onGetMeClick,
+            enabled = !isFetchingChild,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = AppColors.primary01
+            )
+        ) {
+            if (isFetchingChild) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = AppColors.darkTextPrimary,
+                    strokeWidth = 2.dp
+                )
+                Text(
+                    text = "Fetching...",
+                    color = AppColors.darkTextPrimary,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Text(
+                    text = "Get Me",
+                    color = AppColors.darkTextPrimary,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
+        }
+
+        Button(
             onClick = onLogout,
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(
@@ -88,6 +206,12 @@ fun SettingsScreen(
                 color = AppColors.darkTextPrimary
             )
         }
+    }
+
+        LogSection(
+            logManager = logManager,
+            modifier = Modifier.fillMaxWidth()
+        )
     }
 }
 

@@ -29,7 +29,8 @@ sealed class PairingUiState {
 
 class PairingViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val authRepository = AuthRepository(PreferenceManager(application))
+    private val preferenceManager = PreferenceManager(application)
+    private val authRepository = AuthRepository(preferenceManager)
     private val json = Json { ignoreUnknownKeys = true }
 
     private val _uiState = MutableStateFlow<PairingUiState>(PairingUiState.Scanning)
@@ -79,6 +80,7 @@ class PairingViewModel(application: Application) : AndroidViewModel(application)
             when (val result = authRepository.pairDevice(request)) {
                 is ApiResult.Success -> {
                     _uiState.value = PairingUiState.Success(result.data)
+                    preferenceManager.needsInitialAppSync = true
                     _onNavigateToHome.value = true
                 }
                 is ApiResult.Error -> {

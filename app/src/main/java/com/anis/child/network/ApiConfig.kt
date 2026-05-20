@@ -10,5 +10,7 @@ object ApiConfig {
         const val PAIR_DEVICE = "children/pair"
         const val SEND_TELEMETRY = "locations/telemetry/{childId}"
         const val REGISTER_FCM_TOKEN = "children/fcm-token"
+        const val ADD_BULK_APPS = "apps/add-bulk"
+        const val CHILDREN_ME = "children/me"
     }
 }

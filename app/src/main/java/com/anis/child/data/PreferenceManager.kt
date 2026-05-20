@@ -43,6 +43,22 @@ class PreferenceManager(context: Context) {
         get() = sharedPreferences.getString(KEY_FCM_TOKEN, null)
         set(value) = sharedPreferences.edit().putString(KEY_FCM_TOKEN, value).apply()
 
+    var needsInitialAppSync: Boolean
+        get() = sharedPreferences.getBoolean(KEY_NEEDS_INITIAL_APP_SYNC, false)
+        set(value) = sharedPreferences.edit().putBoolean(KEY_NEEDS_INITIAL_APP_SYNC, value).apply()
+
+    var childAge: Int?
+        get() = sharedPreferences.getInt(KEY_CHILD_AGE, -1).let { if (it == -1) null else it }
+        set(value) = sharedPreferences.edit().putInt(KEY_CHILD_AGE, value ?: -1).apply()
+
+    var childAvatarUrl: String?
+        get() = sharedPreferences.getString(KEY_CHILD_AVATAR_URL, null)
+        set(value) = sharedPreferences.edit().putString(KEY_CHILD_AVATAR_URL, value).apply()
+
+    var childEmail: String?
+        get() = sharedPreferences.getString(KEY_CHILD_EMAIL, null)
+        set(value) = sharedPreferences.edit().putString(KEY_CHILD_EMAIL, value).apply()
+
     fun clear() {
         sharedPreferences.edit().clear().apply()
     }
@@ -55,5 +71,9 @@ class PreferenceManager(context: Context) {
         private const val KEY_CHILD_NAME = "child_name"
         private const val KEY_IS_MONITORING_ENABLED = "is_monitoring_enabled"
         private const val KEY_FCM_TOKEN = "fcm_token"
+        private const val KEY_NEEDS_INITIAL_APP_SYNC = "needs_initial_app_sync"
+        private const val KEY_CHILD_AGE = "child_age"
+        private const val KEY_CHILD_AVATAR_URL = "child_avatar_url"
+        private const val KEY_CHILD_EMAIL = "child_email"
     }
 }

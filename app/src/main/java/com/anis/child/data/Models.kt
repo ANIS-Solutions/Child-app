@@ -64,3 +64,30 @@ data class FcmTokenResponse(
     @SerialName("success") val success: Boolean,
     @SerialName("message") val message: String? = null
 )
+
+@Serializable
+data class AppPackage(
+    @SerialName("packageId") val packageId: String
+)
+
+@Serializable
+data class AppsBulkResponse(
+    @SerialName("success") val success: Boolean,
+    @SerialName("message") val message: String? = null
+)
+
+@Serializable
+data class ChildMeResponse(
+    @SerialName("success") val success: Boolean,
+    @SerialName("data") val data: ChildMeData? = null,
+    @SerialName("message") val message: String? = null
+)
+
+@Serializable
+data class ChildMeData(
+    @SerialName("_id") val id: String = "",
+    @SerialName("name") val name: String = "",
+    @SerialName("age") val age: Int? = null,
+    @SerialName("avatarUrl") val avatarUrl: String? = null,
+    @SerialName("email") val email: String? = null
+)
