@@ -5,7 +5,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class PairingRequest(
-    @SerialName("childId") val childId: String,
     @SerialName("token") val token: String,
     @SerialName("fcmToken") val fcmToken: String = "",
     @SerialName("deviceId") val deviceId: String,
@@ -39,13 +38,12 @@ data class ChildData(
 @Serializable
 data class QrData(
     @SerialName("action") val action: String,
-    @SerialName("childId") val childId: String,
+    @SerialName("childId") val childId: String? = null,
     @SerialName("token") val token: String
 )
 
 @Serializable
 data class TelemetryRequest(
-    @SerialName("childId") val childId: String,
     @SerialName("lat") val lat: Double,
     @SerialName("lng") val lng: Double
 )

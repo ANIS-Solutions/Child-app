@@ -19,6 +19,7 @@ object NetworkProvider {
     private val json = Json {
         ignoreUnknownKeys = true
         coerceInputValues = true
+        encodeDefaults = true
     }
 
     fun init(context: Context) {

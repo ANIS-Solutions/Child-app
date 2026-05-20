@@ -23,7 +23,8 @@ class LocationRepository(context: Context) {
         }
         return safeApiCall {
             apiService.sendTelemetry(
-                TelemetryRequest(childId = childId, lat = lat, lng = lng)
+                childId = childId,
+                request = TelemetryRequest(lat = lat, lng = lng)
             )
         }
     }

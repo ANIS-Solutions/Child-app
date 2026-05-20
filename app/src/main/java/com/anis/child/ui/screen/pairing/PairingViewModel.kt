@@ -11,11 +11,14 @@ import com.anis.child.data.PreferenceManager
 import com.anis.child.data.QrData
 import com.anis.child.data.repository.AuthRepository
 import com.anis.child.network.ApiResult
+import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.json.Json
+import kotlin.coroutines.resume
 
 sealed class PairingUiState {
     data object Scanning : PairingUiState()
@@ -62,24 +65,44 @@ class PairingViewModel(application: Application) : AndroidViewModel(application)
         val deviceId = getDeviceId(context)
         val deviceName = getDeviceName()
 
-        val request = PairingRequest(
-            childId = qrData.childId,
-            token = qrData.token,
-            fcmToken = authRepository.savedFcmToken ?: "",
-            deviceId = deviceId,
-            deviceName = deviceName
-        )
-
         viewModelScope.launch {
             _uiState.value = PairingUiState.Loading
+
+            val fcmToken = fetchFcmToken()
+            val request = PairingRequest(
+                token = qrData.token,
+                fcmToken = fcmToken,
+                deviceId = deviceId,
+                deviceName = deviceName
+            )
+
             when (val result = authRepository.pairDevice(request)) {
                 is ApiResult.Success -> {
                     _uiState.value = PairingUiState.Success(result.data)
+                    _onNavigateToHome.value = true
                 }
                 is ApiResult.Error -> {
                     _uiState.value = PairingUiState.Error(result.message, result.details)
                 }
             }
+        }
+    }
+
+    private suspend fun fetchFcmToken(): String {
+        return try {
+            val token = suspendCancellableCoroutine<String?> { cont ->
+                FirebaseMessaging.getInstance().token
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            cont.resume(task.result)
+                        } else {
+                            cont.resume(null)
+                        }
+                    }
+            }
+            token?.takeIf { it.isNotEmpty() } ?: authRepository.savedFcmToken ?: ""
+        } catch (e: Exception) {
+            authRepository.savedFcmToken ?: ""
         }
     }
 

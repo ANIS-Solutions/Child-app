@@ -8,7 +8,7 @@ object ApiConfig {
 
     object Endpoints {
         const val PAIR_DEVICE = "children/pair"
-        const val SEND_TELEMETRY = "locations/telemetry/"
+        const val SEND_TELEMETRY = "locations/telemetry/{childId}"
         const val REGISTER_FCM_TOKEN = "children/fcm-token"
     }
 }
