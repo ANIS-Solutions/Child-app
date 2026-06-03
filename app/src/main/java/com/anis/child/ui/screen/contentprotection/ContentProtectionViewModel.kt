@@ -34,8 +34,7 @@ data class ContentProtectionUiState(
     val isLoading: Boolean = true,
     val isAccessibilityEnabled: Boolean = false,
     val newRulePattern: String = "",
-    val newRuleType: String = "keyword",
-    val selectedApp: InstalledAppInfo? = null
+    val newRuleType: String = "keyword"
 )
 
 @HiltViewModel
@@ -114,15 +113,6 @@ class ContentProtectionViewModel @Inject constructor(
         }
     }
 
-    fun updateAppCategory(packageName: String, category: String) {
-        viewModelScope.launch {
-            val existing = appRestrictionDao.getRestriction(packageName)
-            if (existing != null) {
-                appRestrictionDao.upsert(existing.copy(category = category))
-            }
-        }
-    }
-
     fun onNewRulePatternChanged(pattern: String) {
         _uiState.value = _uiState.value.copy(newRulePattern = pattern)
     }
@@ -165,7 +155,4 @@ class ContentProtectionViewModel @Inject constructor(
         }
     }
 
-    fun onSelectedApp(app: InstalledAppInfo?) {
-        _uiState.value = _uiState.value.copy(selectedApp = app)
-    }
 }

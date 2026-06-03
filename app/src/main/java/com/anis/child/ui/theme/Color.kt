@@ -23,7 +23,7 @@ object AppColors {
     val chartPrimary = Color(0xFF3F51B5)
     val surface50 = Color(0xFFFEFFFE)
     val surfaceOverlay = Color(0xFF929090)
-    val seperation = Color(0xFF686868)
+    val separation = Color(0xFF686868)
     val blur = Color(0xFFFFFFFF).copy(alpha = 0.6f)
 
     val darkBackground = Color(0xFF121212)

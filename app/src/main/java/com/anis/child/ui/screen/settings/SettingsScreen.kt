@@ -114,8 +114,6 @@ fun SettingsScreen(
             )
         }
 
-        Spacer(modifier = Modifier.weight(1f))
-
         Button(
             onClick = onSendLocationClick,
             enabled = !isSending,

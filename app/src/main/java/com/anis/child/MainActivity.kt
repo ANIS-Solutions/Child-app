@@ -8,7 +8,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -21,20 +20,18 @@ import com.anis.child.data.LogManager
 import com.anis.child.data.LogType
 import com.anis.child.data.PreferenceManager
 import com.anis.child.data.TelemetryManager
-import com.anis.child.ui.screen.home.HomeScreen
-import com.anis.child.ui.screen.home.HomeViewModel
-import com.anis.child.ui.screen.pairing.PairingScreen
-import com.anis.child.ui.screen.pairing.PairingViewModel
-import com.anis.child.ui.screen.pin.PinScreen
-import com.anis.child.ui.screen.pin.PinViewModel
 import com.anis.child.ui.screen.contentprotection.ContentProtectionScreen
 import com.anis.child.ui.screen.contentprotection.ContentProtectionViewModel
+import com.anis.child.ui.screen.home.HomeScreen
+import com.anis.child.ui.screen.home.HomeViewModel
 import com.anis.child.ui.screen.location.LocationHistoryScreen
 import com.anis.child.ui.screen.location.LocationHistoryViewModel
 import com.anis.child.ui.screen.notifications.NotificationHistoryScreen
 import com.anis.child.ui.screen.notifications.NotificationHistoryViewModel
-import com.anis.child.ui.screen.quiz.QuizScreen
-import com.anis.child.ui.screen.quiz.QuizViewModel
+import com.anis.child.ui.screen.pairing.PairingScreen
+import com.anis.child.ui.screen.pairing.PairingViewModel
+import com.anis.child.ui.screen.pin.PinScreen
+import com.anis.child.ui.screen.pin.PinViewModel
 import com.anis.child.ui.screen.reward.RewardScreen
 import com.anis.child.ui.screen.reward.RewardViewModel
 import com.anis.child.ui.screen.screentime.ScreenTimeScreen
@@ -56,7 +53,6 @@ sealed class Screen {
     data object ContentProtection : Screen()
     data object LocationHistory : Screen()
     data object Notifications : Screen()
-    data object Quiz : Screen()
     data object Task : Screen()
     data object Reward : Screen()
     data class Pin(val isSettingUp: Boolean = false) : Screen()
@@ -96,6 +92,16 @@ class MainActivity : ComponentActivity() {
         setContent {
             var isDarkMode by remember { mutableStateOf(false) }
             var currentScreen by remember { mutableStateOf<Screen>(Screen.Splash) }
+            var pendingProtectedScreen by remember { mutableStateOf<Screen?>(null) }
+
+            fun navigateToProtected(target: Screen) {
+                if (preferenceManager.hasPin) {
+                    pendingProtectedScreen = target
+                    currentScreen = Screen.Pin()
+                } else {
+                    currentScreen = target
+                }
+            }
 
             ANISTheme(darkTheme = isDarkMode) {
                 Surface(modifier = Modifier.fillMaxSize()) {
@@ -126,18 +132,11 @@ class MainActivity : ComponentActivity() {
                         is Screen.Home -> {
                             HomeScreen(
                                 childName = preferenceManager.childName ?: "Child",
-                                onSettingsClick = {
-                                    if (preferenceManager.hasPin) {
-                                        currentScreen = Screen.Pin()
-                                    } else {
-                                        currentScreen = Screen.Settings
-                                    }
-                                },
-                                onScreenTimeClick = { currentScreen = Screen.ScreenTime },
-                                onContentProtectionClick = { currentScreen = Screen.ContentProtection },
-                                onLocationClick = { currentScreen = Screen.LocationHistory },
-                                onNotificationsClick = { currentScreen = Screen.Notifications },
-                                onQuizClick = { currentScreen = Screen.Quiz },
+                                onSettingsClick = { navigateToProtected(Screen.Settings) },
+                                onScreenTimeClick = { navigateToProtected(Screen.ScreenTime) },
+                                onContentProtectionClick = { navigateToProtected(Screen.ContentProtection) },
+                                onLocationClick = { navigateToProtected(Screen.LocationHistory) },
+                                onNotificationsClick = { navigateToProtected(Screen.Notifications) },
                                 onTaskClick = { currentScreen = Screen.Task },
                                 onRewardClick = { currentScreen = Screen.Reward }
                             )
@@ -148,8 +147,14 @@ class MainActivity : ComponentActivity() {
                             PinScreen(
                                 viewModel = pinViewModel,
                                 isSettingUp = screen.isSettingUp,
-                                onVerified = { currentScreen = Screen.Settings },
-                                onCancel = { currentScreen = Screen.Home }
+                                onVerified = {
+                                    currentScreen = pendingProtectedScreen ?: Screen.Settings
+                                    pendingProtectedScreen = null
+                                },
+                                onCancel = {
+                                    currentScreen = Screen.Home
+                                    pendingProtectedScreen = null
+                                }
                             )
                         }
 
@@ -233,14 +238,6 @@ class MainActivity : ComponentActivity() {
                             val notificationViewModel: NotificationHistoryViewModel = hiltViewModel()
                             NotificationHistoryScreen(
                                 viewModel = notificationViewModel,
-                                onBack = { currentScreen = Screen.Home }
-                            )
-                        }
-
-                        is Screen.Quiz -> {
-                            val quizViewModel: QuizViewModel = hiltViewModel()
-                            QuizScreen(
-                                viewModel = quizViewModel,
                                 onBack = { currentScreen = Screen.Home }
                             )
                         }

@@ -31,9 +31,6 @@ interface NotificationInterceptDao {
     @Query("DELETE FROM notification_intercepts WHERE id = :id")
     suspend fun delete(id: Long)
 
-    @Query("DELETE FROM notification_intercepts WHERE isRead = 1")
-    suspend fun deleteAllRead()
-
     @Query("DELETE FROM notification_intercepts")
     suspend fun clearAll()
 }

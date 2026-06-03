@@ -8,7 +8,6 @@ import com.anis.child.data.local.AppRestrictionDao
 import com.anis.child.data.local.LocationTelemetryDao
 import com.anis.child.data.local.ContentFilterRuleDao
 import com.anis.child.data.local.NotificationInterceptDao
-import com.anis.child.data.local.QuizDao
 import com.anis.child.data.local.RewardDao
 import com.anis.child.data.local.ScreenTimeConfigDao
 import com.anis.child.data.local.TaskDao
@@ -75,12 +74,6 @@ object AppModule {
     @Singleton
     fun provideScreenTimeConfigDao(database: AppDatabase): ScreenTimeConfigDao {
         return database.screenTimeConfigDao()
-    }
-
-    @Provides
-    @Singleton
-    fun provideQuizDao(database: AppDatabase): QuizDao {
-        return database.quizDao()
     }
 
     @Provides

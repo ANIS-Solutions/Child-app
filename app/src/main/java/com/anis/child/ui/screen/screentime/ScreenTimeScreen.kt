@@ -33,8 +33,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -136,7 +134,6 @@ fun ScreenTimeScreen(
 
                 item {
                     RestrictionControls(
-                        isServiceRunning = false,
                         onStartService = { viewModel.startRestrictionService() },
                         onStopService = { viewModel.stopRestrictionService() }
                     )
@@ -313,7 +310,6 @@ private fun AppUsageRow(app: AppUsageInfo) {
 
 @Composable
 private fun RestrictionControls(
-    isServiceRunning: Boolean,
     onStartService: () -> Unit,
     onStopService: () -> Unit
 ) {
@@ -335,20 +331,19 @@ private fun RestrictionControls(
                         fontWeight = FontWeight.Medium
                     )
                     Text(
-                        text = if (isServiceRunning) "Running — blocking restricted apps"
-                        else "Not running — restrictions not enforced",
+                        text = "Not running — restrictions not enforced",
                         style = MaterialTheme.typography.bodySmall,
                         color = AppColors.textSecondary
                     )
                 }
                 Button(
-                    onClick = { if (isServiceRunning) onStopService() else onStartService() },
+                    onClick = onStartService,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isServiceRunning) AppColors.error500 else AppColors.primary01
+                        containerColor = AppColors.primary01
                     )
                 ) {
                     Text(
-                        text = if (isServiceRunning) "Stop" else "Start",
+                        text = "Start",
                         color = AppColors.darkTextPrimary
                     )
                 }

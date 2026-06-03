@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anis.child.data.ScreenTimeManager
 import com.anis.child.data.ScreenTimeSummary
-import com.anis.child.data.local.AppDatabase
 import com.anis.child.data.local.AppRestrictionEntity
 import com.anis.child.data.local.ScreenTimeConfigEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,7 +12,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -66,20 +64,6 @@ class ScreenTimeViewModel @Inject constructor(
     fun updateConfig(config: ScreenTimeConfigEntity) {
         viewModelScope.launch {
             screenTimeManager.updateConfig(config)
-            refresh()
-        }
-    }
-
-    fun setAppBlocked(packageName: String, label: String, blocked: Boolean) {
-        viewModelScope.launch {
-            val db = AppDatabase.getInstance(context)
-            db.appRestrictionDao().upsert(
-                AppRestrictionEntity(
-                    packageName = packageName,
-                    label = label,
-                    isBlocked = blocked
-                )
-            )
             refresh()
         }
     }

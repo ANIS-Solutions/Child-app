@@ -9,7 +9,6 @@ import com.anis.child.data.LogType
 import com.anis.child.data.PreferenceManager
 import com.anis.child.data.repository.AppsRepository
 import com.anis.child.data.repository.LocationRepository
-import com.anis.child.data.ChildMeData
 import com.anis.child.network.ApiResult
 import com.anis.child.network.ApiService
 import com.anis.child.network.safeApiCall
@@ -41,9 +40,6 @@ class HomeViewModel @Inject constructor(
 
     private val _isFetchingChild = MutableStateFlow(false)
     val isFetchingChild: StateFlow<Boolean> = _isFetchingChild.asStateFlow()
-
-    private val _childMe = MutableStateFlow<ChildMeData?>(null)
-    val childMe: StateFlow<ChildMeData?> = _childMe.asStateFlow()
 
     fun sendCurrentLocation(context: Context) {
         if (_isSending.value) return
@@ -131,7 +127,6 @@ class HomeViewModel @Inject constructor(
                     is ApiResult.Success -> {
                         val data = result.data.data
                         if (data != null) {
-                            _childMe.value = data
                             preferenceManager.childId = data.id
                             preferenceManager.childName = data.name
                             preferenceManager.childAge = data.age

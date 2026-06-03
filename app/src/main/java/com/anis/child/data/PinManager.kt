@@ -52,22 +52,7 @@ class PinManager @Inject constructor(
         return true
     }
 
-    fun getRemainingLockoutMs(): Long {
-        val lockoutUntil = preferenceManager.pinLockoutUntil
-        if (lockoutUntil == 0L) return 0
-        val remaining = lockoutUntil - System.currentTimeMillis()
-        return remaining.coerceAtLeast(0)
-    }
-
     fun getFailedAttempts(): Int = preferenceManager.failedPinAttempts
-
-    fun clearPin() {
-        preferenceManager.pinHash = null
-        preferenceManager.pinSalt = null
-        preferenceManager.hasPin = false
-        preferenceManager.failedPinAttempts = 0
-        preferenceManager.pinLockoutUntil = 0
-    }
 
     private fun hashPin(pin: String, salt: ByteArray): String {
         val digest = MessageDigest.getInstance("SHA-256")

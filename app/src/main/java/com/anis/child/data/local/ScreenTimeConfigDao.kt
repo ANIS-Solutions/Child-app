@@ -13,9 +13,4 @@ interface ScreenTimeConfigDao {
     @Query("SELECT * FROM screen_time_config WHERE id = 1")
     suspend fun getConfig(): ScreenTimeConfigEntity?
 
-    @Query("UPDATE screen_time_config SET extraTimeEarnedMinutes = :minutes WHERE id = 1")
-    suspend fun addExtraTime(minutes: Int)
-
-    @Query("UPDATE screen_time_config SET temporaryRestrictionUntil = :until WHERE id = 1")
-    suspend fun setTemporaryRestriction(until: Long?)
 }

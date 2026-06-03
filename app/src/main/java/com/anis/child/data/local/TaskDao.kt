@@ -1,7 +1,6 @@
 package com.anis.child.data.local
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
@@ -14,9 +13,6 @@ interface TaskDao {
 
     @Update
     suspend fun update(task: TaskEntity)
-
-    @Delete
-    suspend fun delete(task: TaskEntity)
 
     @Query("SELECT * FROM tasks ORDER BY createdAt DESC")
     fun getAllTasks(): Flow<List<TaskEntity>>

@@ -12,9 +12,6 @@ interface AppRestrictionDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(restriction: AppRestrictionEntity)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun upsertAll(restrictions: List<AppRestrictionEntity>)
-
     @Update
     suspend fun update(restriction: AppRestrictionEntity)
 

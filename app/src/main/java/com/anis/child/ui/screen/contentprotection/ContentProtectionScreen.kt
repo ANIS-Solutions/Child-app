@@ -2,7 +2,6 @@ package com.anis.child.ui.screen.contentprotection
 
 import android.content.pm.PackageManager
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -41,7 +40,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
@@ -233,9 +231,9 @@ private fun AccessibilityStatusCard() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                if (false) Icons.Default.CheckCircle else Icons.Default.Warning,
+                Icons.Default.Warning,
                 null,
-                tint = if (false) AppColors.success500 else AppColors.warning500,
+                tint = AppColors.warning500,
                 modifier = Modifier.size(32.dp)
             )
             Spacer(Modifier.width(12.dp))

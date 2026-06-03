@@ -12,8 +12,6 @@ class RewardRepository @Inject constructor(
 ) {
     fun getAllRewards(): Flow<List<RewardEntity>> = rewardDao.getAllRewards()
 
-    fun getRewardsByState(state: String): Flow<List<RewardEntity>> = rewardDao.getRewardsByState(state)
-
     suspend fun getBalance(): Int {
         val earned = rewardDao.getTotalPointsEarned() ?: 0
         val spent = rewardDao.getTotalPointsSpent()

@@ -16,8 +16,6 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         RewardEntity::class,
         AppRestrictionEntity::class,
         ScreenTimeConfigEntity::class,
-        QuizEntity::class,
-        QuizQuestionEntity::class,
         ContentFilterRuleEntity::class,
         NotificationInterceptEntity::class
     ],
@@ -33,7 +31,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun rewardDao(): RewardDao
     abstract fun appRestrictionDao(): AppRestrictionDao
     abstract fun screenTimeConfigDao(): ScreenTimeConfigDao
-    abstract fun quizDao(): QuizDao
     abstract fun contentFilterRuleDao(): ContentFilterRuleDao
     abstract fun notificationInterceptDao(): NotificationInterceptDao
 
@@ -123,35 +120,6 @@ abstract class AppDatabase : RoomDatabase() {
             db.execSQL("INSERT OR IGNORE INTO screen_time_config (id) VALUES (1)")
         }
 
-        val MIGRATION_3_4 = Migration(3, 4) { db ->
-            db.execSQL("CREATE TABLE IF NOT EXISTS quizzes (" +
-                    "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
-                    "remoteId TEXT NOT NULL DEFAULT '', " +
-                    "title TEXT NOT NULL, " +
-                    "subject TEXT NOT NULL DEFAULT '', " +
-                    "difficulty TEXT NOT NULL DEFAULT 'medium', " +
-                    "rewardPoints INTEGER NOT NULL DEFAULT 0, " +
-                    "timeLimitMinutes INTEGER NOT NULL DEFAULT 10, " +
-                    "dueDate INTEGER, " +
-                    "isCompleted INTEGER NOT NULL DEFAULT 0, " +
-                    "score INTEGER NOT NULL DEFAULT 0, " +
-                    "totalQuestions INTEGER NOT NULL DEFAULT 0, " +
-                    "answeredCorrectly INTEGER NOT NULL DEFAULT 0, " +
-                    "assignedAt INTEGER NOT NULL, " +
-                    "completedAt INTEGER)")
-
-            db.execSQL("CREATE TABLE IF NOT EXISTS quiz_questions (" +
-                    "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
-                    "quizId INTEGER NOT NULL, " +
-                    "questionText TEXT NOT NULL, " +
-                    "options TEXT NOT NULL, " +
-                    "correctIndex INTEGER NOT NULL, " +
-                    "selectedIndex INTEGER, " +
-                    "FOREIGN KEY (quizId) REFERENCES quizzes(id) ON DELETE CASCADE)")
-
-            db.execSQL("CREATE INDEX IF NOT EXISTS idx_quiz_questions_quizId ON quiz_questions(quizId)")
-        }
-
         val MIGRATION_4_5 = Migration(4, 5) { db ->
             db.execSQL("CREATE TABLE IF NOT EXISTS content_filter_rules (" +
                     "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
@@ -180,7 +148,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "anis_database"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+                    .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
                 instance

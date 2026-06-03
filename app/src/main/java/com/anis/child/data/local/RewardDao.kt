@@ -17,9 +17,6 @@ interface RewardDao {
     @Query("SELECT * FROM rewards ORDER BY earnedAt DESC")
     fun getAllRewards(): Flow<List<RewardEntity>>
 
-    @Query("SELECT * FROM rewards WHERE state = :state ORDER BY earnedAt DESC")
-    fun getRewardsByState(state: String): Flow<List<RewardEntity>>
-
     @Query("SELECT SUM(pointCost) FROM rewards WHERE state = 'consumed'")
     suspend fun getTotalPointsSpent(): Int
 
