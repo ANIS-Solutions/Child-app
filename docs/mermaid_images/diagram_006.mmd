@@ -1,0 +1,12 @@
+sequenceDiagram
+    participant Backend as Backend
+    participant Parent as Parent App
+
+    Backend->>Parent: FCM Push: Policy Update
+    Note over Backend: { policyId, restrictions }
+    Backend->>Parent: FCM Push: Violation Alert
+    Note over Backend: { type, timestamp, app }
+    Backend->>Parent: FCM Push: Report Available
+    Note over Backend: { reportId, period }
+    Backend->>Parent: WebSocket: Real-time status
+    Note over Backend: { online, currentApp, ... }

@@ -1,0 +1,10 @@
+sequenceDiagram
+    participant Child as Child Device
+    participant Backend as Backend
+
+    Child->>Backend: POST locations/telemetry/{childId}
+    Note over Child: { latitude, longitude, timestamp }
+    Backend-->>Child: 200 OK
+
+    Note over Child: Trigger: Periodic (hourly via WorkManager)<br/>or event-driven (FCM silent push)
+    Note over Child: Offline: Queued in Room with isSent=false,<br/>retried with exponential backoff

@@ -12,12 +12,14 @@ import com.anis.child.data.QrData
 import com.anis.child.data.repository.AuthRepository
 import com.anis.child.network.ApiResult
 import com.google.firebase.messaging.FirebaseMessaging
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.json.Json
+import javax.inject.Inject
 import kotlin.coroutines.resume
 
 sealed class PairingUiState {
@@ -27,10 +29,13 @@ sealed class PairingUiState {
     data class Error(val message: String, val details: String? = null) : PairingUiState()
 }
 
-class PairingViewModel(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class PairingViewModel @Inject constructor(
+    private val application: Application,
+    private val preferenceManager: PreferenceManager,
+    private val authRepository: AuthRepository
+) : AndroidViewModel(application) {
 
-    private val preferenceManager = PreferenceManager(application)
-    private val authRepository = AuthRepository(preferenceManager)
     private val json = Json { ignoreUnknownKeys = true }
 
     private val _uiState = MutableStateFlow<PairingUiState>(PairingUiState.Scanning)

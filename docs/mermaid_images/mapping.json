@@ -1,0 +1,82 @@
+{
+  "SYSTEM-ARCHITECTURE-DESIGN.md": [
+    {
+      "start": 8,
+      "end": 46,
+      "img": "diagram_001.png"
+    },
+    {
+      "start": 255,
+      "end": 284,
+      "img": "diagram_002.png"
+    },
+    {
+      "start": 372,
+      "end": 383,
+      "img": "diagram_003.png"
+    },
+    {
+      "start": 387,
+      "end": 398,
+      "img": "diagram_004.png"
+    },
+    {
+      "start": 402,
+      "end": 415,
+      "img": "diagram_005.png"
+    },
+    {
+      "start": 419,
+      "end": 432,
+      "img": "diagram_006.png"
+    },
+    {
+      "start": 447,
+      "end": 455,
+      "img": "diagram_007.png"
+    },
+    {
+      "start": 459,
+      "end": 477,
+      "img": "diagram_008.png"
+    }
+  ],
+  "SYSTEM-IMPLEMENTATION.md": [
+    {
+      "start": 92,
+      "end": 131,
+      "img": "diagram_009.png"
+    },
+    {
+      "start": 191,
+      "end": 205,
+      "img": "diagram_010.png"
+    },
+    {
+      "start": 227,
+      "end": 236,
+      "img": "diagram_011.png"
+    },
+    {
+      "start": 407,
+      "end": 422,
+      "img": "diagram_012.png"
+    },
+    {
+      "start": 485,
+      "end": 495,
+      "img": "diagram_013.png"
+    },
+    {
+      "start": 668,
+      "end": 688,
+      "img": "diagram_014.png"
+    },
+    {
+      "start": 909,
+      "end": 925,
+      "img": "diagram_015.png"
+    }
+  ],
+  "TESTING-EVALUATION.md": []
+}

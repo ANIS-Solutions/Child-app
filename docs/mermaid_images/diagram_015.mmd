@@ -1,0 +1,15 @@
+graph TD
+    Trigger["User taps Settings gear icon"] --> ShowPin["PinScreen shown\n(4-6 digit numeric)"]
+    ShowPin --> Enter["User enters PIN"]
+    Enter --> Hash["Hash comparison\nSHA-256(PIN + salt)"]
+
+    Hash -->|"Match"| Access["Access Settings\n(reset fail count)"]
+    Hash -->|"No match"| Increment["Increment fail count"]
+
+    Increment --> Check{"Fail >= 5?"}
+    Check -->|"No"| ShowPin
+    Check -->|"Yes"| Lockout["30s Lockout\n(cooldown timer)"]
+    Lockout -->|"Timer expired"| ShowPin
+
+    style Access fill:#e8f5e9,stroke:#2e7d32
+    style Lockout fill:#ffebee,stroke:#c62828

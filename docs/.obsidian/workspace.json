@@ -1,0 +1,260 @@
+{
+  "main": {
+    "id": "af5aaabb1c2cc5f8",
+    "type": "split",
+    "children": [
+      {
+        "id": "2dbeec0b02afd1f6",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "01801028a87ab67e",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "SYSTEM-ARCHITECTURE-DESIGN.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "SYSTEM-ARCHITECTURE-DESIGN"
+            }
+          },
+          {
+            "id": "a77ba26936aad180",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "SYSTEM-IMPLEMENTATION.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "SYSTEM-IMPLEMENTATION"
+            }
+          },
+          {
+            "id": "62623744230ba573",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "TESTING-EVALUATION.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "TESTING-EVALUATION"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "a14bb82da06db986",
+    "type": "split",
+    "children": [
+      {
+        "id": "8be103fb2dcb1334",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "755613eb9bb11c83",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "287c1143c6ce29bf",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "aba8aca762920ed9",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 200,
+    "collapsed": true
+  },
+  "right": {
+    "id": "7e15278234e9acae",
+    "type": "split",
+    "children": [
+      {
+        "id": "0b876932c6440142",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "d1e7ddbbfdc7ae10",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "ANIS-Child-Application-Documentation.pdf",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for ANIS-Child-Application-Documentation"
+            }
+          },
+          {
+            "id": "65f19f292f3c43ef",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "ANIS-Child-Application-Documentation.pdf",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from ANIS-Child-Application-Documentation"
+            }
+          },
+          {
+            "id": "d8d220658a7ff70a",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "8dc4387c5f4dfd19",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "3173335bfeed9be8",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "ANIS-Child-Application-Documentation.pdf",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of ANIS-Child-Application-Documentation"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "01801028a87ab67e",
+  "lastOpenFiles": [
+    "mermaid_images/mapping.json",
+    "mermaid_images/diagram_015.png",
+    "mermaid_images/diagram_015.mmd",
+    "mermaid_images/diagram_014.png",
+    "mermaid_images/diagram_014.mmd",
+    "mermaid_images/diagram_013.png",
+    "mermaid_images/diagram_013.mmd",
+    "mermaid_images/diagram_012.png",
+    "mermaid_images/diagram_012.mmd",
+    "mermaid_images/diagram_011.png",
+    "mermaid_images/diagram_011.mmd",
+    "mermaid_images/diagram_010.png",
+    "mermaid_images/diagram_010.mmd",
+    "mermaid_images/diagram_009.png",
+    "mermaid_images/diagram_009.mmd",
+    "mermaid_images/diagram_008.png",
+    "mermaid_images/diagram_008.mmd",
+    "mermaid_images/diagram_007.png",
+    "mermaid_images/diagram_007.mmd",
+    "mermaid_images/diagram_006.png",
+    "mermaid_images/diagram_006.mmd",
+    "SYSTEM-IMPLEMENTATION.md",
+    "SYSTEM-ARCHITECTURE-DESIGN.md",
+    "TESTING-EVALUATION.md",
+    "README.md",
+    "plan.md",
+    "14-TESTING.md",
+    "13-BENEFITS-IMPACT.md",
+    "12-DATA-FLOW.md",
+    "11-PRIVACY-ETHICS.md",
+    "10-SECURITY-RELIABILITY.md",
+    "09-DEPENDENCY-INJECTION.md",
+    "08-COMMUNICATION.md",
+    "07-ANDROID-COMPONENTS.md",
+    "06-REWARD-SYSTEM.md",
+    "05-TASKS-SYSTEM.md",
+    "04-CORE-FUNCTIONALITIES.md",
+    "03-APPLICATION-ARCHITECTURE.md",
+    "02-TECHNOLOGY-SELECTION.md",
+    "01-INTRODUCTION.md",
+    "DOCUMENTATION_PLAN.md",
+    "01.md"
+  ]
+}

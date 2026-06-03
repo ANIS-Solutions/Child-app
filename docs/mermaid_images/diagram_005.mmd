@@ -1,0 +1,12 @@
+sequenceDiagram
+    participant Child as Child Device
+    participant Backend as Backend
+
+    Child->>Backend: POST sessions
+    Note over Child: { session data }
+    Child->>Backend: POST analysis-results
+    Note over Child: { blocked frame details }
+    Backend-->>Child: 200 OK
+
+    Note over Child: SAFE results: Batched, uploaded periodically
+    Note over Child: BLOCKED results: Immediately uploaded

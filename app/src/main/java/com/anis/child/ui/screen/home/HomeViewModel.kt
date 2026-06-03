@@ -9,23 +9,29 @@ import com.anis.child.data.LogType
 import com.anis.child.data.PreferenceManager
 import com.anis.child.data.repository.AppsRepository
 import com.anis.child.data.repository.LocationRepository
-import com.anis.child.data.AppPackage
-import com.anis.child.data.AppsBulkResponse
 import com.anis.child.data.ChildMeData
-import com.anis.child.data.ChildMeResponse
 import com.anis.child.network.ApiResult
-import com.anis.child.network.NetworkProvider
+import com.anis.child.network.ApiService
 import com.anis.child.network.safeApiCall
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class HomeViewModel : ViewModel() {
+@HiltViewModel
+class HomeViewModel @Inject constructor(
+    private val preferenceManager: PreferenceManager,
+    private val logManager: LogManager,
+    private val locationRepository: LocationRepository,
+    private val appsRepository: AppsRepository,
+    private val apiService: ApiService
+) : ViewModel() {
 
     private val _isSending = MutableStateFlow(false)
     val isSending: StateFlow<Boolean> = _isSending.asStateFlow()
@@ -41,7 +47,6 @@ class HomeViewModel : ViewModel() {
 
     fun sendCurrentLocation(context: Context) {
         if (_isSending.value) return
-
         _isSending.value = true
         viewModelScope.launch {
             try {
@@ -54,9 +59,6 @@ class HomeViewModel : ViewModel() {
 
     @SuppressLint("MissingPermission")
     private suspend fun sendLocationNow(context: Context) {
-        val logManager = LogManager(context)
-        val locationRepository = LocationRepository(context)
-
         val fusedLocationClient: FusedLocationProviderClient =
             LocationServices.getFusedLocationProviderClient(context)
 
@@ -96,14 +98,10 @@ class HomeViewModel : ViewModel() {
 
     fun sendInstalledApps(context: Context) {
         if (_isSendingApps.value) return
-
         _isSendingApps.value = true
         viewModelScope.launch {
             try {
-                val logManager = LogManager(context)
-                val appsRepository = AppsRepository(context)
                 val apps = appsRepository.getInstalledApps()
-
                 logManager.log("Sending ${apps.size} app(s)...", LogType.INFO)
 
                 when (val result = appsRepository.sendAppsList(apps)) {
@@ -115,7 +113,7 @@ class HomeViewModel : ViewModel() {
                     }
                 }
             } catch (e: Exception) {
-                LogManager(context).log("Apps error: ${e.message}", LogType.ERROR)
+                logManager.log("Apps error: ${e.message}", LogType.ERROR)
             } finally {
                 _isSendingApps.value = false
             }
@@ -124,17 +122,12 @@ class HomeViewModel : ViewModel() {
 
     fun fetchChildMe(context: Context) {
         if (_isFetchingChild.value) return
-
         _isFetchingChild.value = true
         viewModelScope.launch {
             try {
-                val logManager = LogManager(context)
-                val preferenceManager = PreferenceManager(context)
-                val api = NetworkProvider.provideApiService()
-
                 logManager.log("Fetching child data...", LogType.INFO)
 
-                when (val result = safeApiCall { api.getChildMe() }) {
+                when (val result = safeApiCall { apiService.getChildMe() }) {
                     is ApiResult.Success -> {
                         val data = result.data.data
                         if (data != null) {
@@ -154,7 +147,7 @@ class HomeViewModel : ViewModel() {
                     }
                 }
             } catch (e: Exception) {
-                LogManager(context).log("Fetch error: ${e.message}", LogType.ERROR)
+                logManager.log("Fetch error: ${e.message}", LogType.ERROR)
             } finally {
                 _isFetchingChild.value = false
             }

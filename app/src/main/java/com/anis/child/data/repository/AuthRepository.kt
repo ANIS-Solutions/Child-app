@@ -1,17 +1,19 @@
 package com.anis.child.data.repository
 
 import com.anis.child.data.ChildData
-import com.anis.child.data.PreferenceManager
 import com.anis.child.data.PairingRequest
+import com.anis.child.data.PreferenceManager
 import com.anis.child.network.ApiResult
-import com.anis.child.network.NetworkProvider
+import com.anis.child.network.ApiService
 import com.anis.child.network.safeApiCall
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class AuthRepository(
-    private val preferenceManager: PreferenceManager
+@Singleton
+class AuthRepository @Inject constructor(
+    private val preferenceManager: PreferenceManager,
+    private val apiService: ApiService
 ) {
-    private val apiService = NetworkProvider.provideApiService()
-
     val savedFcmToken: String? get() = preferenceManager.fcmToken
 
     suspend fun pairDevice(request: PairingRequest): ApiResult<ChildData> {

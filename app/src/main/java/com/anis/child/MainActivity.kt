@@ -16,8 +16,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.anis.child.data.LogManager
 import com.anis.child.data.LogType
 import com.anis.child.data.PreferenceManager
@@ -26,14 +25,28 @@ import com.anis.child.ui.screen.home.HomeScreen
 import com.anis.child.ui.screen.home.HomeViewModel
 import com.anis.child.ui.screen.pairing.PairingScreen
 import com.anis.child.ui.screen.pairing.PairingViewModel
+import com.anis.child.ui.screen.pin.PinScreen
+import com.anis.child.ui.screen.pin.PinViewModel
 import com.anis.child.ui.screen.settings.SettingsScreen
+import com.anis.child.ui.screen.splash.SplashScreen
 import com.anis.child.ui.theme.ANISTheme
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+sealed class Screen {
+    data object Splash : Screen()
+    data object Pairing : Screen()
+    data object Home : Screen()
+    data object Settings : Screen()
+    data class Pin(val isSettingUp: Boolean = false) : Screen()
+}
+
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    private lateinit var preferenceManager: PreferenceManager
-    private lateinit var telemetryManager: TelemetryManager
-    private lateinit var logManager: LogManager
+    @Inject lateinit var preferenceManager: PreferenceManager
+    @Inject lateinit var telemetryManager: TelemetryManager
+    @Inject lateinit var logManager: LogManager
 
     private val locationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -53,10 +66,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        preferenceManager = PreferenceManager(this)
-        telemetryManager = TelemetryManager(this)
-        logManager = LogManager(this)
-
         logManager.log("App started", LogType.INFO)
 
         if (preferenceManager.isMonitoringEnabled) {
@@ -65,43 +74,111 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             var isDarkMode by remember { mutableStateOf(false) }
+            var currentScreen by remember { mutableStateOf<Screen>(Screen.Splash) }
 
             ANISTheme(darkTheme = isDarkMode) {
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    val isLoggedIn = preferenceManager.isLoggedIn
+                    when (val screen = currentScreen) {
+                        is Screen.Splash -> {
+                            SplashScreen(
+                                onSplashComplete = {
+                                    currentScreen = if (preferenceManager.isLoggedIn) {
+                                        Screen.Home
+                                    } else {
+                                        Screen.Pairing
+                                    }
+                                }
+                            )
+                        }
 
-                    if (isLoggedIn) {
-                        MainNavigation(
-                            childName = preferenceManager.childName ?: "Child",
-                            onLogout = {
-                                telemetryManager.stopMonitoring()
-                                preferenceManager.clear()
-                                logManager.clear()
-                                logManager.log("Logged out", LogType.INFO)
-                                recreate()
-                            },
-                            isDarkMode = isDarkMode,
-                            isMonitoringEnabled = preferenceManager.isMonitoringEnabled,
-                            onDarkModeChange = { isDarkMode = it },
-                            onMonitoringChange = { enabled ->
-                                preferenceManager.isMonitoringEnabled = enabled
-                                if (enabled) {
-                                    requestLocationPermissions()
-                                } else {
-                                    telemetryManager.stopMonitoring()
-                                    logManager.log("Location monitoring stopped", LogType.INFO)
+                        is Screen.Pairing -> {
+                            val pairingViewModel: PairingViewModel = hiltViewModel()
+                            PairingScreen(
+                                viewModel = pairingViewModel,
+                                onNavigateToHome = {
+                                    logManager.log("Paired successfully", LogType.SUCCESS)
+                                    currentScreen = Screen.Home
+                                }
+                            )
+                        }
+
+                        is Screen.Home -> {
+                            HomeScreen(
+                                childName = preferenceManager.childName ?: "Child",
+                                onSettingsClick = {
+                                    if (preferenceManager.hasPin) {
+                                        currentScreen = Screen.Pin()
+                                    } else {
+                                        currentScreen = Screen.Settings
+                                    }
+                                }
+                            )
+                        }
+
+                        is Screen.Pin -> {
+                            val pinViewModel: PinViewModel = hiltViewModel()
+                            PinScreen(
+                                viewModel = pinViewModel,
+                                isSettingUp = screen.isSettingUp,
+                                onVerified = {
+                                    currentScreen = Screen.Settings
+                                },
+                                onCancel = {
+                                    currentScreen = Screen.Home
+                                }
+                            )
+                        }
+
+                        is Screen.Settings -> {
+                            val homeViewModel: HomeViewModel = hiltViewModel()
+                            val isSending by homeViewModel.isSending.collectAsState()
+                            val isSendingApps by homeViewModel.isSendingApps.collectAsState()
+                            val isFetchingChild by homeViewModel.isFetchingChild.collectAsState()
+
+                            LaunchedEffect(Unit) {
+                                if (preferenceManager.needsInitialAppSync) {
+                                    preferenceManager.needsInitialAppSync = false
+                                    homeViewModel.sendInstalledApps(this@MainActivity)
+                                    homeViewModel.fetchChildMe(this@MainActivity)
                                 }
                             }
-                        )
-                    } else {
-                        val pairingViewModel: PairingViewModel = viewModel()
-                        PairingScreen(
-                            viewModel = pairingViewModel,
-                            onNavigateToHome = {
-                                logManager.log("Paired successfully", LogType.SUCCESS)
-                                recreate()
-                            }
-                        )
+
+                            SettingsScreen(
+                                logManager = logManager,
+                                isDarkMode = isDarkMode,
+                                isMonitoringEnabled = preferenceManager.isMonitoringEnabled,
+                                childId = preferenceManager.childId,
+                                onDarkModeChange = { isDarkMode = it },
+                                onMonitoringChange = { enabled ->
+                                    preferenceManager.isMonitoringEnabled = enabled
+                                    if (enabled) {
+                                        requestLocationPermissions()
+                                    } else {
+                                        telemetryManager.stopMonitoring()
+                                        logManager.log("Location monitoring stopped", LogType.INFO)
+                                    }
+                                },
+                                onSendLocationClick = {
+                                    homeViewModel.sendCurrentLocation(this@MainActivity)
+                                },
+                                isSending = isSending,
+                                onSendAppsClick = {
+                                    homeViewModel.sendInstalledApps(this@MainActivity)
+                                },
+                                isSendingApps = isSendingApps,
+                                onGetMeClick = {
+                                    homeViewModel.fetchChildMe(this@MainActivity)
+                                },
+                                isFetchingChild = isFetchingChild,
+                                onLogout = {
+                                    telemetryManager.stopMonitoring()
+                                    preferenceManager.clear()
+                                    logManager.clear()
+                                    logManager.log("Logged out", LogType.INFO)
+                                    currentScreen = Screen.Pairing
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -114,66 +191,6 @@ class MainActivity : ComponentActivity() {
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION
             )
-        )
-    }
-}
-
-@Composable
-private fun MainNavigation(
-    childName: String,
-    onLogout: () -> Unit,
-    isDarkMode: Boolean,
-    isMonitoringEnabled: Boolean,
-    onDarkModeChange: (Boolean) -> Unit,
-    onMonitoringChange: (Boolean) -> Unit
-) {
-    val context = LocalContext.current
-    val logManager = remember { LogManager(context) }
-    val homeViewModel: HomeViewModel = viewModel()
-    val isSending by homeViewModel.isSending.collectAsState()
-    val isSendingApps by homeViewModel.isSendingApps.collectAsState()
-    val isFetchingChild by homeViewModel.isFetchingChild.collectAsState()
-    val preferenceManager = remember { PreferenceManager(context) }
-
-    LaunchedEffect(Unit) {
-        if (preferenceManager.needsInitialAppSync) {
-            preferenceManager.needsInitialAppSync = false
-            homeViewModel.sendInstalledApps(context)
-            homeViewModel.fetchChildMe(context)
-        }
-    }
-
-    var showSettings by remember { mutableStateOf(false) }
-
-    if (showSettings) {
-        SettingsScreen(
-            logManager = logManager,
-            isDarkMode = isDarkMode,
-            isMonitoringEnabled = isMonitoringEnabled,
-            childId = preferenceManager.childId,
-            onDarkModeChange = onDarkModeChange,
-            onMonitoringChange = onMonitoringChange,
-            onSendLocationClick = {
-                homeViewModel.sendCurrentLocation(context)
-            },
-            isSending = isSending,
-            onSendAppsClick = {
-                homeViewModel.sendInstalledApps(context)
-            },
-            isSendingApps = isSendingApps,
-            onGetMeClick = {
-                homeViewModel.fetchChildMe(context)
-            },
-            isFetchingChild = isFetchingChild,
-            onLogout = {
-                onLogout()
-                showSettings = false
-            }
-        )
-    } else {
-        HomeScreen(
-            childName = childName,
-            onSettingsClick = { showSettings = true }
         )
     }
 }

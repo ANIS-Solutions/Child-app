@@ -5,10 +5,13 @@ import com.anis.child.data.LogType
 import okhttp3.Interceptor
 import okhttp3.Response
 import okio.Buffer
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class AppLoggingInterceptor(logManager: LogManager) : Interceptor {
-
-    private val logManager = logManager
+@Singleton
+class AppLoggingInterceptor @Inject constructor(
+    private val logManager: LogManager
+) : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()

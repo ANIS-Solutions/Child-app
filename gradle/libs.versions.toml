@@ -23,6 +23,8 @@ locationServices = "21.3.0"
 playServicesLocation = "21.3.0"
 googleServices = "4.4.2"
 firebaseBom = "33.12.0"
+hilt = "2.51.1"
+hiltNavigationCompose = "1.2.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -61,6 +63,9 @@ androidx-room-compiler = { group = "androidx.room", name = "room-compiler", vers
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging-ktx" }
+hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
+hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
+hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hiltNavigationCompose" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -69,4 +74,5 @@ kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "ko
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version = "2.0.21-1.0.26" }
 google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
+hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 

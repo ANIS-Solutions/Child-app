@@ -12,11 +12,10 @@ import androidx.work.WorkerParameters
 import com.anis.child.data.LogManager
 import com.anis.child.data.LogType
 import com.anis.child.data.local.AppDatabase
-import com.anis.child.data.repository.LocationRepository
 import com.anis.child.network.ApiResult
+import com.anis.child.network.NetworkProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import retrofit2.HttpException
 import java.util.concurrent.TimeUnit
 
 class LocationTelemetryWorker(
@@ -24,7 +23,7 @@ class LocationTelemetryWorker(
     workerParams: WorkerParameters
 ) : CoroutineWorker(context, workerParams) {
 
-    private val locationRepository = LocationRepository(context)
+    private val locationRepository = NetworkProvider.provideLocationRepository()
     private val database = AppDatabase.getInstance(context)
     private val dao = database.locationTelemetryDao()
     private val logManager = LogManager(context)
@@ -62,16 +61,6 @@ class LocationTelemetryWorker(
                 logManager.log("Worker: All locations synced", LogType.SUCCESS)
                 Result.success()
             }
-        } catch (e: HttpException) {
-            val code = e.code()
-            if (code in 500..599) {
-                val delaySeconds = calculateBackoffDelay(runAttemptCount)
-                logManager.log("Worker: Server error $code, retry in ${delaySeconds}s", LogType.ERROR)
-                Result.retry()
-            } else {
-                logManager.log("Worker: HTTP $code error", LogType.ERROR)
-                Result.failure()
-            }
         } catch (e: Exception) {
             logManager.log("Worker error: ${e.message}", LogType.ERROR)
             if (runAttemptCount < MAX_RETRY_ATTEMPTS) {
@@ -89,7 +78,7 @@ class LocationTelemetryWorker(
             val result = locationRepository.sendTelemetry(
                 location.latitude, location.longitude
             )
-            if (result is ApiResult.Success) result.data.success else false
+            result is ApiResult.Success
         } catch (e: Exception) {
             logManager.log("Send failed: ${e.message}", LogType.ERROR)
             false
@@ -103,7 +92,6 @@ class LocationTelemetryWorker(
     }
 
     companion object {
-        private const val TAG = "LocationTelemetryWorker"
         private const val MAX_RETRY_ATTEMPTS = 5
         private const val MAX_BACKOFF_SECONDS = 60L
         const val WORK_NAME = "location_telemetry_work"

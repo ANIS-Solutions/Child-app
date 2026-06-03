@@ -14,18 +14,23 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class TelemetryManager(private val context: Context) {
-
+@Singleton
+class TelemetryManager @Inject constructor(
+    @ApplicationContext private val context: Context
+) {
     private val fusedLocationClient: FusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(context)
 
     private val database = AppDatabase.getInstance(context)
     private val dao = database.locationTelemetryDao()
-    
+
     private val logManager = LogManager(context)
 
     private val locationCallback = object : LocationCallback() {

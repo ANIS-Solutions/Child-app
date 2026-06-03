@@ -1,0 +1,38 @@
+graph TD
+    Capture["Screen Capture"] --> OCR["Step 1 — OCR (Google ML Kit)
+    Text extraction from image
+    Detects all text blocks
+    Concatenates into string"]
+
+    OCR --> Banned["Step 2 — Banned Word Detection
+    Early exit optimization
+    100+ words across 7 categories
+    Case-insensitive match"]
+
+    Banned -->|"If found: BLOCKED (skip ONNX)"| EarlyExit["BLOCKED (Early Exit)"]
+
+    Banned -->|"If no banned words"| Preprocess["Step 3 — Image Preprocessing
+    CLIP standard pipeline
+    Resize to 224x224
+    Normalize (mean, std)
+    Convert to FP16 tensor"]
+
+    Preprocess --> ONNX["Step 4 — ONNX Runtime Inference
+    CLIP vision model
+    vision_model_fp16.onnx
+    Single forward pass
+    Output: image embedding"]
+
+    ONNX --> Embed["Step 5 — Embedding Comparison
+    Threat classification
+    L2 normalize embedding
+    Cosine similarity vs pre-computed threats
+    Logit scaling
+    Threshold comparison"]
+
+    Embed -->|"Threshold exceeded"| Blocked["BLOCKED"]
+    Embed -->|"Below threshold"| Safe["SAFE"]
+
+    style Blocked fill:#ffebee,stroke:#c62828
+    style Safe fill:#e8f5e9,stroke:#2e7d32
+    style EarlyExit fill:#fff3e0,stroke:#ef6c00

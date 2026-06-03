@@ -1,0 +1,10 @@
+sequenceDiagram
+    participant Child as Child Device
+    participant Backend as Backend
+
+    Child->>Backend: POST apps/add-bulk
+    Note over Child: { apps: [{ packageName, appName }, ...] }
+    Backend-->>Child: 200 OK
+
+    Note over Child: Trigger: Periodic (daily)
+    Note over Child: Offline: Queued and sent on next connectivity window

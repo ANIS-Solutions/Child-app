@@ -7,12 +7,18 @@ import com.anis.child.data.AppPackage
 import com.anis.child.data.AppsBulkResponse
 import com.anis.child.data.PreferenceManager
 import com.anis.child.network.ApiResult
-import com.anis.child.network.NetworkProvider
+import com.anis.child.network.ApiService
 import com.anis.child.network.safeApiCall
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class AppsRepository(context: Context) {
-    private val apiService = NetworkProvider.provideApiService()
-    private val preferenceManager = PreferenceManager(context)
+@Singleton
+class AppsRepository @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val preferenceManager: PreferenceManager,
+    private val apiService: ApiService
+) {
     private val packageManager = context.packageManager
 
     fun getInstalledApps(): List<AppPackage> {

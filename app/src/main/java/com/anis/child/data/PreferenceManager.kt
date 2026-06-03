@@ -59,6 +59,30 @@ class PreferenceManager(context: Context) {
         get() = sharedPreferences.getString(KEY_CHILD_EMAIL, null)
         set(value) = sharedPreferences.edit().putString(KEY_CHILD_EMAIL, value).apply()
 
+    var pinHash: String?
+        get() = sharedPreferences.getString(KEY_PIN_HASH, null)
+        set(value) = sharedPreferences.edit().putString(KEY_PIN_HASH, value).apply()
+
+    var pinSalt: String?
+        get() = sharedPreferences.getString(KEY_PIN_SALT, null)
+        set(value) = sharedPreferences.edit().putString(KEY_PIN_SALT, value).apply()
+
+    var failedPinAttempts: Int
+        get() = sharedPreferences.getInt(KEY_FAILED_PIN_ATTEMPTS, 0)
+        set(value) = sharedPreferences.edit().putInt(KEY_FAILED_PIN_ATTEMPTS, value).apply()
+
+    var pinLockoutUntil: Long
+        get() = sharedPreferences.getLong(KEY_PIN_LOCKOUT_UNTIL, 0)
+        set(value) = sharedPreferences.edit().putLong(KEY_PIN_LOCKOUT_UNTIL, value).apply()
+
+    var hasPin: Boolean
+        get() = sharedPreferences.getBoolean(KEY_HAS_PIN, false)
+        set(value) = sharedPreferences.edit().putBoolean(KEY_HAS_PIN, value).apply()
+
+    var rewardPoints: Int
+        get() = sharedPreferences.getInt(KEY_REWARD_POINTS, 0)
+        set(value) = sharedPreferences.edit().putInt(KEY_REWARD_POINTS, value).apply()
+
     fun clear() {
         sharedPreferences.edit().clear().apply()
     }
@@ -75,5 +99,11 @@ class PreferenceManager(context: Context) {
         private const val KEY_CHILD_AGE = "child_age"
         private const val KEY_CHILD_AVATAR_URL = "child_avatar_url"
         private const val KEY_CHILD_EMAIL = "child_email"
+        private const val KEY_PIN_HASH = "pin_hash"
+        private const val KEY_PIN_SALT = "pin_salt"
+        private const val KEY_FAILED_PIN_ATTEMPTS = "failed_pin_attempts"
+        private const val KEY_PIN_LOCKOUT_UNTIL = "pin_lockout_until"
+        private const val KEY_HAS_PIN = "has_pin"
+        private const val KEY_REWARD_POINTS = "reward_points"
     }
 }
