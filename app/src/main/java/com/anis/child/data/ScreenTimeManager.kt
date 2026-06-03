@@ -187,19 +187,21 @@ class ScreenTimeManager @Inject constructor(
         return summary.isLimitReached || summary.isBedtime || summary.isTemporarilyRestricted
     }
 
-    private fun isTimeInRange(
-        hour: Int, minute: Int,
-        startHour: Int, startMinute: Int,
-        endHour: Int, endMinute: Int
-    ): Boolean {
-        val nowMinutes = hour * 60 + minute
-        val startMinutes = startHour * 60 + startMinute
-        val endMinutes = endHour * 60 + endMinute
+    companion object {
+        fun isTimeInRange(
+            hour: Int, minute: Int,
+            startHour: Int, startMinute: Int,
+            endHour: Int, endMinute: Int
+        ): Boolean {
+            val nowMinutes = hour * 60 + minute
+            val startMinutes = startHour * 60 + startMinute
+            val endMinutes = endHour * 60 + endMinute
 
-        return if (startMinutes <= endMinutes) {
-            nowMinutes in startMinutes..endMinutes
-        } else {
-            nowMinutes >= startMinutes || nowMinutes <= endMinutes
+            return if (startMinutes <= endMinutes) {
+                nowMinutes in startMinutes..endMinutes
+            } else {
+                nowMinutes >= startMinutes || nowMinutes <= endMinutes
+            }
         }
     }
 }

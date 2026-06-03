@@ -55,20 +55,19 @@ class ContentFilterManager @Inject constructor(
         contentFilterRuleDao.setRuleEnabled(id, enabled)
     }
 
-    private fun matchPattern(text: String, pattern: String): Boolean {
-        return if (pattern.startsWith("*") && pattern.endsWith("*")) {
-            val mid = pattern.removeSurrounding("*")
-            text.contains(mid)
-        } else if (pattern.startsWith("*")) {
-            text.endsWith(pattern.removePrefix("*"))
-        } else if (pattern.endsWith("*")) {
-            text.startsWith(pattern.removeSuffix("*"))
-        } else {
-            text.contains(pattern)
-        }
-    }
-
     companion object {
+        fun matchPattern(text: String, pattern: String): Boolean {
+            return if (pattern.startsWith("*") && pattern.endsWith("*")) {
+                val mid = pattern.removeSurrounding("*")
+                text.contains(mid)
+            } else if (pattern.startsWith("*")) {
+                text.endsWith(pattern.removePrefix("*"))
+            } else if (pattern.endsWith("*")) {
+                text.startsWith(pattern.removeSuffix("*"))
+            } else {
+                text.contains(pattern)
+            }
+        }
         val DEFAULT_BLOCKED_KEYWORDS = listOf(
             "*porn*", "*xxx*", "*adult*", "*sex*", "*nude*",
             "*gambling*", "*casino*", "*bet*",
