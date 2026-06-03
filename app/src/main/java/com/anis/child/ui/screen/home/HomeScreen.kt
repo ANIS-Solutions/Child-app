@@ -16,6 +16,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.TaskAlt
 import androidx.compose.material3.Button
@@ -35,6 +36,7 @@ fun HomeScreen(
     childName: String,
     onSettingsClick: () -> Unit,
     onScreenTimeClick: () -> Unit = {},
+    onContentProtectionClick: () -> Unit = {},
     onQuizClick: () -> Unit = {},
     onTaskClick: () -> Unit = {},
     onRewardClick: () -> Unit = {}
@@ -80,9 +82,9 @@ fun HomeScreen(
                     onClick = onScreenTimeClick
                 )
                 NavButton(
-                    icon = Icons.Default.Quiz,
-                    label = "Quizzes",
-                    onClick = onQuizClick
+                    icon = Icons.Default.Security,
+                    label = "Protection",
+                    onClick = onContentProtectionClick
                 )
             }
 
@@ -92,10 +94,22 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 NavButton(
+                    icon = Icons.Default.Quiz,
+                    label = "Quizzes",
+                    onClick = onQuizClick
+                )
+                NavButton(
                     icon = Icons.Default.TaskAlt,
                     label = "Tasks",
                     onClick = onTaskClick
                 )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 NavButton(
                     icon = Icons.Default.CardGiftcard,
                     label = "Rewards",

@@ -27,6 +27,8 @@ import com.anis.child.ui.screen.pairing.PairingScreen
 import com.anis.child.ui.screen.pairing.PairingViewModel
 import com.anis.child.ui.screen.pin.PinScreen
 import com.anis.child.ui.screen.pin.PinViewModel
+import com.anis.child.ui.screen.contentprotection.ContentProtectionScreen
+import com.anis.child.ui.screen.contentprotection.ContentProtectionViewModel
 import com.anis.child.ui.screen.quiz.QuizScreen
 import com.anis.child.ui.screen.quiz.QuizViewModel
 import com.anis.child.ui.screen.reward.RewardScreen
@@ -47,6 +49,7 @@ sealed class Screen {
     data object Home : Screen()
     data object Settings : Screen()
     data object ScreenTime : Screen()
+    data object ContentProtection : Screen()
     data object Quiz : Screen()
     data object Task : Screen()
     data object Reward : Screen()
@@ -125,6 +128,7 @@ class MainActivity : ComponentActivity() {
                                     }
                                 },
                                 onScreenTimeClick = { currentScreen = Screen.ScreenTime },
+                                onContentProtectionClick = { currentScreen = Screen.ContentProtection },
                                 onQuizClick = { currentScreen = Screen.Quiz },
                                 onTaskClick = { currentScreen = Screen.Task },
                                 onRewardClick = { currentScreen = Screen.Reward }
@@ -197,6 +201,14 @@ class MainActivity : ComponentActivity() {
                             val screenTimeViewModel: ScreenTimeViewModel = hiltViewModel()
                             ScreenTimeScreen(
                                 viewModel = screenTimeViewModel,
+                                onBack = { currentScreen = Screen.Home }
+                            )
+                        }
+
+                        is Screen.ContentProtection -> {
+                            val contentProtectionViewModel: ContentProtectionViewModel = hiltViewModel()
+                            ContentProtectionScreen(
+                                viewModel = contentProtectionViewModel,
                                 onBack = { currentScreen = Screen.Home }
                             )
                         }

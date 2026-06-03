@@ -6,6 +6,7 @@ import com.anis.child.data.PreferenceManager
 import com.anis.child.data.local.AppDatabase
 import com.anis.child.data.local.AppRestrictionDao
 import com.anis.child.data.local.LocationTelemetryDao
+import com.anis.child.data.local.ContentFilterRuleDao
 import com.anis.child.data.local.QuizDao
 import com.anis.child.data.local.RewardDao
 import com.anis.child.data.local.ScreenTimeConfigDao
@@ -91,6 +92,12 @@ object AppModule {
     @Singleton
     fun provideTaskDao(database: AppDatabase): TaskDao {
         return database.taskDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideContentFilterRuleDao(database: AppDatabase): ContentFilterRuleDao {
+        return database.contentFilterRuleDao()
     }
 
     @Provides

@@ -17,9 +17,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         AppRestrictionEntity::class,
         ScreenTimeConfigEntity::class,
         QuizEntity::class,
-        QuizQuestionEntity::class
+        QuizQuestionEntity::class,
+        ContentFilterRuleEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -32,6 +33,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun appRestrictionDao(): AppRestrictionDao
     abstract fun screenTimeConfigDao(): ScreenTimeConfigDao
     abstract fun quizDao(): QuizDao
+    abstract fun contentFilterRuleDao(): ContentFilterRuleDao
 
     companion object {
         @Volatile
@@ -148,6 +150,15 @@ abstract class AppDatabase : RoomDatabase() {
             db.execSQL("CREATE INDEX IF NOT EXISTS idx_quiz_questions_quizId ON quiz_questions(quizId)")
         }
 
+        val MIGRATION_4_5 = Migration(4, 5) { db ->
+            db.execSQL("CREATE TABLE IF NOT EXISTS content_filter_rules (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                    "pattern TEXT NOT NULL DEFAULT '', " +
+                    "type TEXT NOT NULL DEFAULT 'keyword', " +
+                    "isBlocked INTEGER NOT NULL DEFAULT 1, " +
+                    "createdAt INTEGER NOT NULL)")
+        }
+
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -155,7 +166,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "anis_database"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                     .build()
                 INSTANCE = instance
                 instance

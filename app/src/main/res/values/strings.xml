@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">ANIS</string>
+    <string name="accessibility_service_description">ANIS Content Protection Service - Monitors apps and blocks restricted content based on parent settings. Required for app blocking and content filtering features.</string>
 </resources>

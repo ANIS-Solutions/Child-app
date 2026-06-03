@@ -4,14 +4,13 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Build
 import android.os.IBinder
-import android.view.Gravity
-import android.view.LayoutInflater
-import android.view.ViewGroup
-import android.view.WindowManager
-import com.anis.child.R
+import com.anis.child.content.BlockingOverlayManager
 import com.anis.child.data.LogManager
 import com.anis.child.data.LogType
 import com.anis.child.data.ScreenTimeManager
@@ -30,16 +29,25 @@ class AppRestrictionService : Service() {
     @Inject lateinit var screenTimeManager: ScreenTimeManager
     @Inject lateinit var logManager: LogManager
 
-    private var overlayView: ViewGroup? = null
-    private var windowManager: WindowManager? = null
     private var monitoringJob: Job? = null
     private var isRunning = false
     private var currentBlockedApp: String? = null
 
+    private val overlayReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            when (intent?.action) {
+                ACTION_HIDE_OVERLAY -> {
+                    BlockingOverlayManager.hideOverlay()
+                    currentBlockedApp = null
+                }
+            }
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
-        windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         createNotificationChannel()
+        registerReceiver(overlayReceiver, IntentFilter(ACTION_HIDE_OVERLAY), if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Context.RECEIVER_EXPORTED else 0)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -64,8 +72,10 @@ class AppRestrictionService : Service() {
         try {
             val foregroundApp = screenTimeManager.getCurrentForegroundApp()
             if (foregroundApp.isEmpty() || foregroundApp == packageName) {
-                hideOverlay()
-                currentBlockedApp = null
+                if (currentBlockedApp != null) {
+                    BlockingOverlayManager.hideOverlay()
+                    currentBlockedApp = null
+                }
                 return
             }
 
@@ -73,12 +83,12 @@ class AppRestrictionService : Service() {
             if (isBlocked) {
                 if (currentBlockedApp != foregroundApp) {
                     currentBlockedApp = foregroundApp
-                    showOverlay(foregroundApp)
-                    logManager.log("Blocked app detected: $foregroundApp", LogType.ERROR)
+                    BlockingOverlayManager.showOverlay(this, foregroundApp, accessibilityOverlay = false)
+                    logManager.log("Blocked app detected via polling: $foregroundApp", LogType.ERROR)
                 }
             } else {
                 if (currentBlockedApp != null) {
-                    hideOverlay()
+                    BlockingOverlayManager.hideOverlay()
                     currentBlockedApp = null
                 }
             }
@@ -87,51 +97,14 @@ class AppRestrictionService : Service() {
         } catch (_: Exception) { }
     }
 
-    private fun showOverlay(packageName: String) {
-        try {
-            if (overlayView != null) hideOverlay()
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (!android.provider.Settings.canDrawOverlays(this)) return
-            }
-
-            val inflater = LayoutInflater.from(this)
-            overlayView = inflater.inflate(R.layout.overlay_blocked_app, null) as ViewGroup
-
-            val params = WindowManager.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-                    WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-                else
-                    WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN,
-                android.graphics.PixelFormat.TRANSLUCENT
-            ).apply {
-                gravity = Gravity.FILL
-            }
-
-            windowManager?.addView(overlayView, params)
-        } catch (e: Exception) {
-            logManager.log("Overlay error: ${e.message}", LogType.ERROR)
-        }
-    }
-
-    private fun hideOverlay() {
-        try {
-            overlayView?.let { windowManager?.removeView(it) }
-        } catch (_: Exception) { }
-        overlayView = null
-    }
-
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
         super.onDestroy()
         isRunning = false
         monitoringJob?.cancel()
-        hideOverlay()
+        try { unregisterReceiver(overlayReceiver) } catch (_: Exception) {}
+        BlockingOverlayManager.hideOverlay()
         logManager.log("Restriction service stopped", LogType.INFO)
     }
 
@@ -167,6 +140,7 @@ class AppRestrictionService : Service() {
         private const val NOTIFICATION_ID = 1002
         private const val CHANNEL_ID = "app_restriction_service"
         private const val POLL_INTERVAL_MS = 3000L
+        const val ACTION_HIDE_OVERLAY = "com.anis.child.service.HIDE_OVERLAY"
 
         fun start(context: android.content.Context) {
             val intent = Intent(context, AppRestrictionService::class.java)
