@@ -1,5 +1,6 @@
 package com.anis.child.ui.screen.task
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,11 +11,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.TaskAlt
@@ -23,6 +26,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,7 +38,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.anis.child.data.local.TaskEntity
-import com.anis.child.ui.components.AnisScaffold
 import com.anis.child.ui.components.EmptyStateView
 import com.anis.child.ui.theme.AppColors
 
@@ -45,12 +48,40 @@ fun TaskScreen(
 ) {
     val tasks by viewModel.tasks.collectAsState()
 
-    AnisScaffold(title = "Tasks", onBack = onBack) { modifier ->
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(AppColors.surface50)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(AppColors.primary01)
+                .statusBarsPadding()
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.Default.ArrowBack, "Back", tint = AppColors.darkTextPrimary)
+                }
+                Text(
+                    text = "Tasks",
+                    color = AppColors.darkTextPrimary,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
         if (tasks.isEmpty()) {
-            EmptyStateView(Icons.Default.TaskAlt, "No tasks assigned yet", modifier)
+            EmptyStateView(Icons.Default.TaskAlt, "No tasks assigned yet", Modifier.fillMaxSize())
         } else {
             LazyColumn(
-                modifier = modifier
+                modifier = Modifier
                     .fillMaxSize()
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)

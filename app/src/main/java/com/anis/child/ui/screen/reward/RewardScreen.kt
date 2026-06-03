@@ -1,6 +1,8 @@
 package com.anis.child.ui.screen.reward
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,11 +11,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Star
@@ -21,7 +25,9 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,7 +38,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.anis.child.data.local.RewardEntity
-import com.anis.child.ui.components.AnisScaffold
 import com.anis.child.ui.components.EmptyStateView
 import com.anis.child.ui.theme.AppColors
 
@@ -43,55 +48,89 @@ fun RewardScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    AnisScaffold(title = "Rewards", onBack = onBack, isLoading = uiState.isLoading) { modifier ->
-        LazyColumn(
-            modifier = modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(AppColors.surface50)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(AppColors.primary01)
+                .statusBarsPadding()
         ) {
-            item {
-                BalanceCard(balance = uiState.balance)
-            }
-
-            item {
-                Spacer(Modifier.height(8.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.Default.ArrowBack, "Back", tint = AppColors.darkTextPrimary)
+                }
                 Text(
-                    text = "Available Rewards",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = AppColors.textPrimary,
+                    text = "Rewards",
+                    color = AppColors.darkTextPrimary,
+                    style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
             }
+        }
 
-            val available = uiState.rewards.filter { it.state == "earned" }
-            if (available.isEmpty()) {
-                item {
-                    EmptyStateView(Icons.Default.CardGiftcard, "No rewards available", Modifier.fillMaxWidth().padding(32.dp))
-                }
-            } else {
-                items(available) { reward ->
-                    RewardCard(
-                        reward = reward,
-                        canAfford = reward.pointCost <= uiState.balance,
-                        onClaim = { viewModel.claimReward(reward.id) }
-                    )
-                }
+        if (uiState.isLoading) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = AppColors.primary01)
             }
-
-            val history = uiState.rewards.filter { it.state != "earned" }
-            if (history.isNotEmpty()) {
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 item {
-                    Spacer(Modifier.height(16.dp))
+                    BalanceCard(balance = uiState.balance)
+                }
+
+                item {
+                    Spacer(Modifier.height(8.dp))
                     Text(
-                        text = "History",
+                        text = "Available Rewards",
                         style = MaterialTheme.typography.titleMedium,
                         color = AppColors.textPrimary,
                         fontWeight = FontWeight.Bold
                     )
                 }
-                items(history) { reward ->
-                    HistoryCard(reward = reward)
+
+                val available = uiState.rewards.filter { it.state == "earned" }
+                if (available.isEmpty()) {
+                    item {
+                        EmptyStateView(Icons.Default.CardGiftcard, "No rewards available", Modifier.fillMaxWidth().padding(32.dp))
+                    }
+                } else {
+                    items(available) { reward ->
+                        RewardCard(
+                            reward = reward,
+                            canAfford = reward.pointCost <= uiState.balance,
+                            onClaim = { viewModel.claimReward(reward.id) }
+                        )
+                    }
+                }
+
+                val history = uiState.rewards.filter { it.state != "earned" }
+                if (history.isNotEmpty()) {
+                    item {
+                        Spacer(Modifier.height(16.dp))
+                        Text(
+                            text = "History",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = AppColors.textPrimary,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    items(history) { reward ->
+                        HistoryCard(reward = reward)
+                    }
                 }
             }
         }

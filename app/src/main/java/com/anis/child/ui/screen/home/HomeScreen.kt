@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -16,17 +15,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.CardGiftcard
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.TaskAlt
 import androidx.compose.material3.Card
@@ -56,18 +48,10 @@ private data class Feature(
 fun HomeScreen(
     childName: String,
     onSettingsClick: () -> Unit,
-    onScreenTimeClick: () -> Unit = {},
-    onContentProtectionClick: () -> Unit = {},
-    onLocationClick: () -> Unit = {},
-    onNotificationsClick: () -> Unit = {},
     onTaskClick: () -> Unit = {},
     onRewardClick: () -> Unit = {}
 ) {
     val features = listOf(
-        Feature("Screen Time", Icons.Default.AccessTime, AppColors.primary01, onScreenTimeClick),
-        Feature("Protection", Icons.Default.Security, AppColors.error500, onContentProtectionClick),
-        Feature("Location", Icons.Default.LocationOn, AppColors.success500, onLocationClick),
-        Feature("Alerts", Icons.Default.Notifications, AppColors.warning500, onNotificationsClick),
         Feature("Tasks", Icons.Default.TaskAlt, AppColors.entertainment500, onTaskClick),
         Feature("Rewards", Icons.Default.CardGiftcard, Color(0xFFFF9800), onRewardClick),
     )
@@ -127,63 +111,61 @@ fun HomeScreen(
             }
         }
 
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(2),
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(bottom = 16.dp)
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
-            items(features) { feature ->
-                FeatureCard(feature)
-            }
-        }
-    }
-}
-
-@Composable
-private fun FeatureCard(feature: Feature) {
-    Card(
-        onClick = feature.onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .aspectRatio(1.1f),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = feature.color.copy(alpha = 0.08f)
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Box(
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(feature.color.copy(alpha = 0.15f)),
-                contentAlignment = Alignment.Center
+                    .fillMaxWidth()
+                    .padding(32.dp)
             ) {
-                Icon(
-                    imageVector = feature.icon,
-                    contentDescription = null,
-                    tint = feature.color,
-                    modifier = Modifier.size(26.dp)
-                )
+                features.forEach { feature ->
+                    Card(
+                        onClick = feature.onClick,
+                        modifier = Modifier
+                            .fillMaxWidth(0.7f)
+                            .aspectRatio(1.5f),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = feature.color.copy(alpha = 0.08f)
+                        ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(16.dp),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(64.dp)
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(feature.color.copy(alpha = 0.15f)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = feature.icon,
+                                    contentDescription = null,
+                                    tint = feature.color,
+                                    modifier = Modifier.size(36.dp)
+                                )
+                            }
+                            Spacer(Modifier.height(12.dp))
+                            Text(
+                                text = feature.label,
+                                color = AppColors.textPrimary,
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
             }
-            Spacer(Modifier.height(12.dp))
-            Text(
-                text = feature.label,
-                color = AppColors.textPrimary,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold
-            )
         }
     }
 }

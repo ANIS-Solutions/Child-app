@@ -133,10 +133,6 @@ class MainActivity : ComponentActivity() {
                             HomeScreen(
                                 childName = preferenceManager.childName ?: "Child",
                                 onSettingsClick = { navigateToProtected(Screen.Settings) },
-                                onScreenTimeClick = { navigateToProtected(Screen.ScreenTime) },
-                                onContentProtectionClick = { navigateToProtected(Screen.ContentProtection) },
-                                onLocationClick = { navigateToProtected(Screen.LocationHistory) },
-                                onNotificationsClick = { navigateToProtected(Screen.Notifications) },
                                 onTaskClick = { currentScreen = Screen.Task },
                                 onRewardClick = { currentScreen = Screen.Reward }
                             )
@@ -200,6 +196,9 @@ class MainActivity : ComponentActivity() {
                                 },
                                 isFetchingChild = isFetchingChild,
                                 onScreenTimeClick = { currentScreen = Screen.ScreenTime },
+                                onContentProtectionClick = { currentScreen = Screen.ContentProtection },
+                                onLocationHistoryClick = { currentScreen = Screen.LocationHistory },
+                                onNotificationsClick = { currentScreen = Screen.Notifications },
                                 onLogout = {
                                     telemetryManager.stopMonitoring()
                                     preferenceManager.clear()
@@ -214,7 +213,7 @@ class MainActivity : ComponentActivity() {
                             val screenTimeViewModel: ScreenTimeViewModel = hiltViewModel()
                             ScreenTimeScreen(
                                 viewModel = screenTimeViewModel,
-                                onBack = { currentScreen = Screen.Home }
+                                onBack = { currentScreen = Screen.Settings }
                             )
                         }
 
@@ -222,7 +221,7 @@ class MainActivity : ComponentActivity() {
                             val locationViewModel: LocationHistoryViewModel = hiltViewModel()
                             LocationHistoryScreen(
                                 viewModel = locationViewModel,
-                                onBack = { currentScreen = Screen.Home }
+                                onBack = { currentScreen = Screen.Settings }
                             )
                         }
 
@@ -230,7 +229,7 @@ class MainActivity : ComponentActivity() {
                             val contentProtectionViewModel: ContentProtectionViewModel = hiltViewModel()
                             ContentProtectionScreen(
                                 viewModel = contentProtectionViewModel,
-                                onBack = { currentScreen = Screen.Home }
+                                onBack = { currentScreen = Screen.Settings }
                             )
                         }
 
@@ -238,7 +237,7 @@ class MainActivity : ComponentActivity() {
                             val notificationViewModel: NotificationHistoryViewModel = hiltViewModel()
                             NotificationHistoryScreen(
                                 viewModel = notificationViewModel,
-                                onBack = { currentScreen = Screen.Home }
+                                onBack = { currentScreen = Screen.Settings }
                             )
                         }
 

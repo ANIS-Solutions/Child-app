@@ -2,6 +2,7 @@ package com.anis.child.ui.screen.location
 
 import android.content.Context
 import android.graphics.drawable.Drawable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -28,15 +30,11 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -63,7 +61,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LocationHistoryScreen(
     viewModel: LocationHistoryViewModel,
@@ -74,67 +71,75 @@ fun LocationHistoryScreen(
 
     var showMap by remember { mutableStateOf(true) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Location History", color = AppColors.darkTextPrimary) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, "Back", tint = AppColors.darkTextPrimary)
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { showMap = !showMap }) {
-                        Icon(Icons.Default.Timeline, if (showMap) "Show List" else "Show Map", tint = AppColors.darkTextPrimary)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = AppColors.primary01)
-            )
-        },
-        containerColor = AppColors.surface50
-    ) { padding ->
-        Column(
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(AppColors.surface50)
+    ) {
+        Box(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
+                .fillMaxWidth()
+                .background(AppColors.primary01)
+                .statusBarsPadding()
         ) {
-            MonitoringToggle(
-                isEnabled = uiState.isMonitoringEnabled,
-                onToggle = { viewModel.toggleMonitoring(it) }
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.Default.ArrowBack, "Back", tint = AppColors.darkTextPrimary)
+                }
+                Text(
+                    text = "Location History",
+                    color = AppColors.darkTextPrimary,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.weight(1f)
+                )
+                IconButton(onClick = { showMap = !showMap }) {
+                    Icon(Icons.Default.Timeline, if (showMap) "Show List" else "Show Map", tint = AppColors.darkTextPrimary)
+                }
+            }
+        }
 
-            if (uiState.isLoading) {
+        MonitoringToggle(
+            isEnabled = uiState.isMonitoringEnabled,
+            onToggle = { viewModel.toggleMonitoring(it) }
+        )
+
+        if (uiState.isLoading) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = AppColors.primary01)
+            }
+        } else {
+            if (showMap) {
+                LocationMap(
+                    locations = uiState.locations,
+                    currentLat = uiState.currentLatitude,
+                    currentLng = uiState.currentLongitude,
+                    onGetCurrentLocation = { viewModel.getCurrentLocation() },
+                    isGettingLocation = uiState.isGettingCurrentLocation
+                )
+            }
+
+            if (uiState.locations.isEmpty()) {
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = AppColors.primary01)
-                }
-            } else {
-                if (showMap) {
-                    LocationMap(
-                        locations = uiState.locations,
-                        currentLat = uiState.currentLatitude,
-                        currentLng = uiState.currentLongitude,
-                        onGetCurrentLocation = { viewModel.getCurrentLocation() },
-                        isGettingLocation = uiState.isGettingCurrentLocation
-                    )
-                }
-
-                if (uiState.locations.isEmpty()) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(Icons.Default.LocationOn, null, tint = AppColors.textDisabled, modifier = Modifier.size(64.dp))
-                            Spacer(Modifier.height(16.dp))
-                            Text("No location data yet", color = AppColors.textSecondary)
-                            Text("Enable location monitoring or tap 'Get Current Location'", style = MaterialTheme.typography.bodySmall, color = AppColors.textDisabled, textAlign = TextAlign.Center)
-                        }
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(Icons.Default.LocationOn, null, tint = AppColors.textDisabled, modifier = Modifier.size(64.dp))
+                        Spacer(Modifier.height(16.dp))
+                        Text("No location data yet", color = AppColors.textSecondary)
+                        Text("Enable location monitoring or tap 'Get Current Location'", style = MaterialTheme.typography.bodySmall, color = AppColors.textDisabled, textAlign = TextAlign.Center)
                     }
-                } else if (!showMap) {
-                    LocationList(
-                        locations = uiState.locations,
-                        onDelete = { viewModel.deleteLocation(it) },
-                        onClearSent = { viewModel.clearSentLocations() },
-                        totalSharedCount = uiState.totalSharedCount
-                    )
                 }
+            } else if (!showMap) {
+                LocationList(
+                    locations = uiState.locations,
+                    onDelete = { viewModel.deleteLocation(it) },
+                    onClearSent = { viewModel.clearSentLocations() },
+                    totalSharedCount = uiState.totalSharedCount
+                )
             }
         }
     }
@@ -182,195 +187,85 @@ private fun LocationMap(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp)
-            .height(300.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = AppColors.darkSurface)
+            .height(300.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             AndroidView(
                 factory = { ctx ->
-                    createMapView(ctx, locations, currentLat, currentLng)
+                    Configuration.getInstance().apply {
+                        userAgentValue = ctx.packageName
+                    }
+                    MapView(ctx).apply {
+                        setTileSource(TileSourceFactory.MAPNIK)
+                        setMultiTouchControls(true)
+                        controller.setZoom(8.0)
+
+                        if (locations.isNotEmpty()) {
+                            val first = locations.first()
+                            controller.setCenter(GeoPoint(first.latitude, first.longitude))
+                        } else if (currentLat != null && currentLng != null) {
+                            controller.setCenter(GeoPoint(currentLat, currentLng))
+                        }
+
+                        val points = locations.map { GeoPoint(it.latitude, it.longitude) }
+                        if (points.size >= 2) {
+                            val line = Polyline().apply { setPoints(points) }
+                            overlays.add(line)
+                        }
+
+                        locations.forEach { loc ->
+                            val marker = Marker(this).apply {
+                                position = GeoPoint(loc.latitude, loc.longitude)
+                                setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                                val df = SimpleDateFormat("MM/dd HH:mm", Locale.getDefault())
+                                title = df.format(Date(loc.timestamp))
+                                snippet = "${String.format("%.6f", loc.latitude)}, ${String.format("%.6f", loc.longitude)}"
+                            }
+                            overlays.add(marker)
+                        }
+
+                        if (currentLat != null && currentLng != null) {
+                            val currentMarker = Marker(this).apply {
+                                position = GeoPoint(currentLat, currentLng)
+                                setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                                title = "Current Location"
+                                setIcon(androidx.core.content.ContextCompat.getDrawable(ctx, org.osmdroid.library.R.drawable.marker_default))
+                            }
+                            overlays.add(currentMarker)
+                        }
+
+                        invalidate()
+                    }
                 },
-                modifier = Modifier.fillMaxSize(),
-                update = { mapView ->
-                    updateMapView(mapView, locations, currentLat, currentLng)
-                }
+                modifier = Modifier.fillMaxSize()
             )
 
-            Button(
-                onClick = onGetCurrentLocation,
+            Row(
                 modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(12.dp)
-                    .size(48.dp),
-                shape = RoundedCornerShape(24.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = AppColors.primary01),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)
+                    .fillMaxWidth()
+                    .align(Alignment.TopCenter)
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.End
             ) {
-                if (isGettingLocation) {
-                    CircularProgressIndicator(
-                        color = AppColors.darkTextPrimary,
-                        modifier = Modifier.size(20.dp),
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Icon(Icons.Default.MyLocation, "Get current location", tint = AppColors.darkTextPrimary, modifier = Modifier.size(20.dp))
+                Button(
+                    onClick = onGetCurrentLocation,
+                    enabled = !isGettingLocation,
+                    colors = ButtonDefaults.buttonColors(containerColor = AppColors.primary01.copy(alpha = 0.9f))
+                ) {
+                    if (isGettingLocation) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            color = AppColors.darkTextPrimary,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Icon(Icons.Default.MyLocation, null, modifier = Modifier.size(16.dp), tint = AppColors.darkTextPrimary)
+                    }
+                    Spacer(Modifier.width(4.dp))
+                    Text("Current", color = AppColors.darkTextPrimary, style = MaterialTheme.typography.labelSmall)
                 }
             }
         }
-    }
-}
-
-private fun createMapView(
-    context: Context,
-    locations: List<LocationTelemetryEntity>,
-    currentLat: Double?,
-    currentLng: Double?
-): MapView {
-    Configuration.getInstance().apply {
-        userAgentValue = context.packageName
-        osmdroidTileCache = context.cacheDir
-    }
-
-    return MapView(context).apply {
-        setTileSource(TileSourceFactory.MAPNIK)
-        setMultiTouchControls(true)
-        controller.setZoom(15.0)
-
-        val hasHistoryData = locations.any { !it.isSent }
-        val zoomTarget = when {
-            currentLat != null && currentLng != null -> GeoPoint(currentLat, currentLng)
-            hasHistoryData -> {
-                val latest = locations.first()
-                GeoPoint(latest.latitude, latest.longitude)
-            }
-            else -> GeoPoint(0.0, 0.0)
-        }
-        controller.setCenter(zoomTarget)
-
-        locations.forEach { loc ->
-            addMarker(
-                context,
-                GeoPoint(loc.latitude, loc.longitude),
-                "Location: ${String.format("%.6f", loc.latitude)}, ${String.format("%.6f", loc.longitude)}",
-                loc.timestamp,
-                isSent = loc.isSent
-            )
-        }
-
-        if (currentLat != null && currentLng != null) {
-            addMarker(
-                context,
-                GeoPoint(currentLat, currentLng),
-                "Current Location",
-                System.currentTimeMillis(),
-                isCurrent = true
-            )
-        }
-
-        val trackPoints = locations
-            .filter { !it.isSent }
-            .map { GeoPoint(it.latitude, it.longitude) }
-        if (trackPoints.size >= 2) {
-            overlays.add(Polyline().apply {
-                setPoints(trackPoints)
-                outlinePaint.color = 0xFF2196F3.toInt()
-                outlinePaint.strokeWidth = 4f
-            })
-        }
-    }
-}
-
-private fun updateMapView(
-    mapView: MapView,
-    locations: List<LocationTelemetryEntity>,
-    currentLat: Double?,
-    currentLng: Double?
-) {
-    mapView.overlays.clear()
-
-    locations.forEach { loc ->
-        mapView.addMarker(
-            mapView.context,
-            GeoPoint(loc.latitude, loc.longitude),
-            "Location: ${String.format("%.6f", loc.latitude)}, ${String.format("%.6f", loc.longitude)}",
-            loc.timestamp,
-            isSent = loc.isSent
-        )
-    }
-
-    if (currentLat != null && currentLng != null) {
-        mapView.addMarker(
-            mapView.context,
-            GeoPoint(currentLat, currentLng),
-            "Current Location",
-            System.currentTimeMillis(),
-            isCurrent = true
-        )
-    }
-
-    val trackPoints = locations
-        .filter { !it.isSent }
-        .map { GeoPoint(it.latitude, it.longitude) }
-    if (trackPoints.size >= 2) {
-        mapView.overlays.add(Polyline().apply {
-            setPoints(trackPoints)
-            outlinePaint.color = 0xFF2196F3.toInt()
-            outlinePaint.strokeWidth = 4f
-        })
-    }
-
-    mapView.invalidate()
-}
-
-private fun MapView.addMarker(
-    context: Context,
-    position: GeoPoint,
-    title: String,
-    timestamp: Long,
-    isSent: Boolean = false,
-    isCurrent: Boolean = false
-) {
-    val marker = Marker(this)
-    marker.position = position
-    marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-    marker.title = title
-    marker.snippet = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault()).format(Date(timestamp))
-    marker.icon = if (isCurrent) {
-        MarkerIcons.createCurrentLocationIcon(context)
-    } else if (isSent) {
-        MarkerIcons.createSentIcon(context)
-    } else {
-        MarkerIcons.createDefaultIcon(context)
-    }
-    overlays.add(marker)
-}
-
-private object MarkerIcons {
-    private var defaultIcon: Drawable? = null
-    private var sentIcon: Drawable? = null
-    private var currentIcon: Drawable? = null
-
-    fun createDefaultIcon(context: Context): Drawable {
-        if (defaultIcon == null) {
-            defaultIcon = context.getDrawable(org.osmdroid.library.R.drawable.marker_default)
-        }
-        return defaultIcon!!
-    }
-
-    fun createSentIcon(context: Context): Drawable {
-        if (sentIcon == null) {
-            sentIcon = context.getDrawable(org.osmdroid.library.R.drawable.marker_default)
-                ?.apply { alpha = 100 }
-        }
-        return sentIcon!!
-    }
-
-    fun createCurrentLocationIcon(context: Context): Drawable {
-        if (currentIcon == null) {
-            currentIcon = context.getDrawable(android.R.drawable.ic_menu_mylocation)
-        }
-        return currentIcon ?: createDefaultIcon(context)
     }
 }
 
@@ -388,38 +283,39 @@ private fun LocationList(
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         item {
-            Spacer(Modifier.height(4.dp))
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    "${locations.size} locations · $totalSharedCount shared",
-                    style = MaterialTheme.typography.bodySmall,
+                    text = "${locations.size} location(s)",
+                    style = MaterialTheme.typography.bodyMedium,
                     color = AppColors.textSecondary
                 )
                 if (totalSharedCount > 0) {
-                    IconButton(onClick = onClearSent) {
-                        Icon(Icons.Default.ClearAll, "Clear sent", tint = AppColors.textSecondary, modifier = Modifier.size(20.dp))
+                    TextButton(onClick = onClearSent) {
+                        Icon(Icons.Default.ClearAll, null, modifier = Modifier.size(16.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("Clear Sent ($totalSharedCount)")
                     }
                 }
             }
         }
 
-        items(locations, key = { it.id }) { location ->
-            LocationCard(
+        items(locations) { location ->
+            LocationItem(
                 location = location,
                 onDelete = { onDelete(location.id) }
             )
         }
-
-        item { Spacer(Modifier.height(16.dp)) }
     }
 }
 
 @Composable
-private fun LocationCard(
+private fun LocationItem(
     location: LocationTelemetryEntity,
     onDelete: () -> Unit
 ) {
@@ -427,10 +323,7 @@ private fun LocationCard(
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = if (location.isSent) AppColors.darkSurface.copy(alpha = 0.03f)
-            else AppColors.surface50
-        )
+        colors = CardDefaults.cardColors(containerColor = AppColors.darkSurface.copy(alpha = 0.05f))
     ) {
         Row(
             modifier = Modifier
@@ -441,32 +334,39 @@ private fun LocationCard(
             Icon(
                 Icons.Default.LocationOn,
                 null,
-                tint = if (location.isSent) AppColors.textDisabled else AppColors.primary01,
+                tint = if (location.isSent) AppColors.success500 else AppColors.warning500,
                 modifier = Modifier.size(24.dp)
             )
-            Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    "${String.format("%.6f", location.latitude)}, ${String.format("%.6f", location.longitude)}",
+                    text = "${String.format("%.6f", location.latitude)}, ${String.format("%.6f", location.longitude)}",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = AppColors.textPrimary
+                    color = AppColors.textPrimary,
+                    fontWeight = FontWeight.Medium
                 )
                 Text(
-                    dateFormat.format(Date(location.timestamp)),
+                    text = dateFormat.format(Date(location.timestamp)),
                     style = MaterialTheme.typography.bodySmall,
                     color = AppColors.textSecondary
                 )
-            }
-            Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    if (location.isSent) "Shared" else "Pending",
+                    text = if (location.isSent) "Synced" else "Pending",
                     style = MaterialTheme.typography.labelSmall,
                     color = if (location.isSent) AppColors.success500 else AppColors.warning500
                 )
             }
-            IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
-                Icon(Icons.Default.Delete, "Delete", tint = AppColors.error500, modifier = Modifier.size(16.dp))
+            IconButton(onClick = onDelete) {
+                Icon(Icons.Default.Delete, "Delete", tint = AppColors.error500, modifier = Modifier.size(20.dp))
             }
         }
     }
+}
+
+@Composable
+private fun TextButton(
+    onClick: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    androidx.compose.material3.TextButton(onClick = onClick) { content() }
 }

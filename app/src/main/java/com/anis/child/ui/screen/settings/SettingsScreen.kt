@@ -19,8 +19,11 @@ import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Timeline
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -55,6 +58,9 @@ fun SettingsScreen(
     onGetMeClick: () -> Unit,
     isFetchingChild: Boolean,
     onScreenTimeClick: () -> Unit = {},
+    onContentProtectionClick: () -> Unit = {},
+    onLocationHistoryClick: () -> Unit = {},
+    onNotificationsClick: () -> Unit = {},
     onLogout: () -> Unit
 ) {
     val context = LocalContext.current
@@ -110,6 +116,63 @@ fun SettingsScreen(
             )
             Text(
                 text = "Screen Time",
+                color = AppColors.darkTextPrimary,
+                modifier = Modifier.padding(start = 8.dp)
+            )
+        }
+
+        Button(
+            onClick = onContentProtectionClick,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = AppColors.primary01
+            )
+        ) {
+            Icon(
+                imageVector = Icons.Default.Security,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
+            Text(
+                text = "Content Protection",
+                color = AppColors.darkTextPrimary,
+                modifier = Modifier.padding(start = 8.dp)
+            )
+        }
+
+        Button(
+            onClick = onLocationHistoryClick,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = AppColors.primary01
+            )
+        ) {
+            Icon(
+                imageVector = Icons.Default.Timeline,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
+            Text(
+                text = "Location History",
+                color = AppColors.darkTextPrimary,
+                modifier = Modifier.padding(start = 8.dp)
+            )
+        }
+
+        Button(
+            onClick = onNotificationsClick,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = AppColors.primary01
+            )
+        ) {
+            Icon(
+                imageVector = Icons.Default.Notifications,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
+            Text(
+                text = "Notifications",
                 color = AppColors.darkTextPrimary,
                 modifier = Modifier.padding(start = 8.dp)
             )
