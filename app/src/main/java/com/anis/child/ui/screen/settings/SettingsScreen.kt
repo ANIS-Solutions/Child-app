@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -52,6 +53,7 @@ fun SettingsScreen(
     isSendingApps: Boolean,
     onGetMeClick: () -> Unit,
     isFetchingChild: Boolean,
+    onScreenTimeClick: () -> Unit = {},
     onLogout: () -> Unit
 ) {
     val context = LocalContext.current
@@ -92,6 +94,25 @@ fun SettingsScreen(
         PermissionsSection()
 
         DeviceInfoSection(childId = childId)
+
+        Button(
+            onClick = onScreenTimeClick,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = AppColors.primary01
+            )
+        ) {
+            Icon(
+                imageVector = Icons.Default.Schedule,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
+            Text(
+                text = "Screen Time",
+                color = AppColors.darkTextPrimary,
+                modifier = Modifier.padding(start = 8.dp)
+            )
+        }
 
         Spacer(modifier = Modifier.weight(1f))
 

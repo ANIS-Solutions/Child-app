@@ -4,7 +4,9 @@ import android.content.Context
 import com.anis.child.data.LogManager
 import com.anis.child.data.PreferenceManager
 import com.anis.child.data.local.AppDatabase
+import com.anis.child.data.local.AppRestrictionDao
 import com.anis.child.data.local.LocationTelemetryDao
+import com.anis.child.data.local.ScreenTimeConfigDao
 import com.anis.child.network.ApiService
 import com.anis.child.network.AppLoggingInterceptor
 import com.anis.child.network.AuthInterceptor
@@ -56,6 +58,18 @@ object AppModule {
     @Singleton
     fun provideLocationTelemetryDao(database: AppDatabase): LocationTelemetryDao {
         return database.locationTelemetryDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideAppRestrictionDao(database: AppDatabase): AppRestrictionDao {
+        return database.appRestrictionDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideScreenTimeConfigDao(database: AppDatabase): ScreenTimeConfigDao {
+        return database.screenTimeConfigDao()
     }
 
     @Provides

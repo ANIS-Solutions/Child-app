@@ -1,7 +1,11 @@
 package com.anis.child
 
 import android.Manifest
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -27,6 +31,8 @@ import com.anis.child.ui.screen.pairing.PairingScreen
 import com.anis.child.ui.screen.pairing.PairingViewModel
 import com.anis.child.ui.screen.pin.PinScreen
 import com.anis.child.ui.screen.pin.PinViewModel
+import com.anis.child.ui.screen.screentime.ScreenTimeScreen
+import com.anis.child.ui.screen.screentime.ScreenTimeViewModel
 import com.anis.child.ui.screen.settings.SettingsScreen
 import com.anis.child.ui.screen.splash.SplashScreen
 import com.anis.child.ui.theme.ANISTheme
@@ -38,6 +44,7 @@ sealed class Screen {
     data object Pairing : Screen()
     data object Home : Screen()
     data object Settings : Screen()
+    data object ScreenTime : Screen()
     data class Pin(val isSettingUp: Boolean = false) : Screen()
 }
 
@@ -111,6 +118,9 @@ class MainActivity : ComponentActivity() {
                                     } else {
                                         currentScreen = Screen.Settings
                                     }
+                                },
+                                onScreenTimeClick = {
+                                    currentScreen = Screen.ScreenTime
                                 }
                             )
                         }
@@ -170,6 +180,9 @@ class MainActivity : ComponentActivity() {
                                     homeViewModel.fetchChildMe(this@MainActivity)
                                 },
                                 isFetchingChild = isFetchingChild,
+                                onScreenTimeClick = {
+                                    currentScreen = Screen.ScreenTime
+                                },
                                 onLogout = {
                                     telemetryManager.stopMonitoring()
                                     preferenceManager.clear()
@@ -177,6 +190,14 @@ class MainActivity : ComponentActivity() {
                                     logManager.log("Logged out", LogType.INFO)
                                     currentScreen = Screen.Pairing
                                 }
+                            )
+                        }
+
+                        is Screen.ScreenTime -> {
+                            val screenTimeViewModel: ScreenTimeViewModel = hiltViewModel()
+                            ScreenTimeScreen(
+                                viewModel = screenTimeViewModel,
+                                onBack = { currentScreen = Screen.Home }
                             )
                         }
                     }
