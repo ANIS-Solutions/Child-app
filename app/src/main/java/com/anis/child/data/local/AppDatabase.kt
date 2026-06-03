@@ -18,9 +18,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ScreenTimeConfigEntity::class,
         QuizEntity::class,
         QuizQuestionEntity::class,
-        ContentFilterRuleEntity::class
+        ContentFilterRuleEntity::class,
+        NotificationInterceptEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -34,6 +35,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun screenTimeConfigDao(): ScreenTimeConfigDao
     abstract fun quizDao(): QuizDao
     abstract fun contentFilterRuleDao(): ContentFilterRuleDao
+    abstract fun notificationInterceptDao(): NotificationInterceptDao
 
     companion object {
         @Volatile
@@ -159,6 +161,18 @@ abstract class AppDatabase : RoomDatabase() {
                     "createdAt INTEGER NOT NULL)")
         }
 
+        val MIGRATION_5_6 = Migration(5, 6) { db ->
+            db.execSQL("CREATE TABLE IF NOT EXISTS notification_intercepts (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                    "packageName TEXT NOT NULL DEFAULT '', " +
+                    "appLabel TEXT NOT NULL DEFAULT '', " +
+                    "title TEXT NOT NULL DEFAULT '', " +
+                    "text TEXT NOT NULL DEFAULT '', " +
+                    "timestamp INTEGER NOT NULL, " +
+                    "isRead INTEGER NOT NULL DEFAULT 0, " +
+                    "isRemoved INTEGER NOT NULL DEFAULT 0)")
+        }
+
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -166,7 +180,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "anis_database"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
                     .build()
                 INSTANCE = instance
                 instance

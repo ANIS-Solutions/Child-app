@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Security
@@ -39,6 +40,7 @@ fun HomeScreen(
     onScreenTimeClick: () -> Unit = {},
     onContentProtectionClick: () -> Unit = {},
     onLocationClick: () -> Unit = {},
+    onNotificationsClick: () -> Unit = {},
     onQuizClick: () -> Unit = {},
     onTaskClick: () -> Unit = {},
     onRewardClick: () -> Unit = {}
@@ -116,6 +118,11 @@ fun HomeScreen(
                     icon = Icons.Default.LocationOn,
                     label = "Location",
                     onClick = onLocationClick
+                )
+                NavButton(
+                    icon = Icons.Default.Notifications,
+                    label = "Alerts",
+                    onClick = onNotificationsClick
                 )
                 NavButton(
                     icon = Icons.Default.CardGiftcard,

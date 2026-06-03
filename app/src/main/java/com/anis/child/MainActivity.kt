@@ -31,6 +31,8 @@ import com.anis.child.ui.screen.contentprotection.ContentProtectionScreen
 import com.anis.child.ui.screen.contentprotection.ContentProtectionViewModel
 import com.anis.child.ui.screen.location.LocationHistoryScreen
 import com.anis.child.ui.screen.location.LocationHistoryViewModel
+import com.anis.child.ui.screen.notifications.NotificationHistoryScreen
+import com.anis.child.ui.screen.notifications.NotificationHistoryViewModel
 import com.anis.child.ui.screen.quiz.QuizScreen
 import com.anis.child.ui.screen.quiz.QuizViewModel
 import com.anis.child.ui.screen.reward.RewardScreen
@@ -53,6 +55,7 @@ sealed class Screen {
     data object ScreenTime : Screen()
     data object ContentProtection : Screen()
     data object LocationHistory : Screen()
+    data object Notifications : Screen()
     data object Quiz : Screen()
     data object Task : Screen()
     data object Reward : Screen()
@@ -133,6 +136,7 @@ class MainActivity : ComponentActivity() {
                                 onScreenTimeClick = { currentScreen = Screen.ScreenTime },
                                 onContentProtectionClick = { currentScreen = Screen.ContentProtection },
                                 onLocationClick = { currentScreen = Screen.LocationHistory },
+                                onNotificationsClick = { currentScreen = Screen.Notifications },
                                 onQuizClick = { currentScreen = Screen.Quiz },
                                 onTaskClick = { currentScreen = Screen.Task },
                                 onRewardClick = { currentScreen = Screen.Reward }
@@ -221,6 +225,14 @@ class MainActivity : ComponentActivity() {
                             val contentProtectionViewModel: ContentProtectionViewModel = hiltViewModel()
                             ContentProtectionScreen(
                                 viewModel = contentProtectionViewModel,
+                                onBack = { currentScreen = Screen.Home }
+                            )
+                        }
+
+                        is Screen.Notifications -> {
+                            val notificationViewModel: NotificationHistoryViewModel = hiltViewModel()
+                            NotificationHistoryScreen(
+                                viewModel = notificationViewModel,
                                 onBack = { currentScreen = Screen.Home }
                             )
                         }
