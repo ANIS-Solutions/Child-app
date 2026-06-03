@@ -1,11 +1,7 @@
 package com.anis.child
 
 import android.Manifest
-import android.content.Intent
-import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -31,10 +27,16 @@ import com.anis.child.ui.screen.pairing.PairingScreen
 import com.anis.child.ui.screen.pairing.PairingViewModel
 import com.anis.child.ui.screen.pin.PinScreen
 import com.anis.child.ui.screen.pin.PinViewModel
+import com.anis.child.ui.screen.quiz.QuizScreen
+import com.anis.child.ui.screen.quiz.QuizViewModel
+import com.anis.child.ui.screen.reward.RewardScreen
+import com.anis.child.ui.screen.reward.RewardViewModel
 import com.anis.child.ui.screen.screentime.ScreenTimeScreen
 import com.anis.child.ui.screen.screentime.ScreenTimeViewModel
 import com.anis.child.ui.screen.settings.SettingsScreen
 import com.anis.child.ui.screen.splash.SplashScreen
+import com.anis.child.ui.screen.task.TaskScreen
+import com.anis.child.ui.screen.task.TaskViewModel
 import com.anis.child.ui.theme.ANISTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -45,6 +47,9 @@ sealed class Screen {
     data object Home : Screen()
     data object Settings : Screen()
     data object ScreenTime : Screen()
+    data object Quiz : Screen()
+    data object Task : Screen()
+    data object Reward : Screen()
     data class Pin(val isSettingUp: Boolean = false) : Screen()
 }
 
@@ -119,9 +124,10 @@ class MainActivity : ComponentActivity() {
                                         currentScreen = Screen.Settings
                                     }
                                 },
-                                onScreenTimeClick = {
-                                    currentScreen = Screen.ScreenTime
-                                }
+                                onScreenTimeClick = { currentScreen = Screen.ScreenTime },
+                                onQuizClick = { currentScreen = Screen.Quiz },
+                                onTaskClick = { currentScreen = Screen.Task },
+                                onRewardClick = { currentScreen = Screen.Reward }
                             )
                         }
 
@@ -130,12 +136,8 @@ class MainActivity : ComponentActivity() {
                             PinScreen(
                                 viewModel = pinViewModel,
                                 isSettingUp = screen.isSettingUp,
-                                onVerified = {
-                                    currentScreen = Screen.Settings
-                                },
-                                onCancel = {
-                                    currentScreen = Screen.Home
-                                }
+                                onVerified = { currentScreen = Screen.Settings },
+                                onCancel = { currentScreen = Screen.Home }
                             )
                         }
 
@@ -180,9 +182,7 @@ class MainActivity : ComponentActivity() {
                                     homeViewModel.fetchChildMe(this@MainActivity)
                                 },
                                 isFetchingChild = isFetchingChild,
-                                onScreenTimeClick = {
-                                    currentScreen = Screen.ScreenTime
-                                },
+                                onScreenTimeClick = { currentScreen = Screen.ScreenTime },
                                 onLogout = {
                                     telemetryManager.stopMonitoring()
                                     preferenceManager.clear()
@@ -197,6 +197,30 @@ class MainActivity : ComponentActivity() {
                             val screenTimeViewModel: ScreenTimeViewModel = hiltViewModel()
                             ScreenTimeScreen(
                                 viewModel = screenTimeViewModel,
+                                onBack = { currentScreen = Screen.Home }
+                            )
+                        }
+
+                        is Screen.Quiz -> {
+                            val quizViewModel: QuizViewModel = hiltViewModel()
+                            QuizScreen(
+                                viewModel = quizViewModel,
+                                onBack = { currentScreen = Screen.Home }
+                            )
+                        }
+
+                        is Screen.Task -> {
+                            val taskViewModel: TaskViewModel = hiltViewModel()
+                            TaskScreen(
+                                viewModel = taskViewModel,
+                                onBack = { currentScreen = Screen.Home }
+                            )
+                        }
+
+                        is Screen.Reward -> {
+                            val rewardViewModel: RewardViewModel = hiltViewModel()
+                            RewardScreen(
+                                viewModel = rewardViewModel,
                                 onBack = { currentScreen = Screen.Home }
                             )
                         }

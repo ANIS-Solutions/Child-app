@@ -13,8 +13,11 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CardGiftcard
+import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.TaskAlt
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -31,7 +34,10 @@ import com.anis.child.ui.theme.AppColors
 fun HomeScreen(
     childName: String,
     onSettingsClick: () -> Unit,
-    onScreenTimeClick: () -> Unit
+    onScreenTimeClick: () -> Unit = {},
+    onQuizClick: () -> Unit = {},
+    onTaskClick: () -> Unit = {},
+    onRewardClick: () -> Unit = {}
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -66,29 +72,64 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Button(
-                    onClick = onScreenTimeClick,
-                    modifier = Modifier
-                        .padding(8.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = AppColors.primary01
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Schedule,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Screen Time",
-                        color = AppColors.darkTextPrimary
-                    )
-                }
+                NavButton(
+                    icon = Icons.Default.Schedule,
+                    label = "Screen Time",
+                    onClick = onScreenTimeClick
+                )
+                NavButton(
+                    icon = Icons.Default.Quiz,
+                    label = "Quizzes",
+                    onClick = onQuizClick
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                NavButton(
+                    icon = Icons.Default.TaskAlt,
+                    label = "Tasks",
+                    onClick = onTaskClick
+                )
+                NavButton(
+                    icon = Icons.Default.CardGiftcard,
+                    label = "Rewards",
+                    onClick = onRewardClick
+                )
             }
         }
+    }
+}
+
+@Composable
+private fun NavButton(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    onClick: () -> Unit
+) {
+    Button(
+        onClick = onClick,
+        modifier = Modifier
+            .padding(4.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = AppColors.primary01
+        )
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(20.dp)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = label,
+            color = AppColors.darkTextPrimary
+        )
     }
 }
