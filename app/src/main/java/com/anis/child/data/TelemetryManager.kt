@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Looper
 import androidx.core.content.ContextCompat
-import com.anis.child.data.local.AppDatabase
+import com.anis.child.data.local.LocationTelemetryDao
 import com.anis.child.data.local.LocationTelemetryEntity
 import com.anis.child.worker.LocationTelemetryWorker
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -23,15 +23,12 @@ import javax.inject.Singleton
 
 @Singleton
 class TelemetryManager @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val dao: LocationTelemetryDao,
+    private val logManager: LogManager
 ) {
     private val fusedLocationClient: FusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(context)
-
-    private val database = AppDatabase.getInstance(context)
-    private val dao = database.locationTelemetryDao()
-
-    private val logManager = LogManager(context)
 
     private val locationCallback = object : LocationCallback() {
         override fun onLocationResult(result: LocationResult) {

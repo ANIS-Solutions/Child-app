@@ -5,8 +5,8 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anis.child.content.AppBlockAccessibilityService
 import com.anis.child.data.ContentFilterManager
+import com.anis.child.di.BlockedAppsController
 import com.anis.child.data.local.AppRestrictionDao
 import com.anis.child.data.local.AppRestrictionEntity
 import com.anis.child.data.local.ContentFilterRuleDao
@@ -42,7 +42,8 @@ class ContentProtectionViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val appRestrictionDao: AppRestrictionDao,
     private val contentFilterRuleDao: ContentFilterRuleDao,
-    private val contentFilterManager: ContentFilterManager
+    private val contentFilterManager: ContentFilterManager,
+    private val blockedAppsController: BlockedAppsController
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ContentProtectionUiState())
@@ -96,6 +97,10 @@ class ContentProtectionViewModel @Inject constructor(
         }
     }
 
+    fun openAccessibilitySettings() {
+        blockedAppsController.openAccessibilitySettings()
+    }
+
     fun toggleAppBlock(packageName: String, block: Boolean) {
         viewModelScope.launch {
             appRestrictionDao.upsert(
@@ -107,7 +112,7 @@ class ContentProtectionViewModel @Inject constructor(
                 )
             )
             if (block) {
-                AppBlockAccessibilityService.sendUpdateBlockedApps(context)
+                blockedAppsController.sendUpdateBlockedApps()
             }
             loadInstalledApps()
         }

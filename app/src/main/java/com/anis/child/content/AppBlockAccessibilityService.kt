@@ -15,6 +15,7 @@ import com.anis.child.data.LogManager
 import com.anis.child.data.LogType
 import com.anis.child.data.ScreenTimeManager
 import dagger.hilt.android.AndroidEntryPoint
+import com.anis.child.util.registerReceiverSafe
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
@@ -22,6 +23,7 @@ import javax.inject.Inject
 class AppBlockAccessibilityService : AccessibilityService() {
 
     @Inject lateinit var logManager: LogManager
+    @Inject lateinit var screenTimeManager: ScreenTimeManager
 
     private var blockedPackageName: String? = null
     private var isForegroundService = false
@@ -30,8 +32,6 @@ class AppBlockAccessibilityService : AccessibilityService() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
                 ACTION_ENABLE -> {
-                    val screenTimeManager = ScreenTimeManager(applicationContext)
-                    CurrentHolder.screenTimeManager = screenTimeManager
                     logManager.log("Accessibility service activated", LogType.INFO)
                     startForegroundNotification()
                 }
@@ -73,13 +73,10 @@ class AppBlockAccessibilityService : AccessibilityService() {
             addAction(ACTION_UPDATE_BLOCKED_APPS)
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(toggleReceiver, filter, Context.RECEIVER_EXPORTED)
+            registerReceiverSafe(toggleReceiver, filter)
         } else {
             registerReceiver(toggleReceiver, filter)
         }
-
-        val screenTimeManager = ScreenTimeManager(applicationContext)
-        CurrentHolder.screenTimeManager = screenTimeManager
 
         logManager.log("Accessibility service connected", LogType.SUCCESS)
     }
@@ -121,9 +118,8 @@ class AppBlockAccessibilityService : AccessibilityService() {
             return
         }
 
-        val sm = CurrentHolder.screenTimeManager ?: return
         val isBlocked = try {
-            runBlocking { sm.isAppBlocked(pkg) }
+            runBlocking { screenTimeManager.isAppBlocked(pkg) }
         } catch (_: Exception) { false }
 
         if (isBlocked) {
@@ -139,8 +135,7 @@ class AppBlockAccessibilityService : AccessibilityService() {
     }
 
     private fun checkCurrentApp() {
-        val sm = CurrentHolder.screenTimeManager ?: return
-        val currentApp = sm.getCurrentForegroundApp()
+        val currentApp = screenTimeManager.getCurrentForegroundApp()
         if (currentApp.isNotEmpty()) {
             handleForegroundAppChanged(currentApp)
         }
@@ -231,8 +226,4 @@ class AppBlockAccessibilityService : AccessibilityService() {
             context.sendBroadcast(Intent(ACTION_UPDATE_BLOCKED_APPS).setPackage(context.packageName))
         }
     }
-}
-
-internal object CurrentHolder {
-    var screenTimeManager: ScreenTimeManager? = null
 }

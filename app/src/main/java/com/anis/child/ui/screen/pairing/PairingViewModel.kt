@@ -2,7 +2,6 @@ package com.anis.child.ui.screen.pairing
 
 import android.app.Application
 import android.content.Context
-import android.provider.Settings
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.anis.child.data.ChildData
@@ -12,6 +11,7 @@ import com.anis.child.data.QrData
 import com.anis.child.data.repository.AuthRepository
 import com.anis.child.network.ApiResult
 import com.google.firebase.messaging.FirebaseMessaging
+import com.anis.child.util.resolveDeviceId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -44,9 +44,7 @@ class PairingViewModel @Inject constructor(
     private val _onNavigateToHome = MutableStateFlow(false)
     val onNavigateToHome: StateFlow<Boolean> = _onNavigateToHome.asStateFlow()
 
-    fun getDeviceId(context: Context): String {
-        return Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID) ?: "unknown"
-    }
+    fun getDeviceId(context: Context): String = context.resolveDeviceId()
 
     fun getDeviceName(): String {
         return android.os.Build.MODEL

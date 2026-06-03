@@ -14,6 +14,7 @@ import com.anis.child.content.BlockingOverlayManager
 import com.anis.child.data.LogManager
 import com.anis.child.data.LogType
 import com.anis.child.data.ScreenTimeManager
+import com.anis.child.util.registerReceiverSafe
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -47,7 +48,7 @@ class AppRestrictionService : Service() {
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
-        registerReceiver(overlayReceiver, IntentFilter(ACTION_HIDE_OVERLAY), if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Context.RECEIVER_EXPORTED else 0)
+        registerReceiverSafe(overlayReceiver, IntentFilter(ACTION_HIDE_OVERLAY))
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

@@ -1,14 +1,13 @@
 package com.anis.child.ui.screen.screentime
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anis.child.data.ScreenTimeManager
 import com.anis.child.data.ScreenTimeSummary
 import com.anis.child.data.local.AppRestrictionEntity
 import com.anis.child.data.local.ScreenTimeConfigEntity
+import com.anis.child.di.AppRestrictionController
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,8 +25,8 @@ data class ScreenTimeUiState(
 
 @HiltViewModel
 class ScreenTimeViewModel @Inject constructor(
-    @ApplicationContext private val context: Context,
-    private val screenTimeManager: ScreenTimeManager
+    private val screenTimeManager: ScreenTimeManager,
+    private val appRestrictionController: AppRestrictionController
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ScreenTimeUiState())
@@ -69,10 +68,10 @@ class ScreenTimeViewModel @Inject constructor(
     }
 
     fun startRestrictionService() {
-        com.anis.child.service.AppRestrictionService.start(context)
+        appRestrictionController.start()
     }
 
     fun stopRestrictionService() {
-        com.anis.child.service.AppRestrictionService.stop(context)
+        appRestrictionController.stop()
     }
 }

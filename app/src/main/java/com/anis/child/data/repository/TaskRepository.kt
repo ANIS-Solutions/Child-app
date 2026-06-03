@@ -3,6 +3,7 @@ package com.anis.child.data.repository
 import com.anis.child.data.local.TaskDao
 import com.anis.child.data.local.TaskEntity
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -21,9 +22,7 @@ class TaskRepository @Inject constructor(
     }
 
     suspend fun seedSampleDataIfEmpty() {
-        val tasks = taskDao.getAllTasks()
-        var taskList = emptyList<TaskEntity>()
-        tasks.collect { taskList = it; return@collect }
+        val taskList = taskDao.getAllTasks().first()
 
         if (taskList.isEmpty()) {
             createTask(TaskEntity(title = "Clean your room", description = "Tidy up your room and make the bed", rewardValue = 20))

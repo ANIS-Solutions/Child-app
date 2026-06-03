@@ -3,12 +3,14 @@ package com.anis.child.data
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.Build
-import com.anis.child.data.local.AppDatabase
+import com.anis.child.data.local.AppRestrictionDao
 import com.anis.child.data.local.AppRestrictionEntity
+import com.anis.child.data.local.ScreenTimeConfigDao
 import com.anis.child.data.local.ScreenTimeConfigEntity
+import com.anis.child.util.getAppLabel
+import kotlinx.coroutines.flow.first
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.Calendar
 import javax.inject.Inject
@@ -34,11 +36,12 @@ data class ScreenTimeSummary(
 
 @Singleton
 class ScreenTimeManager @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val screenTimeConfigDao: ScreenTimeConfigDao,
+    private val appRestrictionDao: AppRestrictionDao
 ) {
     private val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
     private val packageManager = context.packageManager
-    private val database = AppDatabase.getInstance(context)
 
     fun hasUsageStatsPermission(): Boolean {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return false
@@ -99,15 +102,9 @@ class ScreenTimeManager @Inject constructor(
             .filter { it.totalTimeInForeground > 60000 }
             .sortedByDescending { it.totalTimeInForeground }
             .map { stat ->
-                val label = try {
-                    val ai = packageManager.getApplicationInfo(stat.packageName, 0)
-                    packageManager.getApplicationLabel(ai).toString()
-                } catch (_: Exception) {
-                    stat.packageName
-                }
                 AppUsageInfo(
                     packageName = stat.packageName,
-                    label = label,
+                    label = packageManager.getAppLabel(stat.packageName),
                     totalTimeInForegroundMs = stat.totalTimeInForeground
                 )
             }
@@ -126,19 +123,15 @@ class ScreenTimeManager @Inject constructor(
     }
 
     suspend fun getConfig(): ScreenTimeConfigEntity {
-        return database.screenTimeConfigDao().getConfig() ?: ScreenTimeConfigEntity()
+        return screenTimeConfigDao.getConfig() ?: ScreenTimeConfigEntity()
     }
 
     suspend fun updateConfig(config: ScreenTimeConfigEntity) {
-        database.screenTimeConfigDao().upsert(config)
+        screenTimeConfigDao.upsert(config)
     }
 
     suspend fun getAllRestrictions(): List<AppRestrictionEntity> {
-        return database.appRestrictionDao().getAllRestrictions().let { flow ->
-            var list = emptyList<AppRestrictionEntity>()
-            flow.collect { list = it; return@collect }
-            list
-        }
+        return appRestrictionDao.getAllRestrictions().first()
     }
 
     suspend fun getSummary(): ScreenTimeSummary {
@@ -181,7 +174,7 @@ class ScreenTimeManager @Inject constructor(
     }
 
     suspend fun isAppBlocked(packageName: String): Boolean {
-        val restriction = database.appRestrictionDao().getRestriction(packageName)
+        val restriction = appRestrictionDao.getRestriction(packageName)
         if (restriction != null && restriction.isBlocked) return true
         val summary = getSummary()
         return summary.isLimitReached || summary.isBedtime || summary.isTemporarilyRestricted

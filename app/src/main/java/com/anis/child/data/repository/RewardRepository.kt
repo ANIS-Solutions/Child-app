@@ -3,6 +3,7 @@ package com.anis.child.data.repository
 import com.anis.child.data.local.RewardDao
 import com.anis.child.data.local.RewardEntity
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -23,9 +24,7 @@ class RewardRepository @Inject constructor(
     }
 
     suspend fun seedSampleDataIfEmpty() {
-        val rewards = rewardDao.getAllRewards()
-        var rewardList = emptyList<RewardEntity>()
-        rewards.collect { rewardList = it; return@collect }
+        val rewardList = rewardDao.getAllRewards().first()
 
         if (rewardList.isEmpty()) {
             rewardDao.insert(RewardEntity(

@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.TextView
 import com.anis.child.R
+import com.anis.child.util.getAppLabel
 
 object BlockingOverlayManager {
     private var overlayView: ViewGroup? = null
@@ -24,13 +25,7 @@ object BlockingOverlayManager {
             val inflater = LayoutInflater.from(context)
             overlayView = inflater.inflate(R.layout.overlay_blocked_app, null) as ViewGroup
 
-            val label = try {
-                val pm = context.packageManager
-                val ai = pm.getApplicationInfo(packageName, 0)
-                pm.getApplicationLabel(ai).toString()
-            } catch (_: Exception) {
-                packageName
-            }
+            val label = context.packageManager.getAppLabel(packageName)
 
             overlayView?.findViewById<TextView>(R.id.blocked_app_name)?.text = label
             currentBlockedApp = packageName

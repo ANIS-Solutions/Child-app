@@ -2,7 +2,6 @@ package com.anis.child.ui.screen.screentime
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,7 +15,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Schedule
@@ -26,16 +24,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -46,9 +38,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.anis.child.data.AppUsageInfo
 import com.anis.child.data.ScreenTimeSummary
+import com.anis.child.ui.components.AnisScaffold
 import com.anis.child.ui.theme.AppColors
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScreenTimeScreen(
     viewModel: ScreenTimeViewModel,
@@ -56,30 +48,11 @@ fun ScreenTimeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Screen Time", color = AppColors.darkTextPrimary) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, "Back", tint = AppColors.darkTextPrimary)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = AppColors.primary01)
-            )
-        },
-        containerColor = AppColors.surface50
-    ) { padding ->
-        if (uiState.isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = AppColors.primary01)
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(16.dp),
+    AnisScaffold(title = "Screen Time", onBack = onBack, isLoading = uiState.isLoading) { modifier ->
+        LazyColumn(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 if (!uiState.hasUsagePermission) {
@@ -130,14 +103,13 @@ fun ScreenTimeScreen(
                         color = AppColors.textPrimary,
                         fontWeight = FontWeight.Bold
                     )
-                }
+            }
 
-                item {
-                    RestrictionControls(
-                        onStartService = { viewModel.startRestrictionService() },
-                        onStopService = { viewModel.stopRestrictionService() }
-                    )
-                }
+            item {
+                RestrictionControls(
+                    onStartService = { viewModel.startRestrictionService() },
+                    onStopService = { viewModel.stopRestrictionService() }
+                )
             }
         }
     }

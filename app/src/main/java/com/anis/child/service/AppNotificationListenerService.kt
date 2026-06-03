@@ -5,13 +5,15 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.os.Build
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import com.anis.child.data.local.NotificationInterceptDao
 import com.anis.child.data.local.NotificationInterceptEntity
 import com.anis.child.data.LogManager
 import com.anis.child.data.LogType
+import com.anis.child.util.getAppLabel
+import com.anis.child.util.registerReceiverSafe
+import kotlinx.coroutines.flow.first
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -33,7 +35,7 @@ class AppNotificationListenerService : NotificationListenerService() {
 
     override fun onCreate() {
         super.onCreate()
-        registerReceiver(enableReceiver, IntentFilter(ACTION_REQUEST_PERMISSION), if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Context.RECEIVER_EXPORTED else 0)
+        registerReceiverSafe(enableReceiver, IntentFilter(ACTION_REQUEST_PERMISSION))
     }
 
     override fun onListenerConnected() {
@@ -57,11 +59,7 @@ class AppNotificationListenerService : NotificationListenerService() {
 
     override fun onNotificationRemoved(sbn: StatusBarNotification) {
         kotlinx.coroutines.runBlocking {
-            val existing = notificationDao.getAll().let { flow ->
-                var list = emptyList<NotificationInterceptEntity>()
-                flow.collect { list = it; return@collect }
-                list
-            }
+            val existing = notificationDao.getAll().first()
             val match = existing.find {
                 it.packageName == sbn.packageName &&
                         it.timestamp >= sbn.postTime - 5000 &&
@@ -89,13 +87,7 @@ class AppNotificationListenerService : NotificationListenerService() {
         if (title.isNullOrEmpty() && text.isNullOrEmpty()) return
         if (packageName == this.packageName) return
 
-        val appLabel = try {
-            val pm = packageManager
-            val ai = pm.getApplicationInfo(packageName, 0)
-            pm.getApplicationLabel(ai).toString()
-        } catch (_: Exception) {
-            packageName
-        }
+        val appLabel = packageManager.getAppLabel(packageName)
 
         kotlinx.coroutines.runBlocking {
             notificationDao.insert(

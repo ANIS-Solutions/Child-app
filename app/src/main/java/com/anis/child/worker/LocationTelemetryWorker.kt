@@ -1,6 +1,7 @@
 package com.anis.child.worker
 
 import android.content.Context
+import androidx.hilt.work.HiltWorker
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
@@ -11,22 +12,23 @@ import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.anis.child.data.LogManager
 import com.anis.child.data.LogType
-import com.anis.child.data.local.AppDatabase
+import com.anis.child.data.local.LocationTelemetryDao
+import com.anis.child.data.repository.LocationRepository
 import com.anis.child.network.ApiResult
-import com.anis.child.network.NetworkProvider
+import dagger.assisted.Assisted
+import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 
-class LocationTelemetryWorker(
-    private val context: Context,
-    workerParams: WorkerParameters
-) : CoroutineWorker(context, workerParams) {
-
-    private val locationRepository = NetworkProvider.provideLocationRepository()
-    private val database = AppDatabase.getInstance(context)
-    private val dao = database.locationTelemetryDao()
-    private val logManager = LogManager(context)
+@HiltWorker
+class LocationTelemetryWorker @AssistedInject constructor(
+    @Assisted appContext: Context,
+    @Assisted workerParams: WorkerParameters,
+    private val locationRepository: LocationRepository,
+    private val dao: LocationTelemetryDao,
+    private val logManager: LogManager
+) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         try {

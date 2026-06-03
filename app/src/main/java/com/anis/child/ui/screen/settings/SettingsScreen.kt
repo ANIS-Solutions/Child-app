@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import com.anis.child.data.LogManager
 import com.anis.child.ui.screen.home.LogSection
 import com.anis.child.ui.theme.AppColors
+import com.anis.child.util.resolveDeviceId
 
 @Composable
 fun SettingsScreen(
@@ -298,6 +299,7 @@ private fun PermissionRow(
 
 @Composable
 private fun DeviceInfoSection(childId: String?) {
+    val context = LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -320,10 +322,7 @@ private fun DeviceInfoSection(childId: String?) {
             }
             InfoRow("Device", Build.MODEL)
             InfoRow("Android Version", Build.VERSION.RELEASE)
-            InfoRow("Android ID", android.provider.Settings.Secure.getString(
-                LocalContext.current.contentResolver,
-                android.provider.Settings.Secure.ANDROID_ID
-            ))
+            InfoRow("Android ID", context.resolveDeviceId())
         }
     }
 }

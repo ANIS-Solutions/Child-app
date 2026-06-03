@@ -100,9 +100,11 @@ fun ContentProtectionScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                item {
-                    AccessibilityStatusCard()
-                }
+        item {
+            AccessibilityStatusCard(
+                onOpenAccessibilitySettings = { viewModel.openAccessibilitySettings() }
+            )
+        }
 
                 item {
                     Text(
@@ -212,7 +214,7 @@ fun ContentProtectionScreen(
 }
 
 @Composable
-private fun AccessibilityStatusCard() {
+private fun AccessibilityStatusCard(onOpenAccessibilitySettings: () -> Unit = {}) {
     val context = LocalContext.current
     val pm = context.packageManager
     val isEnabled = try {
@@ -252,7 +254,7 @@ private fun AccessibilityStatusCard() {
             }
         }
         Button(
-            onClick = { AppBlockAccessibilityService.openAccessibilitySettings(context) },
+            onClick = onOpenAccessibilitySettings,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
