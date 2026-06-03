@@ -82,6 +82,35 @@ class ScreenTimeManager @Inject constructor(
         return (totalMs / 60000).toInt()
     }
 
+    fun getWeeklyScreenTimeAverage(): Int {
+        var totalMinutes = 0
+        for (i in 0..6) {
+            val dayCal = Calendar.getInstance().apply {
+                timeInMillis = System.currentTimeMillis()
+                add(Calendar.DAY_OF_YEAR, -i)
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            val dayStart = dayCal.timeInMillis
+            dayCal.add(Calendar.DAY_OF_YEAR, 1)
+            val dayEnd = dayCal.timeInMillis
+
+            val stats = usageStatsManager.queryUsageStats(
+                UsageStatsManager.INTERVAL_DAILY,
+                dayStart,
+                dayEnd
+            )
+            var dayMs = 0L
+            for (stat in stats) {
+                dayMs += stat.totalTimeInForeground
+            }
+            totalMinutes += (dayMs / 60000).toInt()
+        }
+        return totalMinutes / 7
+    }
+
     fun getAppUsageToday(): List<AppUsageInfo> {
         val calendar = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, 0)

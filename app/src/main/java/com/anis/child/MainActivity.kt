@@ -130,8 +130,13 @@ class MainActivity : ComponentActivity() {
                         }
 
                         is Screen.Home -> {
+                            val homeViewModel: HomeViewModel = hiltViewModel()
+                            LaunchedEffect(Unit) {
+                                homeViewModel.loadHomeData()
+                            }
                             HomeScreen(
                                 childName = preferenceManager.childName ?: "Child",
+                                homeViewModel = homeViewModel,
                                 onSettingsClick = { navigateToProtected(Screen.Settings) },
                                 onTaskClick = { currentScreen = Screen.Task },
                                 onRewardClick = { currentScreen = Screen.Reward }

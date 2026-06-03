@@ -4,9 +4,11 @@ import android.annotation.SuppressLint
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.anis.child.data.AppUsageInfo
 import com.anis.child.data.LogManager
 import com.anis.child.data.LogType
 import com.anis.child.data.PreferenceManager
+import com.anis.child.data.ScreenTimeManager
 import com.anis.child.data.repository.AppsRepository
 import com.anis.child.data.repository.LocationRepository
 import com.anis.child.network.ApiResult
@@ -23,13 +25,22 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+data class HomeScreenData(
+    val todayMinutes: Int = 0,
+    val dailyLimit: Int = 0,
+    val weeklyAverage: Int = 0,
+    val topApps: List<AppUsageInfo> = emptyList(),
+    val hasUsagePermission: Boolean = false
+)
+
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val preferenceManager: PreferenceManager,
     private val logManager: LogManager,
     private val locationRepository: LocationRepository,
     private val appsRepository: AppsRepository,
-    private val apiService: ApiService
+    private val apiService: ApiService,
+    private val screenTimeManager: ScreenTimeManager
 ) : ViewModel() {
 
     private val _isSending = MutableStateFlow(false)
@@ -40,6 +51,27 @@ class HomeViewModel @Inject constructor(
 
     private val _isFetchingChild = MutableStateFlow(false)
     val isFetchingChild: StateFlow<Boolean> = _isFetchingChild.asStateFlow()
+
+    private val _homeData = MutableStateFlow(HomeScreenData())
+    val homeData: StateFlow<HomeScreenData> = _homeData.asStateFlow()
+
+    fun loadHomeData() {
+        viewModelScope.launch {
+            val todayMinutes = screenTimeManager.getTodayScreenTimeMinutes()
+            val weeklyAverage = screenTimeManager.getWeeklyScreenTimeAverage()
+            val topApps = screenTimeManager.getAppUsageToday().take(3)
+            val config = screenTimeManager.getConfig()
+            val hasUsagePermission = screenTimeManager.hasUsageStatsPermission()
+
+            _homeData.value = HomeScreenData(
+                todayMinutes = todayMinutes,
+                dailyLimit = config.dailyLimitMinutes + config.extraTimeEarnedMinutes,
+                weeklyAverage = weeklyAverage,
+                topApps = topApps,
+                hasUsagePermission = hasUsagePermission
+            )
+        }
+    }
 
     fun sendCurrentLocation(context: Context) {
         if (_isSending.value) return
