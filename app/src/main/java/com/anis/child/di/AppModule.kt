@@ -6,6 +6,8 @@ import com.anis.child.data.PreferenceManager
 import com.anis.child.data.local.AppDatabase
 import com.anis.child.data.local.AppRestrictionDao
 import com.anis.child.data.local.LocationTelemetryDao
+import com.anis.child.data.local.AnalysisResultDao
+import com.anis.child.data.local.SessionDao
 import com.anis.child.data.local.ContentFilterRuleDao
 import com.anis.child.data.local.NotificationInterceptDao
 import com.anis.child.data.local.RewardDao
@@ -86,6 +88,18 @@ object AppModule {
     @Singleton
     fun provideTaskDao(database: AppDatabase): TaskDao {
         return database.taskDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideAnalysisResultDao(database: AppDatabase): AnalysisResultDao {
+        return database.analysisResultDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideSessionDao(database: AppDatabase): SessionDao {
+        return database.sessionDao()
     }
 
     @Provides

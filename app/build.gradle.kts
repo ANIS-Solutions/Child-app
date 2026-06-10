@@ -100,6 +100,13 @@ dependencies {
     implementation(libs.hilt.navigation.compose)
     implementation(libs.androidx.hilt.work)
     ksp(libs.androidx.room.compiler)
+
+    // AI dependencies
+    implementation(libs.onnxruntime.android)
+    implementation(libs.text.recognition)
+    implementation(libs.kotlinx.coroutines.play.services)
+    implementation(libs.androidx.lifecycle.service)
+    implementation(libs.fastexcel)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

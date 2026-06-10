@@ -1,7 +1,11 @@
 package com.anis.child
 
 import android.Manifest
+import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
+import android.view.View
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -16,6 +20,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.anis.child.ai.util.BlurOverlayManager
+import com.anis.child.ui.screen.ai.AiSessionScreen
+import com.anis.child.ui.screen.ai.AiSessionViewModel
 import com.anis.child.data.LogManager
 import com.anis.child.data.LogType
 import com.anis.child.data.PreferenceManager
@@ -56,6 +63,7 @@ sealed class Screen {
     data object Task : Screen()
     data object Reward : Screen()
     data class Pin(val isSettingUp: Boolean = false) : Screen()
+    data object AiSession : Screen()
 }
 
 @AndroidEntryPoint
@@ -64,6 +72,9 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var preferenceManager: PreferenceManager
     @Inject lateinit var telemetryManager: TelemetryManager
     @Inject lateinit var logManager: LogManager
+
+    private val TAG = "MainActivity"
+    private var blockedOverlay: View? = null
 
     private val locationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -84,6 +95,18 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         logManager.log("App started", LogType.INFO)
+
+        BlurOverlayManager.registerReceiver(
+            context = this,
+            onShow = {
+                Log.d(TAG, "RECEIVER: Show action received")
+                showBlockedOverlay()
+            },
+            onHide = {
+                Log.d(TAG, "RECEIVER: Hide action received")
+                hideBlockedOverlay()
+            }
+        )
 
         if (preferenceManager.isMonitoringEnabled) {
             requestLocationPermissions()
@@ -200,6 +223,7 @@ class MainActivity : ComponentActivity() {
                                 isFetchingChild = isFetchingChild,
                                 onScreenTimeClick = { currentScreen = Screen.ScreenTime },
                                 onContentProtectionClick = { currentScreen = Screen.ContentProtection },
+                                onAiSessionClick = { navigateToProtected(Screen.AiSession) },
                                 onLocationHistoryClick = { currentScreen = Screen.LocationHistory },
                                 onNotificationsClick = { currentScreen = Screen.Notifications },
                                 onBack = { currentScreen = Screen.Home },
@@ -226,6 +250,14 @@ class MainActivity : ComponentActivity() {
                             val locationViewModel: LocationHistoryViewModel = hiltViewModel()
                             LocationHistoryScreen(
                                 viewModel = locationViewModel,
+                                onBack = { navigateToProtected(Screen.Settings) }
+                            )
+                        }
+
+                        is Screen.AiSession -> {
+                            val aiSessionViewModel: AiSessionViewModel = hiltViewModel()
+                            AiSessionScreen(
+                                viewModel = aiSessionViewModel,
                                 onBack = { navigateToProtected(Screen.Settings) }
                             )
                         }
@@ -265,6 +297,53 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    private fun showBlockedOverlay() {
+        runOnUiThread {
+            try {
+                hideBlockedOverlay()
+
+                val overlayView = View(this).apply {
+                    setBackgroundColor(Color.argb(240, 255, 255, 255))
+                }
+
+                val params = WindowManager.LayoutParams(
+                    WindowManager.LayoutParams.MATCH_PARENT,
+                    WindowManager.LayoutParams.MATCH_PARENT,
+                    WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                    android.graphics.PixelFormat.TRANSLUCENT
+                )
+
+                windowManager?.addView(overlayView, params)
+                blockedOverlay = overlayView
+            } catch (e: Exception) {
+                Log.e(TAG, "Error showing overlay", e)
+            }
+        }
+    }
+
+    private fun hideBlockedOverlay() {
+        runOnUiThread {
+            try {
+                blockedOverlay?.let {
+                    windowManager?.removeView(it)
+                    blockedOverlay = null
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error hiding overlay", e)
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        BlurOverlayManager.unregisterReceiver(this)
+        hideBlockedOverlay()
     }
 
     private fun requestLocationPermissions() {

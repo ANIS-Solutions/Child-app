@@ -49,6 +49,7 @@ import com.anis.child.data.LogManager
 import com.anis.child.ui.screen.home.LogSection
 import com.anis.child.ui.theme.AppColors
 import com.anis.child.util.resolveDeviceId
+import androidx.compose.material.icons.filled.PlayArrow
 
 @Composable
 fun SettingsScreen(
@@ -64,6 +65,7 @@ fun SettingsScreen(
     isFetchingChild: Boolean,
     onScreenTimeClick: () -> Unit = {},
     onContentProtectionClick: () -> Unit = {},
+    onAiSessionClick: () -> Unit = {},
     onLocationHistoryClick: () -> Unit = {},
     onNotificationsClick: () -> Unit = {},
     onBack: () -> Unit,
@@ -147,6 +149,25 @@ fun SettingsScreen(
             )
             Text(
                 text = "Content Protection",
+                color = AppColors.darkTextPrimary,
+                modifier = Modifier.padding(start = 8.dp)
+            )
+        }
+
+        Button(
+            onClick = onAiSessionClick,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = AppColors.primary01
+            )
+        ) {
+            Icon(
+                imageVector = Icons.Default.PlayArrow,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
+            Text(
+                text = "AI Content Monitoring",
                 color = AppColors.darkTextPrimary,
                 modifier = Modifier.padding(start = 8.dp)
             )

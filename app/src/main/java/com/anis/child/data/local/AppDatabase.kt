@@ -10,6 +10,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 @Database(
     entities = [
         LocationTelemetryEntity::class,
+        SessionEntity::class,
         AnalysisResultEntity::class,
         TaskEntity::class,
         RewardEntity::class,
@@ -24,6 +25,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun locationTelemetryDao(): LocationTelemetryDao
+    abstract fun sessionDao(): SessionDao
     abstract fun analysisResultDao(): AnalysisResultDao
     abstract fun taskDao(): TaskDao
     abstract fun rewardDao(): RewardDao
