@@ -57,28 +57,22 @@ fun ScreenTimeScreen(
             .fillMaxSize()
             .background(AppColors.surface50)
     ) {
-        Box(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(AppColors.primary01)
                 .statusBarsPadding()
+                .padding(horizontal = 4.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 4.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = onBack) {
-                    Icon(Icons.Default.ArrowBack, "Back", tint = AppColors.darkTextPrimary)
-                }
-                Text(
-                    text = "Screen Time",
-                    color = AppColors.darkTextPrimary,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
+            IconButton(onClick = onBack) {
+                Icon(Icons.Default.ArrowBack, "Back", tint = AppColors.textPrimary)
             }
+            Text(
+                text = "Screen Time",
+                color = AppColors.textPrimary,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
         }
 
         if (uiState.isLoading) {

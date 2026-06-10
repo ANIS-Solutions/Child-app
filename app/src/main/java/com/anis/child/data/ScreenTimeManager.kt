@@ -82,11 +82,10 @@ class ScreenTimeManager @Inject constructor(
         return (totalMs / 60000).toInt()
     }
 
-    fun getWeeklyScreenTimeAverage(): Int {
+    fun getWeeklyTotalMinutes(): Int {
         var totalMinutes = 0
         for (i in 0..6) {
             val dayCal = Calendar.getInstance().apply {
-                timeInMillis = System.currentTimeMillis()
                 add(Calendar.DAY_OF_YEAR, -i)
                 set(Calendar.HOUR_OF_DAY, 0)
                 set(Calendar.MINUTE, 0)
@@ -95,20 +94,51 @@ class ScreenTimeManager @Inject constructor(
             }
             val dayStart = dayCal.timeInMillis
             dayCal.add(Calendar.DAY_OF_YEAR, 1)
-            val dayEnd = dayCal.timeInMillis
-
             val stats = usageStatsManager.queryUsageStats(
-                UsageStatsManager.INTERVAL_DAILY,
-                dayStart,
-                dayEnd
+                UsageStatsManager.INTERVAL_DAILY, dayStart, dayCal.timeInMillis
             )
             var dayMs = 0L
-            for (stat in stats) {
-                dayMs += stat.totalTimeInForeground
-            }
+            for (stat in stats) dayMs += stat.totalTimeInForeground
             totalMinutes += (dayMs / 60000).toInt()
         }
-        return totalMinutes / 7
+        return totalMinutes
+    }
+
+    fun getWeeklyScreenTimeAverage(): Int = getWeeklyTotalMinutes() / 7
+
+    fun getWeeklyAppUsage(): List<AppUsageInfo> {
+        val appTotals = mutableMapOf<String, Long>()
+        val appLabels = mutableMapOf<String, String>()
+
+        for (i in 0..6) {
+            val dayCal = Calendar.getInstance().apply {
+                add(Calendar.DAY_OF_YEAR, -i)
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            val dayStart = dayCal.timeInMillis
+            dayCal.add(Calendar.DAY_OF_YEAR, 1)
+            val stats = usageStatsManager.queryUsageStats(
+                UsageStatsManager.INTERVAL_DAILY, dayStart, dayCal.timeInMillis
+            )
+            for (stat in stats) {
+                appTotals[stat.packageName] = (appTotals[stat.packageName] ?: 0L) + stat.totalTimeInForeground
+                appLabels[stat.packageName] = packageManager.getAppLabel(stat.packageName)
+            }
+        }
+
+        return appTotals.entries
+            .filter { it.value > 60000 }
+            .sortedByDescending { it.value }
+            .map { (pkg, ms) ->
+                AppUsageInfo(
+                    packageName = pkg,
+                    label = appLabels[pkg] ?: pkg,
+                    totalTimeInForegroundMs = ms
+                )
+            }
     }
 
     fun getAppUsageToday(): List<AppUsageInfo> {

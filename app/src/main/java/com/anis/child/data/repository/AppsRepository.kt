@@ -5,6 +5,7 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import com.anis.child.data.AppPackage
 import com.anis.child.data.AppsBulkResponse
+import com.anis.child.data.PackagesIdRequest
 import com.anis.child.data.PreferenceManager
 import com.anis.child.network.ApiResult
 import com.anis.child.network.ApiService
@@ -43,8 +44,9 @@ class AppsRepository @Inject constructor(
         if (token.isNullOrEmpty()) {
             return ApiResult.Error("No access token available")
         }
+        val packageIds = apps.map { it.packageId }
         return safeApiCall {
-            apiService.sendAppsBulk(apps)
+            apiService.sendAppsBulk(PackagesIdRequest(packageIds))
         }
     }
 }

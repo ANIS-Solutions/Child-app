@@ -1,16 +1,23 @@
 package com.anis.child.network
 
-import com.anis.child.data.AppPackage
 import com.anis.child.data.AppsBulkResponse
 import com.anis.child.data.ChildMeResponse
+import com.anis.child.data.ChildQuestsResponse
+import com.anis.child.data.ChildRewardsResponse
 import com.anis.child.data.FcmTokenRequest
 import com.anis.child.data.FcmTokenResponse
+import com.anis.child.data.PackagesIdRequest
 import com.anis.child.data.PairingRequest
 import com.anis.child.data.PairingResponse
+import com.anis.child.data.QuestUpdateRequest
+import com.anis.child.data.QuestUpdateResponse
+import com.anis.child.data.RewardUpdateRequest
+import com.anis.child.data.RewardUpdateResponse
 import com.anis.child.data.TelemetryRequest
 import com.anis.child.data.TelemetryResponse
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
 
@@ -29,8 +36,28 @@ interface ApiService {
     suspend fun registerFcmToken(@Body request: FcmTokenRequest): FcmTokenResponse
 
     @POST(ApiConfig.Endpoints.ADD_BULK_APPS)
-    suspend fun sendAppsBulk(@Body apps: List<AppPackage>): AppsBulkResponse
+    suspend fun sendAppsBulk(@Body request: PackagesIdRequest): AppsBulkResponse
 
     @GET(ApiConfig.Endpoints.CHILDREN_ME)
     suspend fun getChildMe(): ChildMeResponse
+
+    @GET(ApiConfig.Endpoints.QUESTS)
+    suspend fun getChildQuests(@Path("childId") childId: String): ChildQuestsResponse
+
+    @GET(ApiConfig.Endpoints.REWARDS)
+    suspend fun getChildRewards(@Path("childId") childId: String): ChildRewardsResponse
+
+    @PATCH(ApiConfig.Endpoints.UPDATE_QUEST)
+    suspend fun updateQuest(
+        @Path("childId") childId: String,
+        @Path("questId") questId: String,
+        @Body request: QuestUpdateRequest
+    ): QuestUpdateResponse
+
+    @PATCH(ApiConfig.Endpoints.UPDATE_REWARD)
+    suspend fun updateReward(
+        @Path("childId") childId: String,
+        @Path("rewardId") rewardId: String,
+        @Body request: RewardUpdateRequest
+    ): RewardUpdateResponse
 }

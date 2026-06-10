@@ -169,16 +169,14 @@ class MainActivity : ComponentActivity() {
                                 if (preferenceManager.needsInitialAppSync) {
                                     preferenceManager.needsInitialAppSync = false
                                     homeViewModel.sendInstalledApps(this@MainActivity)
-                                    homeViewModel.fetchChildMe(this@MainActivity)
+                                    homeViewModel.fetchChildMe()
                                 }
                             }
 
                             SettingsScreen(
                                 logManager = logManager,
-                                isDarkMode = isDarkMode,
                                 isMonitoringEnabled = preferenceManager.isMonitoringEnabled,
                                 childId = preferenceManager.childId,
-                                onDarkModeChange = { isDarkMode = it },
                                 onMonitoringChange = { enabled ->
                                     preferenceManager.isMonitoringEnabled = enabled
                                     if (enabled) {
@@ -197,13 +195,15 @@ class MainActivity : ComponentActivity() {
                                 },
                                 isSendingApps = isSendingApps,
                                 onGetMeClick = {
-                                    homeViewModel.fetchChildMe(this@MainActivity)
+                                    homeViewModel.fetchChildMe()
                                 },
                                 isFetchingChild = isFetchingChild,
                                 onScreenTimeClick = { currentScreen = Screen.ScreenTime },
                                 onContentProtectionClick = { currentScreen = Screen.ContentProtection },
                                 onLocationHistoryClick = { currentScreen = Screen.LocationHistory },
                                 onNotificationsClick = { currentScreen = Screen.Notifications },
+                                onBack = { currentScreen = Screen.Home },
+                                onChangePin = { currentScreen = Screen.Pin(isSettingUp = true) },
                                 onLogout = {
                                     telemetryManager.stopMonitoring()
                                     preferenceManager.clear()
@@ -218,7 +218,7 @@ class MainActivity : ComponentActivity() {
                             val screenTimeViewModel: ScreenTimeViewModel = hiltViewModel()
                             ScreenTimeScreen(
                                 viewModel = screenTimeViewModel,
-                                onBack = { currentScreen = Screen.Settings }
+                                onBack = { navigateToProtected(Screen.Settings) }
                             )
                         }
 
@@ -226,7 +226,7 @@ class MainActivity : ComponentActivity() {
                             val locationViewModel: LocationHistoryViewModel = hiltViewModel()
                             LocationHistoryScreen(
                                 viewModel = locationViewModel,
-                                onBack = { currentScreen = Screen.Settings }
+                                onBack = { navigateToProtected(Screen.Settings) }
                             )
                         }
 
@@ -234,7 +234,7 @@ class MainActivity : ComponentActivity() {
                             val contentProtectionViewModel: ContentProtectionViewModel = hiltViewModel()
                             ContentProtectionScreen(
                                 viewModel = contentProtectionViewModel,
-                                onBack = { currentScreen = Screen.Settings }
+                                onBack = { navigateToProtected(Screen.Settings) }
                             )
                         }
 
@@ -242,7 +242,7 @@ class MainActivity : ComponentActivity() {
                             val notificationViewModel: NotificationHistoryViewModel = hiltViewModel()
                             NotificationHistoryScreen(
                                 viewModel = notificationViewModel,
-                                onBack = { currentScreen = Screen.Settings }
+                                onBack = { navigateToProtected(Screen.Settings) }
                             )
                         }
 

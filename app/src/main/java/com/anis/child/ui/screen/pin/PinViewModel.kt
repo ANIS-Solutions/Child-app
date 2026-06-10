@@ -36,6 +36,8 @@ class PinViewModel @Inject constructor(
     private var lockoutUpdateJob: Job? = null
 
     fun start(isSettingUp: Boolean = false) {
+        clearEntry()
+        firstPin = null
         if (pinManager.isLockedOut()) {
             _uiState.value = PinUiState.LockedOut
             startLockoutTimer()
@@ -47,7 +49,7 @@ class PinViewModel @Inject constructor(
     }
 
     fun appendDigit(digit: String) {
-        if (_enteredPin.value.length >= 6) return
+        if (_enteredPin.value.length >= 4) return
         _enteredPin.value += digit
         if (_enteredPin.value.length >= 4) {
             when (val state = _uiState.value) {

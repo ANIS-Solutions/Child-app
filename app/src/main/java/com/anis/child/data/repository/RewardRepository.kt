@@ -1,7 +1,12 @@
 package com.anis.child.data.repository
 
+import com.anis.child.data.PreferenceManager
+import com.anis.child.data.RewardUpdateRequest
 import com.anis.child.data.local.RewardDao
 import com.anis.child.data.local.RewardEntity
+import com.anis.child.network.ApiService
+import com.anis.child.network.ApiResult
+import com.anis.child.network.safeApiCall
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
@@ -9,7 +14,9 @@ import javax.inject.Singleton
 
 @Singleton
 class RewardRepository @Inject constructor(
-    private val rewardDao: RewardDao
+    private val rewardDao: RewardDao,
+    private val apiService: ApiService,
+    private val preferenceManager: PreferenceManager
 ) {
     fun getAllRewards(): Flow<List<RewardEntity>> = rewardDao.getAllRewards()
 
@@ -20,13 +27,57 @@ class RewardRepository @Inject constructor(
     }
 
     suspend fun claimReward(id: Long) {
+        val reward = rewardDao.getById(id) ?: return
+        val childId = preferenceManager.childId ?: return
+
+        safeApiCall {
+            apiService.updateReward(
+                childId = childId,
+                rewardId = reward.remoteId.ifEmpty { id.toString() },
+                RewardUpdateRequest(
+                    name = reward.title,
+                    description = reward.description,
+                    pointsCost = reward.pointCost,
+                    redemptionType = "ONCE"
+                )
+            )
+        }
+
         rewardDao.updateState(id, "active")
+    }
+
+    suspend fun syncFromApi(): Boolean {
+        val childId = preferenceManager.childId ?: return false
+        return when (val result = safeApiCall { apiService.getChildRewards(childId) }) {
+            is ApiResult.Success -> {
+                val rewards = result.data.data ?: emptyList()
+                for (reward in rewards) {
+                    val existingId = reward.id.toLongOrNull()
+                    val existing = if (existingId != null) rewardDao.getById(existingId) else null
+                    if (existing == null) {
+                        rewardDao.insert(RewardEntity(
+                            remoteId = reward.id,
+                            title = reward.title,
+                            description = reward.description,
+                            pointCost = reward.pointCost,
+                            type = reward.type,
+                            state = reward.state
+                        ))
+                    }
+                }
+                true
+            }
+            is ApiResult.Error -> false
+        }
     }
 
     suspend fun seedSampleDataIfEmpty() {
         val rewardList = rewardDao.getAllRewards().first()
 
         if (rewardList.isEmpty()) {
+            val synced = syncFromApi()
+            if (synced) return
+
             rewardDao.insert(RewardEntity(
                 title = "30 min Extra Screen Time",
                 description = "Redeem for 30 additional minutes of screen time",

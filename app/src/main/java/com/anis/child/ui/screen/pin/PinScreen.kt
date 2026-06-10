@@ -108,7 +108,7 @@ fun PinScreen(
 
             PinDots(
                 pin = enteredPin,
-                maxLength = 6,
+                maxLength = 4,
                 isError = uiState is PinUiState.Error
             )
 

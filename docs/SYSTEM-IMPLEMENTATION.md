@@ -394,7 +394,7 @@ The device pairing process establishes a secure association between the child de
 6. The child profile (name, age, email, avatar URL) is fetched via GET children/me.
 7. The application transitions from the unpaired state to the paired state.
 
-![Screenshot: Pairing Screen](placeholders/pairing_screen.png)
+![Screenshot: Pairing Screen](placeholders/ .png)
 *Figure 4.1: QR code scanning screen during device pairing.*
 
 ## 5. Task System

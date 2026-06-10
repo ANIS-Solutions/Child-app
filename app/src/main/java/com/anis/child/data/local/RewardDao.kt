@@ -23,6 +23,9 @@ interface RewardDao {
     @Query("SELECT SUM(pointCost) FROM rewards WHERE state = 'earned'")
     suspend fun getTotalPointsEarned(): Int?
 
+    @Query("SELECT * FROM rewards WHERE id = :id")
+    suspend fun getById(id: Long): RewardEntity?
+
     @Query("UPDATE rewards SET state = :state WHERE id = :id")
     suspend fun updateState(id: Long, state: String)
 }

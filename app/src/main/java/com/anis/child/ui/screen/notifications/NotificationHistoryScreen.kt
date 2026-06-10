@@ -60,55 +60,49 @@ fun NotificationHistoryScreen(
             .fillMaxSize()
             .background(AppColors.surface50)
     ) {
-        Box(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(AppColors.primary01)
                 .statusBarsPadding()
+                .padding(horizontal = 4.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            IconButton(onClick = onBack) {
+                Icon(Icons.Default.ArrowBack, "Back", tint = AppColors.textPrimary)
+            }
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 4.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f)
             ) {
-                IconButton(onClick = onBack) {
-                    Icon(Icons.Default.ArrowBack, "Back", tint = AppColors.darkTextPrimary)
-                }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(
-                        text = "Notifications",
-                        color = AppColors.darkTextPrimary,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                    if (uiState.unreadCount > 0) {
-                        Spacer(Modifier.width(8.dp))
-                        Card(
-                            colors = CardDefaults.cardColors(containerColor = AppColors.error500),
-                            shape = RoundedCornerShape(10.dp)
-                        ) {
-                            Text(
-                                "${uiState.unreadCount}",
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = AppColors.darkTextPrimary
-                            )
-                        }
-                    }
-                }
+                Text(
+                    text = "Notifications",
+                    color = AppColors.textPrimary,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
                 if (uiState.unreadCount > 0) {
-                    IconButton(onClick = { viewModel.markAllAsRead() }) {
-                        Icon(Icons.Default.DoneAll, "Mark all read", tint = AppColors.darkTextPrimary)
+                    Spacer(Modifier.width(8.dp))
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = AppColors.error500),
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Text(
+                            "${uiState.unreadCount}",
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = AppColors.darkTextPrimary
+                        )
                     }
                 }
-                if (uiState.notifications.isNotEmpty()) {
-                    IconButton(onClick = { viewModel.clearAll() }) {
-                        Icon(Icons.Default.ClearAll, "Clear all", tint = AppColors.darkTextPrimary)
-                    }
+            }
+            if (uiState.unreadCount > 0) {
+                IconButton(onClick = { viewModel.markAllAsRead() }) {
+                    Icon(Icons.Default.DoneAll, "Mark all read", tint = AppColors.textPrimary)
+                }
+            }
+            if (uiState.notifications.isNotEmpty()) {
+                IconButton(onClick = { viewModel.clearAll() }) {
+                    Icon(Icons.Default.ClearAll, "Clear all", tint = AppColors.textPrimary)
                 }
             }
         }

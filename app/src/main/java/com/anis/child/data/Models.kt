@@ -71,7 +71,76 @@ data class AppPackage(
 )
 
 @Serializable
+data class PackagesIdRequest(
+    @SerialName("packagesId") val packagesId: List<String>
+)
+
+@Serializable
 data class AppsBulkResponse(
+    @SerialName("success") val success: Boolean,
+    @SerialName("message") val message: String? = null
+)
+
+@Serializable
+data class ChildQuestsResponse(
+    @SerialName("success") val success: Boolean,
+    @SerialName("data") val data: List<QuestData>? = null,
+    @SerialName("message") val message: String? = null
+)
+
+@Serializable
+data class QuestData(
+    @SerialName("_id") val id: String = "",
+    @SerialName("title") val title: String = "",
+    @SerialName("description") val description: String = "",
+    @SerialName("rewardValue") val rewardValue: Int = 0,
+    @SerialName("state") val state: String = "pending"
+)
+
+@Serializable
+data class ChildRewardsResponse(
+    @SerialName("success") val success: Boolean,
+    @SerialName("data") val data: List<RewardData>? = null,
+    @SerialName("message") val message: String? = null
+)
+
+@Serializable
+data class RewardData(
+    @SerialName("_id") val id: String = "",
+    @SerialName("title") val title: String = "",
+    @SerialName("description") val description: String = "",
+    @SerialName("pointCost") val pointCost: Int = 0,
+    @SerialName("type") val type: String = "",
+    @SerialName("state") val state: String = "earned"
+)
+
+@Serializable
+data class QuestUpdateRequest(
+    @SerialName("title") val title: String,
+    @SerialName("description") val description: String,
+    @SerialName("type") val type: String,
+    @SerialName("points") val points: Int,
+    @SerialName("stats") val stats: String,
+    @SerialName("deadline") val deadline: String? = null
+)
+
+@Serializable
+data class RewardUpdateRequest(
+    @SerialName("name") val name: String,
+    @SerialName("description") val description: String,
+    @SerialName("pointsCost") val pointsCost: Int,
+    @SerialName("redemptionType") val redemptionType: String,
+    @SerialName("deadline") val deadline: String? = null
+)
+
+@Serializable
+data class QuestUpdateResponse(
+    @SerialName("success") val success: Boolean,
+    @SerialName("message") val message: String? = null
+)
+
+@Serializable
+data class RewardUpdateResponse(
     @SerialName("success") val success: Boolean,
     @SerialName("message") val message: String? = null
 )
@@ -85,9 +154,12 @@ data class ChildMeResponse(
 
 @Serializable
 data class ChildMeData(
-    @SerialName("_id") val id: String = "",
-    @SerialName("name") val name: String = "",
-    @SerialName("age") val age: Int? = null,
-    @SerialName("avatarUrl") val avatarUrl: String? = null,
-    @SerialName("email") val email: String? = null
+    @SerialName("id") val id: String = "",
+    @SerialName("firstName") val firstName: String = "",
+    @SerialName("gender") val gender: String? = null,
+    @SerialName("hobbies") val hobbies: List<String>? = null,
+    @SerialName("dob") val dob: String? = null,
+    @SerialName("isActive") val isActive: Boolean? = null,
+    @SerialName("deviceId") val deviceId: String? = null,
+    @SerialName("deviceName") val deviceName: String? = null
 )

@@ -8,17 +8,22 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Schedule
@@ -28,6 +33,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -37,6 +43,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.anis.child.data.LogManager
 import com.anis.child.ui.screen.home.LogSection
@@ -46,10 +53,8 @@ import com.anis.child.util.resolveDeviceId
 @Composable
 fun SettingsScreen(
     logManager: LogManager,
-    isDarkMode: Boolean,
     isMonitoringEnabled: Boolean,
     childId: String?,
-    onDarkModeChange: (Boolean) -> Unit,
     onMonitoringChange: (Boolean) -> Unit,
     onSendLocationClick: () -> Unit,
     isSending: Boolean,
@@ -61,6 +66,8 @@ fun SettingsScreen(
     onContentProtectionClick: () -> Unit = {},
     onLocationHistoryClick: () -> Unit = {},
     onNotificationsClick: () -> Unit = {},
+    onBack: () -> Unit,
+    onChangePin: () -> Unit = {},
     onLogout: () -> Unit
 ) {
     val context = LocalContext.current
@@ -78,18 +85,23 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-        Text(
-            text = "Settings",
-            style = MaterialTheme.typography.headlineMedium,
-            color = AppColors.textPrimary
-        )
-
-        SettingsToggleRow(
-            title = "Dark Mode",
-            description = "Switch between light and dark theme",
-            isChecked = isDarkMode,
-            onCheckedChange = onDarkModeChange
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .statusBarsPadding()
+                .padding(horizontal = 4.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = AppColors.textPrimary)
+            }
+            Text(
+                text = "Settings",
+                color = AppColors.textPrimary,
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+        }
 
         SettingsToggleRow(
             title = "Location Monitoring",
@@ -275,6 +287,25 @@ fun SettingsScreen(
                     modifier = Modifier.padding(start = 8.dp)
                 )
             }
+        }
+
+        Button(
+            onClick = onChangePin,
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = AppColors.primary01
+            )
+        ) {
+            Icon(
+                imageVector = Icons.Default.Lock,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
+            Text(
+                text = "Change PIN",
+                color = AppColors.darkTextPrimary,
+                modifier = Modifier.padding(start = 8.dp)
+            )
         }
 
         Button(

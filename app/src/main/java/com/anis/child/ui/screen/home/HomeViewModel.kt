@@ -2,6 +2,10 @@ package com.anis.child.ui.screen.home
 
 import android.annotation.SuppressLint
 import android.content.Context
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
+import com.google.android.gms.tasks.CancellationTokenSource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anis.child.data.AppUsageInfo
@@ -10,26 +14,25 @@ import com.anis.child.data.LogType
 import com.anis.child.data.PreferenceManager
 import com.anis.child.data.ScreenTimeManager
 import com.anis.child.data.repository.AppsRepository
-import com.anis.child.data.repository.LocationRepository
-import com.anis.child.network.ApiResult
-import com.anis.child.network.ApiService
-import com.anis.child.network.safeApiCall
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
-import com.google.android.gms.tasks.CancellationTokenSource
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import com.anis.child.data.repository.LocationRepository
+import com.anis.child.network.ApiResult
+import com.anis.child.network.ApiService
+import com.anis.child.network.safeApiCall
+import dagger.hilt.android.lifecycle.HiltViewModel
+import java.util.Calendar
 import javax.inject.Inject
 
 data class HomeScreenData(
     val todayMinutes: Int = 0,
     val dailyLimit: Int = 0,
+    val weeklyTotal: Int = 0,
     val weeklyAverage: Int = 0,
     val topApps: List<AppUsageInfo> = emptyList(),
+    val weeklyTopApps: List<AppUsageInfo> = emptyList(),
     val hasUsagePermission: Boolean = false
 )
 
@@ -56,18 +59,25 @@ class HomeViewModel @Inject constructor(
     val homeData: StateFlow<HomeScreenData> = _homeData.asStateFlow()
 
     fun loadHomeData() {
+        if (preferenceManager.childName.isNullOrEmpty() || preferenceManager.childId.isNullOrEmpty()) {
+            fetchChildMe()
+        }
         viewModelScope.launch {
             val todayMinutes = screenTimeManager.getTodayScreenTimeMinutes()
+            val weeklyTotal = screenTimeManager.getWeeklyTotalMinutes()
             val weeklyAverage = screenTimeManager.getWeeklyScreenTimeAverage()
             val topApps = screenTimeManager.getAppUsageToday().take(3)
+            val weeklyTopApps = screenTimeManager.getWeeklyAppUsage().take(3)
             val config = screenTimeManager.getConfig()
             val hasUsagePermission = screenTimeManager.hasUsageStatsPermission()
 
             _homeData.value = HomeScreenData(
                 todayMinutes = todayMinutes,
                 dailyLimit = config.dailyLimitMinutes + config.extraTimeEarnedMinutes,
+                weeklyTotal = weeklyTotal,
                 weeklyAverage = weeklyAverage,
                 topApps = topApps,
+                weeklyTopApps = weeklyTopApps,
                 hasUsagePermission = hasUsagePermission
             )
         }
@@ -148,7 +158,7 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun fetchChildMe(context: Context) {
+    fun fetchChildMe() {
         if (_isFetchingChild.value) return
         _isFetchingChild.value = true
         viewModelScope.launch {
@@ -160,11 +170,11 @@ class HomeViewModel @Inject constructor(
                         val data = result.data.data
                         if (data != null) {
                             preferenceManager.childId = data.id
-                            preferenceManager.childName = data.name
-                            preferenceManager.childAge = data.age
-                            preferenceManager.childAvatarUrl = data.avatarUrl
-                            preferenceManager.childEmail = data.email
-                            logManager.log("Child data updated: ${data.name}", LogType.SUCCESS)
+                            preferenceManager.childName = data.firstName
+                            preferenceManager.childAge = data.dob?.let { parseAgeFromDob(it) }
+                            preferenceManager.childAvatarUrl = null
+                            preferenceManager.childEmail = null
+                            logManager.log("Child data updated: ${data.firstName}", LogType.SUCCESS)
                         } else {
                             logManager.log("Child data is empty", LogType.ERROR)
                         }
@@ -179,5 +189,15 @@ class HomeViewModel @Inject constructor(
                 _isFetchingChild.value = false
             }
         }
+    }
+}
+
+private fun parseAgeFromDob(dob: String): Int? {
+    return try {
+        val year = dob.substring(0, 4).toInt()
+        val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+        currentYear - year
+    } catch (_: Exception) {
+        null
     }
 }
