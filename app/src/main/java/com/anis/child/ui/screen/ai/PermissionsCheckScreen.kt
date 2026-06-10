@@ -51,7 +51,8 @@ import com.anis.child.ui.theme.AppColors
 @Composable
 fun PermissionsCheckScreen(
     onBack: () -> Unit,
-    onContinue: () -> Unit
+    onContinue: () -> Unit,
+    onHistoryClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val activity = context as? Activity
@@ -227,6 +228,19 @@ fun PermissionsCheckScreen(
                     text = "Continue",
                     color = AppColors.darkTextPrimary,
                     modifier = Modifier.padding(start = 8.dp)
+                )
+            }
+
+            Button(
+                onClick = onHistoryClick,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = AppColors.darkSurface.copy(alpha = 0.2f)
+                )
+            ) {
+                Text(
+                    text = "View Session History",
+                    color = AppColors.textPrimary
                 )
             }
         }

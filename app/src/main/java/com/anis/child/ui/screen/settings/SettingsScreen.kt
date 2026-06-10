@@ -4,73 +4,66 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Apps
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Timeline
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.anis.child.data.LogManager
 import com.anis.child.ui.screen.home.LogSection
 import com.anis.child.ui.theme.AppColors
-import com.anis.child.util.resolveDeviceId
-import androidx.compose.material.icons.filled.PlayArrow
 
 @Composable
 fun SettingsScreen(
-    logManager: LogManager,
-    isMonitoringEnabled: Boolean,
-    childId: String?,
+    viewModel: SettingsViewModel,
+    onBack: () -> Unit,
     onMonitoringChange: (Boolean) -> Unit,
-    onSendLocationClick: () -> Unit,
-    isSending: Boolean,
-    onSendAppsClick: () -> Unit,
-    isSendingApps: Boolean,
-    onGetMeClick: () -> Unit,
-    isFetchingChild: Boolean,
     onScreenTimeClick: () -> Unit = {},
     onContentProtectionClick: () -> Unit = {},
     onAiSessionClick: () -> Unit = {},
     onLocationHistoryClick: () -> Unit = {},
     onNotificationsClick: () -> Unit = {},
-    onBack: () -> Unit,
     onChangePin: () -> Unit = {},
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -79,14 +72,6 @@ fun SettingsScreen(
             .fillMaxSize()
             .background(AppColors.surface50)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(24.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -105,248 +90,283 @@ fun SettingsScreen(
             )
         }
 
-        SettingsToggleRow(
-            title = "Location Monitoring",
-            description = "Share location with parent every hour",
-            isChecked = isMonitoringEnabled,
-            onCheckedChange = onMonitoringChange
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            MonitoringSection(
+                isMonitoringEnabled = viewModel.isMonitoringEnabled,
+                onMonitoringChange = onMonitoringChange,
+                onSendLocationClick = { viewModel.sendCurrentLocation() },
+                isSending = viewModel.isSending,
+                onSendAppsClick = { viewModel.sendInstalledApps() },
+                isSendingApps = viewModel.isSendingApps
+            )
+
+            ParentalControlsSection(
+                onScreenTimeClick = onScreenTimeClick,
+                onContentProtectionClick = onContentProtectionClick,
+                onAiSessionClick = onAiSessionClick,
+            )
+
+            ActivityHistorySection(
+                onLocationHistoryClick = onLocationHistoryClick,
+                onNotificationsClick = onNotificationsClick,
+            )
+
+            DeviceInfoSection(
+                childId = viewModel.childId,
+                childName = viewModel.childName,
+            )
+
+            PermissionsSection()
+
+            AccountSection(
+                onGetMeClick = { viewModel.fetchChildMe() },
+                isFetchingChild = viewModel.isFetchingChild,
+                onChangePin = onChangePin,
+                onLogout = onLogout
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        LogSection(
+            logManager = viewModel.logManager,
+            modifier = Modifier.fillMaxWidth()
         )
+    }
+}
 
-        PermissionsSection()
+@Composable
+private fun SectionHeader(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleSmall,
+        color = AppColors.textSecondary,
+        fontWeight = FontWeight.SemiBold,
+        modifier = Modifier.padding(start = 4.dp, top = 4.dp, bottom = 4.dp)
+    )
+}
 
-        DeviceInfoSection(childId = childId)
-
-        Button(
-            onClick = onScreenTimeClick,
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = AppColors.primary01
-            )
+@Composable
+private fun MonitoringSection(
+    isMonitoringEnabled: Boolean,
+    onMonitoringChange: (Boolean) -> Unit,
+    onSendLocationClick: () -> Unit,
+    isSending: Boolean,
+    onSendAppsClick: () -> Unit,
+    isSendingApps: Boolean,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = AppColors.darkSurface.copy(alpha = 0.08f)
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Icon(
-                imageVector = Icons.Default.Schedule,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp)
-            )
-            Text(
-                text = "Screen Time",
-                color = AppColors.darkTextPrimary,
-                modifier = Modifier.padding(start = 8.dp)
-            )
-        }
+            SectionHeader("Monitoring")
 
-        Button(
-            onClick = onContentProtectionClick,
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = AppColors.primary01
-            )
-        ) {
-            Icon(
-                imageVector = Icons.Default.Security,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp)
-            )
-            Text(
-                text = "Content Protection",
-                color = AppColors.darkTextPrimary,
-                modifier = Modifier.padding(start = 8.dp)
-            )
-        }
-
-        Button(
-            onClick = onAiSessionClick,
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = AppColors.primary01
-            )
-        ) {
-            Icon(
-                imageVector = Icons.Default.PlayArrow,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp)
-            )
-            Text(
-                text = "AI Content Monitoring",
-                color = AppColors.darkTextPrimary,
-                modifier = Modifier.padding(start = 8.dp)
-            )
-        }
-
-        Button(
-            onClick = onLocationHistoryClick,
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = AppColors.primary01
-            )
-        ) {
-            Icon(
-                imageVector = Icons.Default.Timeline,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp)
-            )
-            Text(
-                text = "Location History",
-                color = AppColors.darkTextPrimary,
-                modifier = Modifier.padding(start = 8.dp)
-            )
-        }
-
-        Button(
-            onClick = onNotificationsClick,
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = AppColors.primary01
-            )
-        ) {
-            Icon(
-                imageVector = Icons.Default.Notifications,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp)
-            )
-            Text(
-                text = "Notifications",
-                color = AppColors.darkTextPrimary,
-                modifier = Modifier.padding(start = 8.dp)
-            )
-        }
-
-        Button(
-            onClick = onSendLocationClick,
-            enabled = !isSending,
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = AppColors.primary01
-            )
-        ) {
-            if (isSending) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    color = AppColors.darkTextPrimary,
-                    strokeWidth = 2.dp
-                )
-                Text(
-                    text = "Sending Location...",
-                    color = AppColors.darkTextPrimary,
-                    modifier = Modifier.padding(start = 8.dp)
-                )
-            } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Icon(
                     imageVector = Icons.Default.LocationOn,
                     contentDescription = null,
-                    modifier = Modifier.size(20.dp)
+                    tint = AppColors.primary01,
+                    modifier = Modifier.size(24.dp)
                 )
-                Text(
-                    text = "Send Location",
-                    color = AppColors.darkTextPrimary,
-                    modifier = Modifier.padding(start = 8.dp)
-                )
-            }
-        }
-
-        Button(
-            onClick = onSendAppsClick,
-            enabled = !isSendingApps,
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = AppColors.primary01
-            )
-        ) {
-            if (isSendingApps) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    color = AppColors.darkTextPrimary,
-                    strokeWidth = 2.dp
-                )
-                Text(
-                    text = "Sending Apps...",
-                    color = AppColors.darkTextPrimary,
-                    modifier = Modifier.padding(start = 8.dp)
-                )
-            } else {
-                Icon(
-                    imageVector = Icons.Default.Apps,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
-                Text(
-                    text = "Send Apps",
-                    color = AppColors.darkTextPrimary,
-                    modifier = Modifier.padding(start = 8.dp)
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "Location Monitoring",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = AppColors.textPrimary
+                    )
+                    Text(
+                        text = "Share location with parent every hour",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = AppColors.textSecondary
+                    )
+                }
+                Switch(
+                    checked = isMonitoringEnabled,
+                    onCheckedChange = onMonitoringChange,
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = AppColors.primary01,
+                        checkedTrackColor = AppColors.primary01.copy(alpha = 0.5f)
+                    )
                 )
             }
-        }
 
-        Button(
-            onClick = onGetMeClick,
-            enabled = !isFetchingChild,
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = AppColors.primary01
+            ActionButton(
+                icon = Icons.Default.LocationOn,
+                label = "Send Location",
+                isLoading = isSending,
+                loadingLabel = "Sending Location...",
+                onClick = onSendLocationClick
             )
-        ) {
-            if (isFetchingChild) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    color = AppColors.darkTextPrimary,
-                    strokeWidth = 2.dp
-                )
-                Text(
-                    text = "Fetching...",
-                    color = AppColors.darkTextPrimary,
-                    modifier = Modifier.padding(start = 8.dp)
-                )
-            } else {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
-                Text(
-                    text = "Get Me",
-                    color = AppColors.darkTextPrimary,
-                    modifier = Modifier.padding(start = 8.dp)
-                )
-            }
-        }
 
-        Button(
-            onClick = onChangePin,
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = AppColors.primary01
-            )
-        ) {
-            Icon(
-                imageVector = Icons.Default.Lock,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp)
-            )
-            Text(
-                text = "Change PIN",
-                color = AppColors.darkTextPrimary,
-                modifier = Modifier.padding(start = 8.dp)
-            )
-        }
-
-        Button(
-            onClick = onLogout,
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = AppColors.error500
-            )
-        ) {
-            Text(
-                text = "Logout",
-                color = AppColors.darkTextPrimary
+            ActionButton(
+                icon = Icons.Default.Apps,
+                label = "Send Apps",
+                isLoading = isSendingApps,
+                loadingLabel = "Sending Apps...",
+                onClick = onSendAppsClick
             )
         }
     }
+}
 
-        LogSection(
-            logManager = logManager,
-            modifier = Modifier.fillMaxWidth()
+@Composable
+private fun ActionButton(
+    icon: ImageVector,
+    label: String,
+    isLoading: Boolean,
+    loadingLabel: String,
+    onClick: () -> Unit,
+) {
+    Button(
+        onClick = onClick,
+        enabled = !isLoading,
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = AppColors.darkSurface.copy(alpha = 0.15f)
         )
+    ) {
+        if (isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.size(18.dp),
+                color = AppColors.textPrimary,
+                strokeWidth = 2.dp
+            )
+            Text(
+                text = loadingLabel,
+                color = AppColors.textPrimary,
+                modifier = Modifier.padding(start = 8.dp)
+            )
+        } else {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(18.dp),
+                tint = AppColors.textPrimary
+            )
+            Text(
+                text = label,
+                color = AppColors.textPrimary,
+                modifier = Modifier.padding(start = 8.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun ParentalControlsSection(
+    onScreenTimeClick: () -> Unit,
+    onContentProtectionClick: () -> Unit,
+    onAiSessionClick: () -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = AppColors.darkSurface.copy(alpha = 0.08f)
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            SectionHeader("Parental Controls")
+            SettingsNavRow(
+                icon = Icons.Default.Schedule,
+                title = "Screen Time",
+                description = "Manage daily usage limits and app timers",
+                onClick = onScreenTimeClick
+            )
+            SettingsNavRow(
+                icon = Icons.Default.Security,
+                title = "Content Protection",
+                description = "Block inappropriate content and websites",
+                onClick = onContentProtectionClick
+            )
+            SettingsNavRow(
+                icon = Icons.Default.PlayArrow,
+                title = "AI Content Monitoring",
+                description = "Monitor screen content with AI analysis",
+                onClick = onAiSessionClick
+            )
+        }
+    }
+}
+
+@Composable
+private fun ActivityHistorySection(
+    onLocationHistoryClick: () -> Unit,
+    onNotificationsClick: () -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = AppColors.darkSurface.copy(alpha = 0.08f)
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            SectionHeader("Activity Logs")
+            SettingsNavRow(
+                icon = Icons.Default.Timeline,
+                title = "Location History",
+                description = "View past location reports",
+                onClick = onLocationHistoryClick
+            )
+            SettingsNavRow(
+                icon = Icons.Default.Notifications,
+                title = "Notifications",
+                description = "Browse notification history",
+                onClick = onNotificationsClick
+            )
+        }
+    }
+}
+
+@Composable
+private fun DeviceInfoSection(childId: String?, childName: String?) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = AppColors.darkSurface.copy(alpha = 0.08f)
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            SectionHeader("Device")
+            if (childName != null) {
+                InfoRow("Name", childName)
+            }
+            if (childId != null) {
+                InfoRow("Child ID", childId.take(16) + "...")
+            }
+            InfoRow("Device", Build.MODEL)
+            InfoRow("Android", "${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})")
+        }
     }
 }
 
@@ -354,35 +374,109 @@ fun SettingsScreen(
 private fun PermissionsSection() {
     val context = LocalContext.current
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                AppColors.darkSurface.copy(alpha = 0.1f),
-                MaterialTheme.shapes.medium
-            )
-            .padding(16.dp)
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = AppColors.darkSurface.copy(alpha = 0.08f)
+        )
     ) {
-        Text(
-            text = "Permissions",
-            style = MaterialTheme.typography.bodyLarge,
-            color = AppColors.textPrimary,
-            modifier = Modifier.padding(bottom = 12.dp)
-        )
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            SectionHeader("Permissions")
 
-        val permissions = listOf(
-            Manifest.permission.CAMERA to "Camera",
-            Manifest.permission.ACCESS_FINE_LOCATION to "Precise Location",
-            Manifest.permission.ACCESS_COARSE_LOCATION to "Approximate Location",
-            Manifest.permission.INTERNET to "Internet"
-        )
+            val permissions = listOf(
+                Manifest.permission.CAMERA to "Camera",
+                Manifest.permission.ACCESS_FINE_LOCATION to "Precise Location",
+                Manifest.permission.ACCESS_COARSE_LOCATION to "Approximate Location",
+                Manifest.permission.INTERNET to "Internet"
+            )
 
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             permissions.forEach { (permission, label) ->
                 val isGranted = context.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
-                PermissionRow(
-                    name = label,
-                    isGranted = isGranted
+                PermissionRow(name = label, isGranted = isGranted)
+            }
+        }
+    }
+}
+
+@Composable
+private fun PermissionRow(name: String, isGranted: Boolean) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = name,
+            style = MaterialTheme.typography.bodyMedium,
+            color = AppColors.textSecondary,
+            modifier = Modifier.weight(1f)
+        )
+        Surface(
+            shape = RoundedCornerShape(8.dp),
+            color = if (isGranted) AppColors.success500.copy(alpha = 0.15f)
+            else AppColors.error500.copy(alpha = 0.15f)
+        ) {
+            Text(
+                text = if (isGranted) "Granted" else "Denied",
+                style = MaterialTheme.typography.labelSmall,
+                color = if (isGranted) AppColors.success500 else AppColors.error500,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun AccountSection(
+    onGetMeClick: () -> Unit,
+    isFetchingChild: Boolean,
+    onChangePin: () -> Unit,
+    onLogout: () -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = AppColors.darkSurface.copy(alpha = 0.08f)
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            SectionHeader("Account & Security")
+
+            ActionButton(
+                icon = Icons.Default.Person,
+                label = "Get Child Info",
+                isLoading = isFetchingChild,
+                loadingLabel = "Fetching...",
+                onClick = onGetMeClick
+            )
+
+            SettingsNavRow(
+                icon = Icons.Default.Lock,
+                title = "Change PIN",
+                description = "Update your security PIN",
+                onClick = onChangePin
+            )
+
+            Button(
+                onClick = onLogout,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = AppColors.error500
+                )
+            ) {
+                Text(
+                    text = "Logout",
+                    color = AppColors.darkTextPrimary,
+                    fontWeight = FontWeight.SemiBold
                 )
             }
         }
@@ -390,54 +484,48 @@ private fun PermissionsSection() {
 }
 
 @Composable
-private fun PermissionRow(
-    name: String,
-    isGranted: Boolean
+private fun SettingsNavRow(
+    icon: ImageVector,
+    title: String,
+    description: String,
+    onClick: () -> Unit,
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(12.dp),
+        color = AppColors.darkSurface.copy(alpha = 0.08f)
     ) {
-        Text(
-            text = name,
-            style = MaterialTheme.typography.bodyMedium,
-            color = AppColors.textSecondary
-        )
-        Icon(
-            imageVector = if (isGranted) Icons.Default.Check else Icons.Default.Close,
-            contentDescription = if (isGranted) "Granted" else "Denied",
-            tint = if (isGranted) AppColors.success500 else AppColors.error500
-        )
-    }
-}
-
-@Composable
-private fun DeviceInfoSection(childId: String?) {
-    val context = LocalContext.current
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                AppColors.darkSurface.copy(alpha = 0.1f),
-                MaterialTheme.shapes.medium
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = AppColors.primary01,
+                modifier = Modifier.size(24.dp)
             )
-            .padding(16.dp)
-    ) {
-        Text(
-            text = "Device Information",
-            style = MaterialTheme.typography.bodyLarge,
-            color = AppColors.textPrimary,
-            modifier = Modifier.padding(bottom = 12.dp)
-        )
-
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (childId != null) {
-                InfoRowScrollable("Child ID", childId)
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = AppColors.textPrimary
+                )
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = AppColors.textSecondary
+                )
             }
-            InfoRow("Device", Build.MODEL)
-            InfoRow("Android Version", Build.VERSION.RELEASE)
-            InfoRow("Android ID", context.resolveDeviceId())
+            Icon(
+                imageVector = Icons.Default.ChevronRight,
+                contentDescription = null,
+                tint = AppColors.textDisabled,
+                modifier = Modifier.size(20.dp)
+            )
         }
     }
 }
@@ -446,88 +534,18 @@ private fun DeviceInfoSection(childId: String?) {
 private fun InfoRow(label: String, value: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
+        verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
-            color = AppColors.textSecondary
+            color = AppColors.textSecondary,
+            modifier = Modifier.weight(0.35f)
         )
         Text(
             text = value,
             style = MaterialTheme.typography.bodyMedium,
             color = AppColors.textPrimary
-        )
-    }
-}
-
-@Composable
-private fun InfoRowScrollable(label: String, value: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyMedium,
-            color = AppColors.textSecondary
-        )
-        Text(
-            text = value.take(8) + "...",
-            style = MaterialTheme.typography.bodySmall.copy(
-                fontFamily = FontFamily.Monospace
-            ),
-            color = AppColors.textPrimary,
-            modifier = Modifier
-                .horizontalScroll(rememberScrollState())
-                .padding(end = 8.dp)
-        )
-    }
-}
-
-@Composable
-private fun Spacer(modifier: Modifier) {
-    androidx.compose.foundation.layout.Box(modifier = modifier)
-}
-
-@Composable
-private fun SettingsToggleRow(
-    title: String,
-    description: String,
-    isChecked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                AppColors.darkSurface.copy(alpha = 0.1f),
-                MaterialTheme.shapes.medium
-            )
-            .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                color = AppColors.textPrimary
-            )
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodySmall,
-                color = AppColors.textSecondary
-            )
-        }
-        Switch(
-            checked = isChecked,
-            onCheckedChange = onCheckedChange,
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = AppColors.primary01,
-                checkedTrackColor = AppColors.primary01.copy(alpha = 0.5f)
-            )
         )
     }
 }

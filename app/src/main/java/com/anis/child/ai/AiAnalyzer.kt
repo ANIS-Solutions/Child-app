@@ -34,13 +34,15 @@ class AiAnalyzer(context: Context) {
     )
     private val env: OrtEnvironment = OrtEnvironment.getEnvironment()
 
-    private val visionSession: OrtSession
+    private var visionSession: OrtSession? = null
     private val CLIP_MEAN = floatArrayOf(0.48145466f, 0.4578275f, 0.40821073f)
 
     private val CLIP_STD = floatArrayOf(0.26862954f, 0.26130258f, 0.27577711f)
-    private lateinit var baselineEmbed: FloatArray
+    private var baselineEmbed: FloatArray? = null
 
     private val threatsEmbeds = mutableMapOf<String, FloatArray>()
+    private var modelLoaded = false
+    private var loadError: String? = null
 
     init {
         try {
@@ -70,13 +72,18 @@ class AiAnalyzer(context: Context) {
                     threatsEmbeds[key] = floatArray
                 }
             }
+            modelLoaded = true
         } catch (e: Exception) {
-            e.printStackTrace()
-            throw RuntimeException("Failed to load model or JSON: ${e.message}")
+            android.util.Log.e("AiAnalyzer", "Failed to load model", e)
+            loadError = e.message
+            modelLoaded = false
         }
     }
 
     suspend fun analyzeImage(bitmap: Bitmap): String {
+        if (!modelLoaded) {
+            return "Scan Results:\n\nModel not loaded: ${loadError ?: "Unknown error"}\n\nFinal Decision: SAFE (No Model)"
+        }
         val totalStart = System.nanoTime()
 
         var ocrTimeMs = 0.0
@@ -106,7 +113,7 @@ class AiAnalyzer(context: Context) {
         val inputTensor = OnnxTensor.createTensor(env, shortBuffer, inputShape, OnnxJavaType.FLOAT16)
 
         val inputs = mapOf("pixel_values" to inputTensor)
-        val result = visionSession.run(inputs)
+        val result = visionSession!!.run(inputs)
         inferenceTimeMs = (System.nanoTime() - inferenceStart) / 1_000_000.0
 
         android.util.Log.d("AiAnalyzer", "ONNX inference completed: ${String.format("%.2f", inferenceTimeMs)} ms")
@@ -124,7 +131,7 @@ class AiAnalyzer(context: Context) {
         for (i in imgEmbed.indices) imgEmbed[i] /= norm
 
         val LOGIT_SCALE = exp(4.60517f)
-        val safeLogit = dotProduct(imgEmbed, baselineEmbed) * LOGIT_SCALE
+        val safeLogit = dotProduct(imgEmbed, baselineEmbed!!) * LOGIT_SCALE
 
         val report = StringBuilder("Scan Results (ONNX Model):\n\n")
         var isBlocked = false
