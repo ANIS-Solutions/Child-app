@@ -23,6 +23,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.anis.child.ai.util.BlurOverlayManager
 import com.anis.child.ui.screen.ai.AiSessionScreen
 import com.anis.child.ui.screen.ai.AiSessionViewModel
+import com.anis.child.ui.screen.ai.PermissionsCheckScreen
 import com.anis.child.data.LogManager
 import com.anis.child.data.LogType
 import com.anis.child.data.PreferenceManager
@@ -63,6 +64,7 @@ sealed class Screen {
     data object Task : Screen()
     data object Reward : Screen()
     data class Pin(val isSettingUp: Boolean = false) : Screen()
+    data object PermissionsCheck : Screen()
     data object AiSession : Screen()
 }
 
@@ -223,7 +225,7 @@ class MainActivity : ComponentActivity() {
                                 isFetchingChild = isFetchingChild,
                                 onScreenTimeClick = { currentScreen = Screen.ScreenTime },
                                 onContentProtectionClick = { currentScreen = Screen.ContentProtection },
-                                onAiSessionClick = { navigateToProtected(Screen.AiSession) },
+                                onAiSessionClick = { navigateToProtected(Screen.PermissionsCheck) },
                                 onLocationHistoryClick = { currentScreen = Screen.LocationHistory },
                                 onNotificationsClick = { currentScreen = Screen.Notifications },
                                 onBack = { currentScreen = Screen.Home },
@@ -254,11 +256,20 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
+                        is Screen.PermissionsCheck -> {
+                            PermissionsCheckScreen(
+                                onBack = { navigateToProtected(Screen.Settings) },
+                                onContinue = {
+                                    currentScreen = Screen.AiSession
+                                }
+                            )
+                        }
+
                         is Screen.AiSession -> {
                             val aiSessionViewModel: AiSessionViewModel = hiltViewModel()
                             AiSessionScreen(
                                 viewModel = aiSessionViewModel,
-                                onBack = { navigateToProtected(Screen.Settings) }
+                                onBack = { navigateToProtected(Screen.PermissionsCheck) }
                             )
                         }
 
