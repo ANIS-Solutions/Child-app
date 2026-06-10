@@ -19,7 +19,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ContentFilterRuleEntity::class,
         NotificationInterceptEntity::class
     ],
-    version = 7,
+    version = 8,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
