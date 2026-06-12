@@ -13,6 +13,7 @@ object ImageStorageManager {
     private const val MAX_IMAGE_WIDTH = 1280
     private const val JPEG_QUALITY = 80
     private const val IMAGES_DIR = "session_images"
+    private const val CACHE_DIR = "session_cache"
 
     suspend fun saveImage(
         context: Context,
@@ -42,6 +43,69 @@ object ImageStorageManager {
         } catch (e: Exception) {
             e.printStackTrace()
             null
+        }
+    }
+
+    suspend fun saveImageToCache(
+        context: Context,
+        bitmap: Bitmap,
+        sessionId: Long,
+        timestamp: Long
+    ): String? = withContext(Dispatchers.IO) {
+        try {
+            val scaledBitmap = scaleBitmap(bitmap, MAX_IMAGE_WIDTH)
+
+            val cacheDir = File(context.cacheDir, CACHE_DIR)
+            val sessionDir = File(cacheDir, sessionId.toString())
+            if (!sessionDir.exists()) {
+                sessionDir.mkdirs()
+            }
+
+            val fileName = "$timestamp.jpg"
+            val imageFile = File(sessionDir, fileName)
+
+            FileOutputStream(imageFile).use { outputStream ->
+                scaledBitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, outputStream)
+            }
+
+            scaledBitmap.recycle()
+
+            imageFile.absolutePath
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    fun getPermanentImagePath(context: Context, sessionId: Long, timestamp: Long): String {
+        return File(context.filesDir, "$IMAGES_DIR/$sessionId/$timestamp.jpg").absolutePath
+    }
+
+    fun getCacheImagePath(context: Context, sessionId: Long, timestamp: Long): String {
+        return File(context.cacheDir, "$CACHE_DIR/$sessionId/$timestamp.jpg").absolutePath
+    }
+
+    suspend fun moveImageToPermanent(context: Context, sessionId: Long, timestamp: Long): Boolean =
+        withContext(Dispatchers.IO) {
+            try {
+                val src = File(context.cacheDir, "$CACHE_DIR/$sessionId/$timestamp.jpg")
+                if (!src.exists()) return@withContext false
+
+                val destDir = File(context.filesDir, "$IMAGES_DIR/$sessionId")
+                if (!destDir.exists()) destDir.mkdirs()
+
+                val dest = File(destDir, "$timestamp.jpg")
+                src.renameTo(dest)
+            } catch (e: Exception) {
+                e.printStackTrace()
+                false
+            }
+        }
+
+    fun clearSessionCache(context: Context, sessionId: Long) {
+        val sessionDir = File(context.cacheDir, "$CACHE_DIR/$sessionId")
+        if (sessionDir.exists()) {
+            sessionDir.deleteRecursively()
         }
     }
 

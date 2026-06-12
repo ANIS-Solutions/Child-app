@@ -41,6 +41,7 @@ class AiAnalyzer(context: Context) {
     private var baselineEmbed: FloatArray? = null
 
     private val threatsEmbeds = mutableMapOf<String, FloatArray>()
+    var lastEmbedding: FloatArray? = null
     private var modelLoaded = false
     private var loadError: String? = null
 
@@ -129,6 +130,7 @@ class AiAnalyzer(context: Context) {
         for (v in imgEmbed) norm += v * v
         norm = Math.sqrt(norm.toDouble()).toFloat()
         for (i in imgEmbed.indices) imgEmbed[i] /= norm
+        lastEmbedding = imgEmbed.copyOf()
 
         val LOGIT_SCALE = exp(4.60517f)
         val safeLogit = dotProduct(imgEmbed, baselineEmbed!!) * LOGIT_SCALE

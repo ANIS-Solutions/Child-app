@@ -34,5 +34,6 @@ data class AnalysisResultEntity(
     @ColumnInfo(defaultValue = "0")
     val preprocessTimeMs: Double = 0.0,
     val threatDetails: String? = null,
-    val imagePath: String? = null
+    val imagePath: String? = null,
+    val embedding: String? = null
 )

@@ -5,8 +5,10 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.PixelFormat
 import android.hardware.display.DisplayManager
 import android.hardware.display.VirtualDisplay
@@ -23,6 +25,7 @@ import android.view.WindowManager
 import androidx.core.app.NotificationCompat
 import com.anis.child.MainActivity
 import com.anis.child.ai.AiAnalyzer
+import com.anis.child.ai.SessionManager
 import com.anis.child.ai.util.BlurNotificationManager
 import com.anis.child.ai.util.BlurOverlayManager
 import com.anis.child.ai.util.ImageStorageManager
@@ -47,6 +50,9 @@ class SessionCaptureService : Service() {
     @Inject
     lateinit var aiAnalyzer: AiAnalyzer
 
+    @Inject
+    lateinit var sessionManager: SessionManager
+
     private var mediaProjection: MediaProjection? = null
     private var virtualDisplay: VirtualDisplay? = null
     private var imageReader: ImageReader? = null
@@ -60,6 +66,28 @@ class SessionCaptureService : Service() {
 
     private var blurTriggerThreshold = 3
     private val SAFE_FRAMES_TO_HIDE = 3
+    @Volatile
+    private var autoRotateMaxCaptures = 0
+    @Volatile
+    private var captureCount = 0
+
+    @Volatile
+    private var screenOff = false
+
+    private val screenReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            when (intent.action) {
+                Intent.ACTION_SCREEN_OFF -> {
+                    screenOff = true
+                    Log.d(TAG, "Screen OFF — pausing captures")
+                }
+                Intent.ACTION_SCREEN_ON -> {
+                    screenOff = false
+                    Log.d(TAG, "Screen ON — resuming captures")
+                }
+            }
+        }
+    }
 
     private enum class UiState {
         SAFE,
@@ -91,6 +119,12 @@ class SessionCaptureService : Service() {
         createNotificationChannel()
         startForeground(NOTIFICATION_ID, createNotification())
         initializationTimeoutHandler = Handler(mainLooper)
+
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_SCREEN_OFF)
+            addAction(Intent.ACTION_SCREEN_ON)
+        }
+        registerReceiver(screenReceiver, filter)
     }
 
     private val initializationTimeoutRunnable = Runnable {
@@ -105,6 +139,9 @@ class SessionCaptureService : Service() {
                 sessionId = intent.getLongExtra(EXTRA_SESSION_ID, -1)
                 intervalMs = intent.getIntExtra(EXTRA_INTERVAL_MS, 1000)
                 blurTriggerThreshold = intent.getIntExtra(EXTRA_BLUR_TRIGGER_THRESHOLD, 3)
+                autoRotateMaxCaptures = intent.getIntExtra(EXTRA_AUTO_ROTATE_MAX_CAPTURES, 0)
+                captureCount = 0
+                screenOff = false
                 val resultCode = intent.getIntExtra(EXTRA_RESULT_CODE, -1)
 
                 val data: Intent? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -201,6 +238,12 @@ class SessionCaptureService : Service() {
             return
         }
 
+        if (screenOff) {
+            Log.d(TAG, "Screen is off, skipping capture")
+            scheduleNextCapture()
+            return
+        }
+
         isAnalyzing = true
         captureInProgress = true
         val totalStart = System.nanoTime()
@@ -217,8 +260,14 @@ class SessionCaptureService : Service() {
             return
         }
 
+        captureCount++
         val timestamp = System.currentTimeMillis()
         var bitmap: android.graphics.Bitmap? = null
+
+        val isLimitReached = autoRotateMaxCaptures > 0 && captureCount >= autoRotateMaxCaptures
+        if (isLimitReached) {
+            Log.d(TAG, "Capture limit reached ($captureCount/$autoRotateMaxCaptures), signaling auto-rotate")
+        }
 
         try {
             val bitmapStart = System.nanoTime()
@@ -297,22 +346,29 @@ class SessionCaptureService : Service() {
                         }
                     }
 
-                    var imagePath: String? = null
-                    if (decision == "BLOCKED") {
-                        imagePath = java.io.File(
-                            filesDir, "session_images/$sessionId/${timestamp}.jpg"
-                        ).absolutePath
+                    val showBlurOverlay = uiState == UiState.BLURRED || uiState == UiState.PENDING_RELEASE
+                    val imagePath = if (!showBlurOverlay) {
+                        val path = ImageStorageManager.getCacheImagePath(
+                            this@SessionCaptureService, sessionId, timestamp
+                        )
                         val bmp = bitmap
                         val sid = sessionId
                         val ts = timestamp
                         serviceScope.launch {
-                            ImageStorageManager.saveImage(
+                            ImageStorageManager.saveImageToCache(
                                 this@SessionCaptureService,
                                 bmp,
                                 sid,
                                 ts
                             )
                         }
+                        path
+                    } else {
+                        null
+                    }
+
+                    val embeddingJson = aiAnalyzer.lastEmbedding?.let { emb ->
+                        org.json.JSONArray(emb.map { it.toDouble() }).toString()
                     }
 
                     val totalTime = System.nanoTime() - totalStart
@@ -328,7 +384,8 @@ class SessionCaptureService : Service() {
                         ocrTimeMs = ocrTime,
                         onnxTimeMs = onnxTime,
                         threatDetails = "",
-                        imagePath = imagePath
+                        imagePath = imagePath,
+                        embedding = embeddingJson
                     )
 
                     if (decision == "BLOCKED") {
@@ -345,6 +402,24 @@ class SessionCaptureService : Service() {
                             (now - lastSafeBatchWrite) > SAFE_BATCH_INTERVAL_MS) {
                             flushSafeResults()
                         }
+                    }
+
+                    if (isLimitReached) {
+                        if (safeResultsBuffer.isNotEmpty()) {
+                            try {
+                                sessionRepository.addAnalysisResultsBatch(safeResultsBuffer.toList())
+                                safeResultsBuffer.clear()
+                            } catch (e: Exception) {
+                                Log.e(TAG, "Failed to flush safe results before auto-rotate", e)
+                            }
+                        }
+                        val newId = sessionManager.handleAutoRotate(sessionId)
+                        Log.d(TAG, "Auto-rotated: session $sessionId -> $newId")
+                        sessionId = newId
+                        captureCount = 0
+                        uiState = UiState.SAFE
+                        unsafeCounter = 0
+                        safeCounter = 0
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "Error in captureAndAnalyze", e)
@@ -472,6 +547,7 @@ class SessionCaptureService : Service() {
     }
 
     override fun onDestroy() {
+        try { unregisterReceiver(screenReceiver) } catch (_: Exception) {}
         if (safeResultsBuffer.isNotEmpty()) {
             serviceScope.launch {
                 try {
@@ -495,9 +571,11 @@ class SessionCaptureService : Service() {
         const val EXTRA_BLUR_TRIGGER_THRESHOLD = "extra_blur_trigger_threshold"
         const val EXTRA_RESULT_CODE = "extra_result_code"
         const val EXTRA_DATA = "extra_data"
+        const val EXTRA_AUTO_ROTATE_MAX_CAPTURES = "extra_auto_rotate_max_captures"
 
         private const val NOTIFICATION_ID = 1
         private const val CHANNEL_ID = "session_capture_channel"
+        const val DEFAULT_AUTO_ROTATE_MAX_CAPTURES = 900
 
         fun startService(
             context: Context,
@@ -505,7 +583,8 @@ class SessionCaptureService : Service() {
             intervalMs: Int,
             blurTriggerThreshold: Int,
             resultCode: Int,
-            data: Intent
+            data: Intent,
+            autoRotateMaxCaptures: Int = DEFAULT_AUTO_ROTATE_MAX_CAPTURES
         ) {
             val intent = Intent(context, SessionCaptureService::class.java)
             intent.action = ACTION_START
@@ -514,6 +593,7 @@ class SessionCaptureService : Service() {
             intent.putExtra(EXTRA_BLUR_TRIGGER_THRESHOLD, blurTriggerThreshold)
             intent.putExtra(EXTRA_RESULT_CODE, resultCode)
             intent.putExtra(EXTRA_DATA, data)
+            intent.putExtra(EXTRA_AUTO_ROTATE_MAX_CAPTURES, autoRotateMaxCaptures)
             context.startForegroundService(intent)
         }
 

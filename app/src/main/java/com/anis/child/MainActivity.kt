@@ -208,7 +208,7 @@ class MainActivity : ComponentActivity() {
                             },
                             onScreenTimeClick = { navController.navigate("screen_time") },
                             onContentProtectionClick = { navController.navigate("content_protection") },
-                            onAiSessionClick = { navigateToProtected("permissions_check") },
+                            onAiSessionClick = { navController.navigate("permissions_check") },
                             onLocationHistoryClick = { navController.navigate("location_history") },
                             onNotificationsClick = { navController.navigate("notifications") },
                             onChangePin = {

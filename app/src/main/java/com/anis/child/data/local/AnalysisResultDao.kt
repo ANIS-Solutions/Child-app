@@ -16,6 +16,9 @@ interface AnalysisResultDao {
     @Query("SELECT * FROM analysis_results WHERE sessionId = :sessionId ORDER BY timestamp ASC")
     fun getResultsForSession(sessionId: Long): Flow<List<AnalysisResultEntity>>
 
+    @Query("SELECT * FROM analysis_results WHERE sessionId = :sessionId ORDER BY timestamp ASC")
+    suspend fun getResultsForSessionOnce(sessionId: Long): List<AnalysisResultEntity>
+
     @Query("SELECT * FROM analysis_results WHERE sessionId = :sessionId ORDER BY timestamp DESC")
     fun getResultsForSessionDesc(sessionId: Long): Flow<List<AnalysisResultEntity>>
 
@@ -27,6 +30,15 @@ interface AnalysisResultDao {
 
     @Query("SELECT COUNT(*) FROM analysis_results WHERE sessionId = :sessionId AND decision = 'SAFE'")
     suspend fun getSafeCountForSession(sessionId: Long): Int
+
+    @Query("SELECT * FROM analysis_results WHERE id IN (:ids)")
+    suspend fun getResultsByIds(ids: List<Long>): List<AnalysisResultEntity>
+
+    @Query("UPDATE analysis_results SET imagePath = :newPath WHERE id = :resultId")
+    suspend fun updateImagePath(resultId: Long, newPath: String)
+
+    @Query("UPDATE analysis_results SET imagePath = :newPath WHERE id IN (:resultIds)")
+    suspend fun updateImagePaths(resultIds: List<Long>, newPath: String)
 
     @Query("DELETE FROM analysis_results WHERE sessionId = :sessionId")
     suspend fun deleteResultsForSession(sessionId: Long)
