@@ -6,6 +6,7 @@ import com.anis.child.data.local.AnalysisResultEntity
 import com.anis.child.data.local.SessionDao
 import com.anis.child.data.local.SessionEntity
 import kotlinx.coroutines.flow.Flow
+import org.json.JSONArray
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -99,5 +100,32 @@ class SessionRepository @Inject constructor(
     suspend fun addAnalysisResultsBatch(results: List<AnalysisResultEntity>) {
         Log.d(TAG, "Batch inserting ${results.size} results")
         analysisResultDao.insertResults(results)
+    }
+
+    suspend fun getOrderedResultsWithEmbeddings(sessionId: Long): List<AnalysisResultEntity> {
+        return analysisResultDao.getResultsForSessionOnce(sessionId)
+            .filter { it.embedding != null }
+    }
+
+    suspend fun updateKeyframeIndices(sessionId: Long, indicesJson: String?) {
+        sessionDao.updateKeyframeIndices(sessionId, indicesJson)
+    }
+
+    suspend fun updateResultImagePath(resultId: Long, newPath: String) {
+        analysisResultDao.updateImagePath(resultId, newPath)
+    }
+
+    suspend fun getKeyframeResults(sessionId: Long): List<AnalysisResultEntity> {
+        val session = sessionDao.getSessionById(sessionId) ?: return emptyList()
+        val idsJson = session.keyframeIndices ?: return emptyList()
+        val ids = try {
+            JSONArray(idsJson).let { arr ->
+                (0 until arr.length()).map { arr.getLong(it) }
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+        if (ids.isEmpty()) return emptyList()
+        return analysisResultDao.getResultsByIds(ids)
     }
 }

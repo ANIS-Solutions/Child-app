@@ -48,4 +48,7 @@ interface SessionDao {
 
     @Query("DELETE FROM sessions WHERE id = :sessionId")
     suspend fun deleteSession(sessionId: Long)
+
+    @Query("UPDATE sessions SET keyframeIndices = :indicesJson WHERE id = :sessionId")
+    suspend fun updateKeyframeIndices(sessionId: Long, indicesJson: String?)
 }

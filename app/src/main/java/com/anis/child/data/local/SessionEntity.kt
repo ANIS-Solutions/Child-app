@@ -19,5 +19,6 @@ data class SessionEntity(
     val batteryCharging: Boolean = false,
     val cpuTimeMs: Long = 0,
     val cpuUsagePercent: Double = 0.0,
-    val ramPssMb: Double = 0.0
+    val ramPssMb: Double = 0.0,
+    val keyframeIndices: String? = null
 )

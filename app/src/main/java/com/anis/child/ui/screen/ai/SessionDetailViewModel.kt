@@ -31,6 +31,9 @@ class SessionDetailViewModel @Inject constructor(
     private val _exportUri = MutableStateFlow<Uri?>(null)
     val exportUri: StateFlow<Uri?> = _exportUri.asStateFlow()
 
+    private val _keyframeResults = MutableStateFlow<List<AnalysisResultEntity>>(emptyList())
+    val keyframeResults: StateFlow<List<AnalysisResultEntity>> = _keyframeResults.asStateFlow()
+
     fun loadSession(sessionId: Long) {
         viewModelScope.launch {
             sessionRepository.getSessionByIdFlow(sessionId).collect { sessionEntity ->
@@ -42,6 +45,11 @@ class SessionDetailViewModel @Inject constructor(
             sessionRepository.getResultsForSessionDesc(sessionId).collect { resultsList ->
                 _results.value = resultsList
             }
+        }
+
+        viewModelScope.launch {
+            val keyframes = sessionRepository.getKeyframeResults(sessionId)
+            _keyframeResults.value = keyframes
         }
     }
 

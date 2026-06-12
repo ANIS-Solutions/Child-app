@@ -9,10 +9,12 @@ import android.os.BatteryManager
 import android.os.Debug
 import android.util.Log
 import com.anis.child.ai.service.SessionCaptureService
+import com.anis.child.ai.util.ImageStorageManager
 import com.anis.child.ai.util.PermissionManager
 import com.anis.child.ai.util.PermissionType
 import com.anis.child.data.local.SessionEntity
 import com.anis.child.data.repository.SessionRepository
+import com.anis.child.ml.CondensationEngine
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,6 +22,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.json.JSONArray
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -45,6 +48,9 @@ class SessionManager @Inject constructor(
 
     var sessionIntervalMs: Int = 1000
     var blurTriggerThreshold: Int = 3
+    var autoRotateMaxCaptures: Int = SessionCaptureService.DEFAULT_AUTO_ROTATE_MAX_CAPTURES
+
+    private val condensationEngine = CondensationEngine()
 
     suspend fun startSession(activity: Activity) {
         Log.d(TAG, "startSession called")
@@ -111,7 +117,8 @@ class SessionManager @Inject constructor(
             intervalMs = intervalMs,
             blurTriggerThreshold = blurThreshold,
             resultCode = mediaProjectionResultCode,
-            data = mediaProjectionData!!
+            data = mediaProjectionData!!,
+            autoRotateMaxCaptures = autoRotateMaxCaptures
         )
     }
 
@@ -120,28 +127,15 @@ class SessionManager @Inject constructor(
         if (currentState is SessionState.Active) {
             SessionCaptureService.stopService(context)
 
-            val batteryEnd = readBatteryLevel()
-            val isCharging = readBatteryCharging()
-            val cpuTimeEndMs = readProcessCpuTimeMs()
-            val wallTimeEnd = System.currentTimeMillis()
-            val ramPssMb = readRamPss()
-
-            val cpuDeltaMs = cpuTimeEndMs - cpuTimeStartMs
-            val wallDeltaMs = wallTimeEnd - sessionStartWallTime
-            val cpuPercent = if (wallDeltaMs > 0) {
-                (cpuDeltaMs.toDouble() / wallDeltaMs) * 100.0
-            } else 0.0
-
-            Log.d(TAG, "stopSession: batteryEnd=$batteryEnd, charging=$isCharging, cpuTime=${cpuDeltaMs}ms, cpuPercent=${"%.1f".format(cpuPercent)}, ramPssMb=${"%.1f".format(ramPssMb)}")
+            val (batteryEnd, isCharging, cpuDeltaMs, cpuPercent, ramPssMb) = readDeviceStats()
 
             scope.launch {
-                sessionRepository.endSession(currentState.sessionId)
-                sessionRepository.updateDeviceStats(
+                finishSession(
                     sessionId = currentState.sessionId,
                     batteryEnd = batteryEnd,
-                    batteryCharging = isCharging,
-                    cpuTimeMs = cpuDeltaMs,
-                    cpuUsagePercent = cpuPercent,
+                    isCharging = isCharging,
+                    cpuDeltaMs = cpuDeltaMs,
+                    cpuPercent = cpuPercent,
                     ramPssMb = ramPssMb
                 )
                 _currentSession.value = null
@@ -150,9 +144,139 @@ class SessionManager @Inject constructor(
         }
     }
 
+    suspend fun handleAutoRotate(oldSessionId: Long): Long {
+        Log.d(TAG, "handleAutoRotate: ending session $oldSessionId, creating new session")
+
+        val (batteryEnd, isCharging, cpuDeltaMs, cpuPercent, ramPssMb) = readDeviceStats()
+
+        finishSession(
+            sessionId = oldSessionId,
+            batteryEnd = batteryEnd,
+            isCharging = isCharging,
+            cpuDeltaMs = cpuDeltaMs,
+            cpuPercent = cpuPercent,
+            ramPssMb = ramPssMb
+        )
+
+        val batteryStart = readBatteryLevel()
+        cpuTimeStartMs = readProcessCpuTimeMs()
+        sessionStartWallTime = System.currentTimeMillis()
+
+        val newSessionId = sessionRepository.createSession(sessionIntervalMs, batteryStart)
+        Log.d(TAG, "handleAutoRotate: created new session id=$newSessionId")
+
+        _currentSession.value = sessionRepository.getSessionById(newSessionId)
+        _sessionState.value = SessionState.Active(newSessionId)
+
+        return newSessionId
+    }
+
+    private fun readDeviceStats(): DeviceStats {
+        val batteryEnd = readBatteryLevel()
+        val isCharging = readBatteryCharging()
+        val cpuTimeEndMs = readProcessCpuTimeMs()
+        val wallTimeEnd = System.currentTimeMillis()
+        val ramPssMb = readRamPss()
+
+        val cpuDeltaMs = cpuTimeEndMs - cpuTimeStartMs
+        val wallDeltaMs = wallTimeEnd - sessionStartWallTime
+        val cpuPercent = if (wallDeltaMs > 0) {
+            (cpuDeltaMs.toDouble() / wallDeltaMs) * 100.0
+        } else 0.0
+
+        Log.d(TAG, "deviceStats: batteryEnd=$batteryEnd, charging=$isCharging, cpuTime=${cpuDeltaMs}ms, cpuPercent=${"%.1f".format(cpuPercent)}, ramPssMb=${"%.1f".format(ramPssMb)}")
+        return DeviceStats(batteryEnd, isCharging, cpuDeltaMs, cpuPercent, ramPssMb)
+    }
+
+    private suspend fun finishSession(
+        sessionId: Long,
+        batteryEnd: Int,
+        isCharging: Boolean,
+        cpuDeltaMs: Long,
+        cpuPercent: Double,
+        ramPssMb: Double
+    ) {
+        sessionRepository.endSession(sessionId)
+
+        runKeyframeVoting(sessionId)
+
+        moveKeyframeImagesToPermanent(sessionId)
+
+        ImageStorageManager.clearSessionCache(context, sessionId)
+
+        sessionRepository.updateDeviceStats(
+            sessionId = sessionId,
+            batteryEnd = batteryEnd,
+            batteryCharging = isCharging,
+            cpuTimeMs = cpuDeltaMs,
+            cpuUsagePercent = cpuPercent,
+            ramPssMb = ramPssMb
+        )
+    }
+
+    private suspend fun moveKeyframeImagesToPermanent(sessionId: Long) {
+        try {
+            val session = sessionRepository.getSessionById(sessionId) ?: return
+            val idsJson = session.keyframeIndices ?: return
+            val resultIds = try {
+                JSONArray(idsJson).let { arr ->
+                    (0 until arr.length()).map { arr.getLong(it) }
+                }
+            } catch (e: Exception) {
+                emptyList()
+            }
+            if (resultIds.isEmpty()) return
+
+            val results = sessionRepository.getKeyframeResults(sessionId)
+            for (result in results) {
+                val moved = ImageStorageManager.moveImageToPermanent(context, sessionId, result.timestamp)
+                if (moved) {
+                    val newPath = ImageStorageManager.getPermanentImagePath(context, sessionId, result.timestamp)
+                    sessionRepository.updateResultImagePath(result.id, newPath)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to move keyframe images to permanent storage", e)
+        }
+    }
+
+    private data class DeviceStats(
+        val batteryEnd: Int,
+        val isCharging: Boolean,
+        val cpuDeltaMs: Long,
+        val cpuPercent: Double,
+        val ramPssMb: Double
+    )
+
     fun onDestroy() {
         if (_sessionState.value is SessionState.Active) {
             stopSession()
+        }
+    }
+
+    private suspend fun runKeyframeVoting(sessionId: Long) {
+        try {
+            val results = sessionRepository.getOrderedResultsWithEmbeddings(sessionId)
+            if (results.size < 2) {
+                Log.d(TAG, "Not enough results with embeddings for keyframe voting: ${results.size}")
+                return
+            }
+
+            val embeddings = results.map { result ->
+                val arr = JSONArray(result.embedding!!)
+                FloatArray(arr.length()) { i -> arr.getDouble(i).toFloat() }
+            }
+
+            val k = minOf(maxOf(embeddings.size / 10, 3), 10, embeddings.size)
+            val listIndices = condensationEngine.extractKeyframes(embeddings, k)
+
+            val resultIds = listIndices.map { results[it].id }
+            val idsJson = JSONArray(resultIds).toString()
+            sessionRepository.updateKeyframeIndices(sessionId, idsJson)
+
+            Log.d(TAG, "Keyframe voting completed: selected $k frames from ${embeddings.size} total, resultIds=$idsJson")
+        } catch (e: Exception) {
+            Log.e(TAG, "Keyframe voting failed", e)
         }
     }
 
