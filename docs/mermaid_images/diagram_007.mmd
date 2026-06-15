@@ -1,7 +1,0 @@
-flowchart LR
-    A["Content Analysis\nBLOCKED Decision"] --> B["1. Immediate Local Alert\n- Blur overlay\n- Vibration\n- Notification"]
-    B --> C["2. Store Result\n- Room DB write\n- Image save"]
-    C --> D["3. FCM Push to Parent App\n- Heads-up notification\n- Threat details\n- Timestamp"]
-
-    D --> E1["4a. Backend\n- Log event\n- Update report"]
-    D --> E2["4b. Parent App\n- Open dashboard\n- Show alert"]

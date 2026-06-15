@@ -1,7 +1,10 @@
 package com.anis.child
 
 import android.Manifest
+import android.app.Activity
+import android.content.Intent
 import android.graphics.Color
+import android.media.projection.MediaProjectionManager
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -22,6 +25,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.anis.child.ai.service.AiFilteringService
 import com.anis.child.ai.util.BlurOverlayManager
 import com.anis.child.data.LogManager
 import com.anis.child.data.LogType
@@ -69,6 +73,16 @@ class MainActivity : ComponentActivity() {
     private val TAG = "MainActivity"
     private var blockedOverlay: View? = null
 
+    private val mediaProjectionLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK && result.data != null) {
+            AiFilteringService.grantMediaProjection(this, result.resultCode, result.data!!)
+        } else {
+            AiFilteringService.grantDenied(this)
+        }
+    }
+
     private val locationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -103,6 +117,21 @@ class MainActivity : ComponentActivity() {
 
         if (preferenceManager.isMonitoringEnabled) {
             requestLocationPermissions()
+        }
+
+        if (!preferenceManager.hasIsAiFilteringEnabled()) {
+            preferenceManager.isAiFilteringEnabled = true
+        }
+        if (preferenceManager.isAiFilteringEnabled && !AiFilteringService.isRunning) {
+            AiFilteringService.start(this)
+            com.anis.child.worker.AiFilterWatchdogWorker.enqueue(this)
+        }
+
+        if (intent?.getBooleanExtra(AiFilteringService.EXTRA_REQUEST_MEDIA_PROJECTION, false) == true) {
+            val mpm = getSystemService("media_projection") as? MediaProjectionManager
+            if (mpm != null) {
+                mediaProjectionLauncher.launch(mpm.createScreenCaptureIntent())
+            }
         }
 
         setContent {

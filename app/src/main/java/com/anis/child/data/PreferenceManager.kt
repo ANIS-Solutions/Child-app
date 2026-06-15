@@ -83,12 +83,28 @@ class PreferenceManager(context: Context) {
         get() = sharedPreferences.getInt(KEY_REWARD_POINTS, 0)
         set(value) = sharedPreferences.edit().putInt(KEY_REWARD_POINTS, value).apply()
 
+    var isAiFilteringEnabled: Boolean
+        get() = sharedPreferences.getBoolean(KEY_IS_AI_FILTERING_ENABLED, true)
+        set(value) = sharedPreferences.edit().putBoolean(KEY_IS_AI_FILTERING_ENABLED, value).apply()
+
+    var isAiLockdownActive: Boolean
+        get() = sharedPreferences.getBoolean(KEY_IS_AI_LOCKDOWN_ACTIVE, false)
+        set(value) = sharedPreferences.edit().putBoolean(KEY_IS_AI_LOCKDOWN_ACTIVE, value).apply()
+
     fun clear() {
+        val saveAi = isAiFilteringEnabled
+        val saveLockdown = isAiLockdownActive
         sharedPreferences.edit().clear().apply()
+        isAiFilteringEnabled = saveAi
+        isAiLockdownActive = saveLockdown
+    }
+
+    fun hasIsAiFilteringEnabled(): Boolean {
+        return sharedPreferences.contains(KEY_IS_AI_FILTERING_ENABLED)
     }
 
     companion object {
-        private const val PREFS_NAME = "anis_secure_prefs"
+        const val PREFS_NAME = "anis_secure_prefs"
         private const val KEY_ACCESS_TOKEN = "access_token"
         private const val KEY_IS_LOGGED_IN = "is_logged_in"
         private const val KEY_CHILD_ID = "child_id"
@@ -105,5 +121,7 @@ class PreferenceManager(context: Context) {
         private const val KEY_PIN_LOCKOUT_UNTIL = "pin_lockout_until"
         private const val KEY_HAS_PIN = "has_pin"
         private const val KEY_REWARD_POINTS = "reward_points"
+        private const val KEY_IS_AI_FILTERING_ENABLED = "is_ai_filtering_enabled"
+        private const val KEY_IS_AI_LOCKDOWN_ACTIVE = "is_ai_lockdown_active"
     }
 }

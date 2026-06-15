@@ -30,6 +30,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Timeline
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -42,7 +43,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -66,6 +73,36 @@ fun SettingsScreen(
     onLogout: () -> Unit,
 ) {
     val context = LocalContext.current
+    var showDisableAiDialog by remember { mutableStateOf(false) }
+
+    if (showDisableAiDialog) {
+        AlertDialog(
+            onDismissRequest = { showDisableAiDialog = false },
+            title = { Text("Disable AI Content Filtering?") },
+            text = {
+                Text(
+                    "This is the only way to stop the filtering service. " +
+                    "Apps will no longer be monitored on boot and the app " +
+                    "lockdown will be removed."
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.confirmDisableAiFiltering()
+                        showDisableAiDialog = false
+                    }
+                ) {
+                    Text("Disable", color = AppColors.error500)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDisableAiDialog = false }) {
+                    Text("Keep Enabled")
+                }
+            }
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -111,6 +148,14 @@ fun SettingsScreen(
                 onScreenTimeClick = onScreenTimeClick,
                 onContentProtectionClick = onContentProtectionClick,
                 onAiSessionClick = onAiSessionClick,
+                isAiFilteringEnabled = viewModel.isAiFilteringEnabled,
+                onAiFilteringToggle = { enabled ->
+                    if (enabled) {
+                        viewModel.onAiFilteringToggled(true)
+                    } else {
+                        showDisableAiDialog = true
+                    }
+                }
             )
 
             ActivityHistorySection(
@@ -276,6 +321,8 @@ private fun ParentalControlsSection(
     onScreenTimeClick: () -> Unit,
     onContentProtectionClick: () -> Unit,
     onAiSessionClick: () -> Unit,
+    isAiFilteringEnabled: Boolean = false,
+    onAiFilteringToggle: (Boolean) -> Unit = {},
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -307,7 +354,40 @@ private fun ParentalControlsSection(
                 description = "Monitor screen content with AI analysis",
                 onClick = onAiSessionClick
             )
-        }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Security,
+                    contentDescription = null,
+                    tint = AppColors.primary01,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "AI Content Filtering",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = AppColors.textPrimary
+                    )
+                    Text(
+                        text = "Auto-start on boot, blocks apps until permission granted",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = AppColors.textSecondary
+                    )
+                }
+                Switch(
+                    checked = isAiFilteringEnabled,
+                    onCheckedChange = onAiFilteringToggle,
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = AppColors.primary01,
+                        checkedTrackColor = AppColors.primary01.copy(alpha = 0.5f)
+                    )
+                )
+            }}
     }
 }
 

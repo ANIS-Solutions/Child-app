@@ -1,9 +1,0 @@
-stateDiagram-v2
-    [*] --> Earned
-    Earned --> Active: Claimed
-    Active --> Consumed: Fully utilized
-    Earned --> Expired: Time limit passed
-    Active --> Revoked: Policy violation
-    Consumed --> [*]
-    Expired --> [*]
-    Revoked --> [*]

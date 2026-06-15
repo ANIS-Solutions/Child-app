@@ -10,9 +10,11 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import android.os.IBinder
+import android.content.pm.ApplicationInfo
 import com.anis.child.content.BlockingOverlayManager
 import com.anis.child.data.LogManager
 import com.anis.child.data.LogType
+import com.anis.child.data.PreferenceManager
 import com.anis.child.data.ScreenTimeManager
 import com.anis.child.util.registerReceiverSafe
 import dagger.hilt.android.AndroidEntryPoint
@@ -29,6 +31,7 @@ class AppRestrictionService : Service() {
 
     @Inject lateinit var screenTimeManager: ScreenTimeManager
     @Inject lateinit var logManager: LogManager
+    @Inject lateinit var preferenceManager: PreferenceManager
 
     private var monitoringJob: Job? = null
     private var isRunning = false
@@ -80,6 +83,19 @@ class AppRestrictionService : Service() {
                 return
             }
 
+            if (preferenceManager.isAiLockdownActive) {
+                if (isSystemApp(foregroundApp) || foregroundApp == "com.android.settings") {
+                    if (currentBlockedApp != null) {
+                        BlockingOverlayManager.hideOverlay()
+                        currentBlockedApp = null
+                    }
+                } else if (currentBlockedApp != foregroundApp) {
+                    currentBlockedApp = foregroundApp
+                    BlockingOverlayManager.showOverlay(this, foregroundApp, accessibilityOverlay = false)
+                }
+                return
+            }
+
             val isBlocked = screenTimeManager.isAppBlocked(foregroundApp)
             if (isBlocked) {
                 if (currentBlockedApp != foregroundApp) {
@@ -96,6 +112,12 @@ class AppRestrictionService : Service() {
         } catch (e: SecurityException) {
             logManager.log("Usage stats permission not granted", LogType.ERROR)
         } catch (_: Exception) { }
+    }
+
+    private fun isSystemApp(pkg: String): Boolean {
+        return try {
+            packageManager.getApplicationInfo(pkg, 0).flags and ApplicationInfo.FLAG_SYSTEM != 0
+        } catch (_: Exception) { false }
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
