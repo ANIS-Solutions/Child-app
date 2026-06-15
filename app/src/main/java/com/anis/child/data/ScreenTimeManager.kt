@@ -172,7 +172,7 @@ class ScreenTimeManager @Inject constructor(
     fun getCurrentForegroundApp(): String {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return ""
         val endTime = System.currentTimeMillis()
-        val startTime = endTime - 5000
+        val startTime = endTime - 60_000
         val stats = usageStatsManager.queryUsageStats(
             UsageStatsManager.INTERVAL_DAILY,
             startTime,

@@ -34,6 +34,12 @@ interface AnalysisResultDao {
     @Query("SELECT * FROM analysis_results WHERE id IN (:ids)")
     suspend fun getResultsByIds(ids: List<Long>): List<AnalysisResultEntity>
 
+    @Query("SELECT * FROM analysis_results WHERE sessionId IN (:sessionIds) AND embedding IS NOT NULL ORDER BY timestamp ASC LIMIT :limit")
+    suspend fun getResultsWithEmbeddingsForSessions(sessionIds: List<Long>, limit: Int): List<AnalysisResultEntity>
+
+    @Query("SELECT * FROM analysis_results WHERE sessionId IN (:sessionIds) AND embedding IS NOT NULL ORDER BY timestamp ASC")
+    suspend fun getAllResultsWithEmbeddingsForSessions(sessionIds: List<Long>): List<AnalysisResultEntity>
+
     @Query("UPDATE analysis_results SET imagePath = :newPath WHERE id = :resultId")
     suspend fun updateImagePath(resultId: Long, newPath: String)
 

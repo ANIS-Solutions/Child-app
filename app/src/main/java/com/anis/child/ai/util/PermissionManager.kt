@@ -86,10 +86,6 @@ object PermissionManager {
 }
 
 enum class PermissionType(val title: String, val description: String) {
-    MEDIA_PROJECTION(
-        "Screen Recording",
-        "Required to capture screenshots of the screen"
-    ),
     NOTIFICATION(
         "Notifications",
         "Required to show session status notification"

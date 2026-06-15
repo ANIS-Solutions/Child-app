@@ -46,6 +46,9 @@ interface SessionDao {
         ramPssMb: Double
     )
 
+    @Query("SELECT * FROM sessions WHERE status = 'COMPLETED' ORDER BY startTime ASC")
+    suspend fun getCompletedSessionsAsc(): List<SessionEntity>
+
     @Query("DELETE FROM sessions WHERE id = :sessionId")
     suspend fun deleteSession(sessionId: Long)
 

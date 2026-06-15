@@ -1,8 +1,0 @@
-stateDiagram-v2
-    [*] --> Idle
-    Idle --> Active: Start session
-    Active --> Completed: Session end
-    Active --> PermissionRequired: Missing permissions
-    Active --> Error: Capture failure (max retries)
-    PermissionRequired --> Active: Permissions granted
-    Error --> Idle: Reset

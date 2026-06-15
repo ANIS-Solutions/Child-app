@@ -8,30 +8,46 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.util.Half
+import com.anis.child.R
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import kotlinx.coroutines.tasks.await
 import org.json.JSONObject
+import java.io.BufferedReader
 import java.io.File
 import java.io.FileOutputStream
+import java.io.InputStreamReader
 import java.nio.ShortBuffer
 import kotlin.math.exp
 import kotlin.math.max
 
 class AiAnalyzer(context: Context) {
 
-    private val bannedWords = listOf(
-        "fuck", "shit", "ass", "bitch", "bastard", "damn", "dick", "piss", "slut", "whore",
-        "kill", "murder", "death", "die", "suicide", "rape", "torture", "slaughter", "massacre", "terror",
-        "porn", "nude", "sex", "sexy", "erotic", "xxx", "horny", "naked", "stripper", "orgasm",
-        "blood", "gore", "corpse", "carcass", "skeleton", "skull", "wound", "injury", "trauma", "surgery",
-        "drug", "cocaine", "heroin", "meth", "weed", "marijuana", "cannabis", "opium", "lsd", "ecstasy",
-        "alcohol", "beer", "whiskey", "vodka", "cigarette", "cigar", "smoke", "vape", "nicotine", "tobacco",
-        "weapon", "gun", "rifle", "pistol", "knife", "sword", "bomb", "explosive", "missile", "bullet",
-        "hate", "racist", "nazi", "terrorist", "abuse", "bully", "threat", "assault", "attack", "violent",
-        "gambling", "casino", "poker", "bet", "lottery", "striptease", "lingerie", "bikini", "swimsuit", "underwear"
-    )
+    private val bannedWords: List<String> = loadBannedWords(context)
+
+    private fun loadBannedWords(context: Context): List<String> {
+        return try {
+            val inputStream = context.resources.openRawResource(R.raw.banned_words)
+            val reader = BufferedReader(InputStreamReader(inputStream))
+            val line = reader.readLine()
+            reader.close()
+            line.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+        } catch (e: Exception) {
+            android.util.Log.w("AiAnalyzer", "Failed to load banned_words.txt from resources, using defaults", e)
+            listOf(
+                "fuck", "shit", "ass", "bitch", "bastard", "damn", "dick", "piss", "slut", "whore",
+                "kill", "murder", "death", "die", "suicide", "rape", "torture", "slaughter", "massacre", "terror",
+                "porn", "nude", "sex", "sexy", "erotic", "xxx", "horny", "naked", "stripper", "orgasm",
+                "blood", "gore", "corpse", "carcass", "skeleton", "skull", "wound", "injury", "trauma", "surgery",
+                "drug", "cocaine", "heroin", "meth", "weed", "marijuana", "cannabis", "opium", "lsd", "ecstasy",
+                "alcohol", "beer", "whiskey", "vodka", "cigarette", "cigar", "smoke", "vape", "nicotine", "tobacco",
+                "weapon", "gun", "rifle", "pistol", "knife", "sword", "bomb", "explosive", "missile", "bullet",
+                "hate", "racist", "nazi", "terrorist", "abuse", "bully", "threat", "assault", "attack", "violent",
+                "gambling", "casino", "poker", "bet", "lottery", "striptease", "lingerie", "bikini", "swimsuit", "underwear"
+            )
+        }
+    }
     private val env: OrtEnvironment = OrtEnvironment.getEnvironment()
 
     private var visionSession: OrtSession? = null
@@ -47,7 +63,9 @@ class AiAnalyzer(context: Context) {
 
     init {
         try {
-            val modelFile = File(context.cacheDir, "vision_model_fp16.onnx")
+            val modelsDir = File(context.filesDir, "models")
+            if (!modelsDir.exists()) modelsDir.mkdirs()
+            val modelFile = File(modelsDir, "vision_model_fp16.onnx")
             if (!modelFile.exists()) {
                 context.assets.open("vision_model_fp16.onnx").use { inputStream ->
                     FileOutputStream(modelFile).use { outputStream ->

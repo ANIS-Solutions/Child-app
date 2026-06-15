@@ -26,7 +26,9 @@ class FCMService : FirebaseMessagingService() {
     override fun onMessageReceived(message: RemoteMessage) {
         super.onMessageReceived(message)
         val data = message.data
-        Log.d(TAG, "Silent data received: $data")
+        data.forEach { (key, value) ->
+            Log.d(TAG, "FCM data: $key = $value")
+        }
         if (data.containsKey("sync_locations") || data.containsKey("trigger_sync")) {
             LocationTelemetryWorker.triggerImmediateSync(this)
         }

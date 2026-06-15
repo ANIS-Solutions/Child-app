@@ -1,7 +1,6 @@
 package com.anis.child.worker
 
 import android.content.Context
-import androidx.hilt.work.HiltWorker
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
@@ -15,16 +14,13 @@ import com.anis.child.data.LogType
 import com.anis.child.data.local.LocationTelemetryDao
 import com.anis.child.data.repository.LocationRepository
 import com.anis.child.network.ApiResult
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 
-@HiltWorker
-class LocationTelemetryWorker @AssistedInject constructor(
-    @Assisted appContext: Context,
-    @Assisted workerParams: WorkerParameters,
+class LocationTelemetryWorker(
+    appContext: Context,
+    workerParams: WorkerParameters,
     private val locationRepository: LocationRepository,
     private val dao: LocationTelemetryDao,
     private val logManager: LogManager

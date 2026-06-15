@@ -55,6 +55,9 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
+      - name: Run tests
+        run: ./gradlew :app:testDebug
+
       - name: Build release APK
         run: ./gradlew :app:assembleRelease
         env:

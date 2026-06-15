@@ -1,5 +1,6 @@
 package com.anis.child.ui.screen.screentime
 
+import com.anis.child.util.formatDuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -362,11 +363,4 @@ private fun StatItem(label: String, value: String, color: Color) {
         Text(text = value, style = MaterialTheme.typography.headlineSmall, color = color, fontWeight = FontWeight.Bold)
         Text(text = label, style = MaterialTheme.typography.bodySmall, color = AppColors.textSecondary)
     }
-}
-
-private fun formatDuration(ms: Long): String {
-    val minutes = (ms / 60000).toInt()
-    val hours = minutes / 60
-    val mins = minutes % 60
-    return if (hours > 0) "${hours}h ${mins}m" else "${mins}m"
 }

@@ -8,10 +8,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.anis.child.ai.service.AiFilteringService
 import com.anis.child.data.LogManager
 import com.anis.child.data.LogType
 import com.anis.child.data.PreferenceManager
 import com.anis.child.data.TelemetryManager
+import com.anis.child.worker.AiFilterWatchdogWorker
 import com.anis.child.data.repository.AppsRepository
 import com.anis.child.data.repository.LocationRepository
 import com.anis.child.network.ApiResult
@@ -53,6 +55,27 @@ class SettingsViewModel @Inject constructor(
 
     var isFetchingChild by mutableStateOf(false)
         private set
+
+    var isAiFilteringEnabled by mutableStateOf(preferenceManager.isAiFilteringEnabled)
+
+    fun onAiFilteringToggled(enabled: Boolean) {
+        if (enabled) {
+            preferenceManager.isAiFilteringEnabled = true
+            isAiFilteringEnabled = true
+            AiFilteringService.start(context)
+            AiFilterWatchdogWorker.enqueue(context)
+            logManager.log("AI content filtering enabled", LogType.INFO)
+        }
+    }
+
+    fun confirmDisableAiFiltering() {
+        preferenceManager.isAiFilteringEnabled = false
+        isAiFilteringEnabled = false
+        AiFilteringService.stop(context)
+        AiFilterWatchdogWorker.cancel(context)
+        preferenceManager.isAiLockdownActive = false
+        logManager.log("AI content filtering disabled", LogType.INFO)
+    }
 
     init {
         if (preferenceManager.needsInitialAppSync) {

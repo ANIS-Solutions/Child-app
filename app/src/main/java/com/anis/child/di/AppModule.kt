@@ -12,6 +12,7 @@ import com.anis.child.data.local.ContentFilterRuleDao
 import com.anis.child.data.local.NotificationInterceptDao
 import com.anis.child.data.local.RewardDao
 import com.anis.child.data.local.ScreenTimeConfigDao
+import com.anis.child.data.local.SessionSyncDao
 import com.anis.child.data.local.TaskDao
 import com.anis.child.network.ApiService
 import com.anis.child.network.AppLoggingInterceptor
@@ -106,6 +107,12 @@ object AppModule {
     @Singleton
     fun provideContentFilterRuleDao(database: AppDatabase): ContentFilterRuleDao {
         return database.contentFilterRuleDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideSessionSyncDao(database: AppDatabase): SessionSyncDao {
+        return database.sessionSyncDao()
     }
 
     @Provides

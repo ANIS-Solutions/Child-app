@@ -11,12 +11,12 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import android.view.accessibility.AccessibilityEvent
+import com.anis.child.content.BlockingOverlayManager
 import com.anis.child.data.LogManager
 import com.anis.child.data.LogType
 import com.anis.child.data.ScreenTimeManager
 import dagger.hilt.android.AndroidEntryPoint
 import com.anis.child.util.registerReceiverSafe
-import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -24,6 +24,7 @@ class AppBlockAccessibilityService : AccessibilityService() {
 
     @Inject lateinit var logManager: LogManager
     @Inject lateinit var screenTimeManager: ScreenTimeManager
+    @Inject lateinit var appBlocker: AppBlocker
 
     private var blockedPackageName: String? = null
     private var isForegroundService = false
@@ -36,7 +37,7 @@ class AppBlockAccessibilityService : AccessibilityService() {
                     startForegroundNotification()
                 }
                 ACTION_DISABLE -> {
-                    hideOverlay()
+                    BlockingOverlayManager.hideOverlay()
                     stopForegroundNotification()
                     logManager.log("Accessibility service deactivated", LogType.INFO)
                 }
@@ -44,7 +45,7 @@ class AppBlockAccessibilityService : AccessibilityService() {
                     checkCurrentApp()
                 }
                 ACTION_UPDATE_BLOCKED_APPS -> {
-                    hideOverlay()
+                    BlockingOverlayManager.hideOverlay()
                     blockedPackageName = null
                     checkCurrentApp()
                 }
@@ -106,31 +107,27 @@ class AppBlockAccessibilityService : AccessibilityService() {
     override fun onDestroy() {
         super.onDestroy()
         try { unregisterReceiver(toggleReceiver) } catch (_: Exception) {}
-        hideOverlay()
+        BlockingOverlayManager.hideOverlay()
         stopForegroundNotification()
         logManager.log("Accessibility service destroyed", LogType.INFO)
     }
 
     private fun handleForegroundAppChanged(pkg: String) {
+        val prevBlocked = blockedPackageName
+        blockedPackageName = pkg
+
         if (pkg == packageName || pkg.isEmpty()) {
-            hideOverlay()
             blockedPackageName = null
+            BlockingOverlayManager.hideOverlay()
             return
         }
 
-        val isBlocked = try {
-            runBlocking { screenTimeManager.isAppBlocked(pkg) }
-        } catch (_: Exception) { false }
+        appBlocker.checkAndBlock(pkg, accessibilityOverlay = true)
 
-        if (isBlocked) {
-            blockedPackageName = pkg
-            showOverlay(pkg)
+        if (!BlockingOverlayManager.isShowing()) {
+            blockedPackageName = null
+        } else if (prevBlocked != pkg) {
             logManager.log("Blocked app via accessibility: $pkg", LogType.ERROR)
-        } else {
-            if (blockedPackageName != null) {
-                hideOverlay()
-                blockedPackageName = null
-            }
         }
     }
 
@@ -139,14 +136,6 @@ class AppBlockAccessibilityService : AccessibilityService() {
         if (currentApp.isNotEmpty()) {
             handleForegroundAppChanged(currentApp)
         }
-    }
-
-    private fun showOverlay(packageName: String) {
-        BlockingOverlayManager.showOverlay(this, packageName, accessibilityOverlay = true)
-    }
-
-    private fun hideOverlay() {
-        BlockingOverlayManager.hideOverlay()
     }
 
     private fun ensureOverlayVisible() {

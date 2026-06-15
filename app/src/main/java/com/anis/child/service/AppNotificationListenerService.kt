@@ -81,8 +81,8 @@ class AppNotificationListenerService : NotificationListenerService() {
         val notification = sbn.notification
 
         val extras = notification.extras ?: return
-        val title = extras.getString(Notification.EXTRA_TITLE, "")
-        val text = extras.getString(Notification.EXTRA_TEXT, "")
+        val title = extras.getCharSequence(Notification.EXTRA_TITLE, "")?.toString() ?: ""
+        val text = extras.getCharSequence(Notification.EXTRA_TEXT, "")?.toString() ?: ""
 
         if (title.isNullOrEmpty() && text.isNullOrEmpty()) return
         if (packageName == this.packageName) return
