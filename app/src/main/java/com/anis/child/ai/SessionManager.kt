@@ -13,8 +13,10 @@ import com.anis.child.ai.util.ImageStorageManager
 import com.anis.child.ai.util.PermissionManager
 import com.anis.child.ai.util.PermissionType
 import com.anis.child.data.local.SessionEntity
+import com.anis.child.worker.SessionSyncWorker
 import com.anis.child.data.repository.SessionRepository
 import com.anis.child.ml.CondensationEngine
+
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -212,6 +214,12 @@ class SessionManager @Inject constructor(
             cpuUsagePercent = cpuPercent,
             ramPssMb = ramPssMb
         )
+
+        val unsyncedCount = sessionRepository.getUnsyncedCompletedSessionCount()
+        if (unsyncedCount > 0 && unsyncedCount % 5 == 0) {
+            Log.d(TAG, "Auto-triggering session sync ($unsyncedCount unsynced sessions)")
+            SessionSyncWorker.enqueue(context)
+        }
     }
 
     private suspend fun moveKeyframeImagesToPermanent(sessionId: Long) {

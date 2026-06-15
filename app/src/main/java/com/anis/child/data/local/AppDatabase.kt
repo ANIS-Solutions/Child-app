@@ -17,9 +17,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         AppRestrictionEntity::class,
         ScreenTimeConfigEntity::class,
         ContentFilterRuleEntity::class,
-        NotificationInterceptEntity::class
+        NotificationInterceptEntity::class,
+        SessionSyncEntity::class
     ],
-    version = 9,
+    version = 10,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -33,6 +34,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun screenTimeConfigDao(): ScreenTimeConfigDao
     abstract fun contentFilterRuleDao(): ContentFilterRuleDao
     abstract fun notificationInterceptDao(): NotificationInterceptDao
+    abstract fun sessionSyncDao(): SessionSyncDao
 
     companion object {
         @Volatile
@@ -146,6 +148,20 @@ abstract class AppDatabase : RoomDatabase() {
             db.execSQL("ALTER TABLE analysis_results ADD COLUMN embedding TEXT DEFAULT NULL")
         }
 
+        val MIGRATION_9_10 = Migration(9, 10) { db ->
+            db.execSQL("CREATE TABLE IF NOT EXISTS session_syncs (" +
+                    "id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                    "syncTimestamp INTEGER NOT NULL, " +
+                    "childId TEXT NOT NULL DEFAULT '', " +
+                    "sessionCount INTEGER NOT NULL DEFAULT 0, " +
+                    "imageCount INTEGER NOT NULL DEFAULT 0, " +
+                    "embeddingCount INTEGER NOT NULL DEFAULT 0, " +
+                    "syncedSessionIds TEXT NOT NULL DEFAULT '', " +
+                    "selectedImagePaths TEXT NOT NULL DEFAULT '', " +
+                    "serializedEmbeddings TEXT NOT NULL DEFAULT '', " +
+                    "imageHighlightsJson TEXT NOT NULL DEFAULT '')")
+        }
+
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -158,7 +174,8 @@ abstract class AppDatabase : RoomDatabase() {
                         MIGRATION_2_3,
                         MIGRATION_4_5,
                         MIGRATION_5_6,
-                        MIGRATION_8_9
+                        MIGRATION_8_9,
+                        MIGRATION_9_10
                     )
                     .fallbackToDestructiveMigration()
                     .build()

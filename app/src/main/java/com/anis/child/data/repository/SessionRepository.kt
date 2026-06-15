@@ -1,19 +1,24 @@
 package com.anis.child.data.repository
 
+import android.content.Context
 import android.util.Log
 import com.anis.child.data.local.AnalysisResultDao
 import com.anis.child.data.local.AnalysisResultEntity
 import com.anis.child.data.local.SessionDao
 import com.anis.child.data.local.SessionEntity
+import com.anis.child.data.local.SessionSyncDao
+import com.anis.child.data.local.SessionSyncEntity
 import kotlinx.coroutines.flow.Flow
 import org.json.JSONArray
+import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class SessionRepository @Inject constructor(
     private val sessionDao: SessionDao,
-    private val analysisResultDao: AnalysisResultDao
+    private val analysisResultDao: AnalysisResultDao,
+    private val sessionSyncDao: SessionSyncDao
 ) {
     private val TAG = "SessionRepository"
 
@@ -127,5 +132,71 @@ class SessionRepository @Inject constructor(
         }
         if (ids.isEmpty()) return emptyList()
         return analysisResultDao.getResultsByIds(ids)
+    }
+
+    suspend fun getCompletedUnsyncedSessions(limit: Int = 5): List<SessionEntity> {
+        val allCompleted = sessionDao.getCompletedSessionsAsc()
+        val syncedIdsList = sessionSyncDao.getAllSyncedSessionIdsList()
+        val syncedIds = syncedIdsList.flatMap { jsonStr ->
+            try {
+                val arr = JSONArray(jsonStr)
+                (0 until arr.length()).map { arr.getLong(it) }
+            } catch (_: Exception) { emptyList() }
+        }.toSet()
+        return allCompleted.filter { it.id !in syncedIds }.take(limit)
+    }
+
+    suspend fun getResultsWithEmbeddingsForSessions(
+        sessionIds: List<Long>, limit: Int = 50
+    ): List<AnalysisResultEntity> {
+        return analysisResultDao.getResultsWithEmbeddingsForSessions(sessionIds, limit)
+    }
+
+    suspend fun getAllResultsWithEmbeddingsForSessions(
+        sessionIds: List<Long>
+    ): List<AnalysisResultEntity> {
+        return analysisResultDao.getAllResultsWithEmbeddingsForSessions(sessionIds)
+    }
+
+    suspend fun deleteSessionsKeepImages(
+        context: Context,
+        sessionIds: List<Long>,
+        keepImagePaths: List<String>
+    ) {
+        val keepSet = keepImagePaths.toSet()
+        for (sid in sessionIds) {
+            val results = analysisResultDao.getResultsForSessionOnce(sid)
+            for (r in results) {
+                val path = r.imagePath
+                if (path != null && path !in keepSet) {
+                    try { File(path).delete() } catch (_: Exception) {}
+                }
+            }
+            val sessionDir = File(context.filesDir, "session_images/$sid")
+            if (sessionDir.exists()) {
+                val remaining = sessionDir.listFiles()?.filter { it.absolutePath in keepSet }
+                if (remaining.isNullOrEmpty()) {
+                    sessionDir.deleteRecursively()
+                }
+            }
+            analysisResultDao.deleteResultsForSession(sid)
+            sessionDao.deleteSession(sid)
+        }
+    }
+
+    suspend fun insertSyncRecord(sync: SessionSyncEntity) {
+        sessionSyncDao.insert(sync)
+    }
+
+    suspend fun getUnsyncedCompletedSessionCount(): Int {
+        val allCompleted = sessionDao.getCompletedSessionsAsc()
+        val syncedIdsList = sessionSyncDao.getAllSyncedSessionIdsList()
+        val syncedIds = syncedIdsList.flatMap { jsonStr ->
+            try {
+                val arr = JSONArray(jsonStr)
+                (0 until arr.length()).map { arr.getLong(it) }
+            } catch (_: Exception) { emptyList() }
+        }.toSet()
+        return allCompleted.count { it.id !in syncedIds }
     }
 }

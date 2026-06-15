@@ -16,5 +16,6 @@ object ApiConfig {
         const val REWARDS = "children/{childId}/rewards"
         const val UPDATE_QUEST = "children/{childId}/quests/{questId}"
         const val UPDATE_REWARD = "children/{childId}/rewards/{rewardId}"
+        const val CHILD_SESSION = "child-session"
     }
 }

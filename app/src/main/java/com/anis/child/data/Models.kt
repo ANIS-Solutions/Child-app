@@ -146,6 +146,22 @@ data class RewardUpdateResponse(
 )
 
 @Serializable
+data class SessionHighlight(
+    val resultId: Long,
+    val sessionId: Long,
+    val timestamp: Long,
+    val embedding: List<Double>
+)
+
+@Serializable
+data class SessionSyncMetadata(
+    val childId: String,
+    val totalSessions: Int,
+    @SerialName("image-highlights") val imageHighlights: List<SessionHighlight>,
+    @SerialName("list-of-embedding") val listOfEmbedding: List<List<Double>>
+)
+
+@Serializable
 data class ChildMeResponse(
     @SerialName("success") val success: Boolean,
     @SerialName("data") val data: ChildMeData? = null,

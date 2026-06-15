@@ -15,10 +15,16 @@ import com.anis.child.data.RewardUpdateRequest
 import com.anis.child.data.RewardUpdateResponse
 import com.anis.child.data.TelemetryRequest
 import com.anis.child.data.TelemetryResponse
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import okhttp3.ResponseBody
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Multipart
 import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.Part
 import retrofit2.http.Path
 
 interface ApiService {
@@ -53,6 +59,16 @@ interface ApiService {
         @Path("questId") questId: String,
         @Body request: QuestUpdateRequest
     ): QuestUpdateResponse
+
+    @Multipart
+    @POST(ApiConfig.Endpoints.CHILD_SESSION)
+    suspend fun syncSessions(
+        @Part("childId") childId: RequestBody,
+        @Part("totalSessions") totalSessions: RequestBody,
+        @Part("image-highlights") imageHighlights: RequestBody,
+        @Part("list-of-embedding") listOfEmbedding: RequestBody,
+        @Part images: Array<MultipartBody.Part>
+    ): Response<ResponseBody>
 
     @PATCH(ApiConfig.Endpoints.UPDATE_REWARD)
     suspend fun updateReward(
