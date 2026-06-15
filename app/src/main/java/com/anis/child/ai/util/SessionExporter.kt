@@ -64,35 +64,6 @@ object SessionExporter {
         return FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", zipFile)
     }
 
-    fun exportAllSessions(
-        context: Context,
-        sessions: List<SessionEntity>,
-        allResults: Map<Long, List<AnalysisResultEntity>>
-    ): Uri {
-        val exportDir = File(context.cacheDir, "exports")
-        exportDir.mkdirs()
-        val fileName = "all_sessions_${dateFormat.format(Date())}.xlsx"
-        val file = File(exportDir, fileName)
-
-        FileOutputStream(file).use { outputStream ->
-            val workbook = Workbook(outputStream, "SessionExporter", "1.0")
-
-            val allSheet = workbook.newWorksheet("All Sessions")
-            writeAllSessionsSheet(allSheet, sessions)
-
-            sessions.forEach { session ->
-                val sResults = allResults[session.id] ?: return@forEach
-                if (sResults.isEmpty()) return@forEach
-                val sheet = workbook.newWorksheet("Session ${session.id}")
-                writeResultsSheet(sheet, sResults)
-            }
-
-            workbook.finish()
-        }
-
-        return FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
-    }
-
     private fun writeSessionSheet(sheet: Worksheet, session: SessionEntity) {
         val headers = arrayOf(
             "Session ID", "Start Time", "End Time", "Status",
