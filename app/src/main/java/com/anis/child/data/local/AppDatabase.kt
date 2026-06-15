@@ -141,6 +141,11 @@ abstract class AppDatabase : RoomDatabase() {
                     "isRemoved INTEGER NOT NULL DEFAULT 0)")
         }
 
+        val MIGRATION_8_9 = Migration(8, 9) { db ->
+            db.execSQL("ALTER TABLE sessions ADD COLUMN keyframeIndices TEXT DEFAULT NULL")
+            db.execSQL("ALTER TABLE analysis_results ADD COLUMN embedding TEXT DEFAULT NULL")
+        }
+
         fun getInstance(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -148,6 +153,13 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "anis_database"
                 )
+                    .addMigrations(
+                        MIGRATION_1_2,
+                        MIGRATION_2_3,
+                        MIGRATION_4_5,
+                        MIGRATION_5_6,
+                        MIGRATION_8_9
+                    )
                     .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance

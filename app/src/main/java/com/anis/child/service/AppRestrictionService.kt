@@ -10,7 +10,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import android.os.IBinder
-import android.content.pm.ApplicationInfo
+import com.anis.child.content.AppBlocker
 import com.anis.child.content.BlockingOverlayManager
 import com.anis.child.data.LogManager
 import com.anis.child.data.LogType
@@ -22,7 +22,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -32,18 +31,15 @@ class AppRestrictionService : Service() {
     @Inject lateinit var screenTimeManager: ScreenTimeManager
     @Inject lateinit var logManager: LogManager
     @Inject lateinit var preferenceManager: PreferenceManager
+    @Inject lateinit var appBlocker: AppBlocker
 
     private var monitoringJob: Job? = null
     private var isRunning = false
-    private var currentBlockedApp: String? = null
 
     private val overlayReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
-                ACTION_HIDE_OVERLAY -> {
-                    BlockingOverlayManager.hideOverlay()
-                    currentBlockedApp = null
-                }
+                ACTION_HIDE_OVERLAY -> BlockingOverlayManager.hideOverlay()
             }
         }
     }
@@ -75,49 +71,10 @@ class AppRestrictionService : Service() {
     private suspend fun checkForegroundApp() {
         try {
             val foregroundApp = screenTimeManager.getCurrentForegroundApp()
-            if (foregroundApp.isEmpty() || foregroundApp == packageName) {
-                if (currentBlockedApp != null) {
-                    BlockingOverlayManager.hideOverlay()
-                    currentBlockedApp = null
-                }
-                return
-            }
-
-            if (preferenceManager.isAiLockdownActive) {
-                if (isSystemApp(foregroundApp) || foregroundApp == "com.android.settings") {
-                    if (currentBlockedApp != null) {
-                        BlockingOverlayManager.hideOverlay()
-                        currentBlockedApp = null
-                    }
-                } else if (currentBlockedApp != foregroundApp) {
-                    currentBlockedApp = foregroundApp
-                    BlockingOverlayManager.showOverlay(this, foregroundApp, accessibilityOverlay = false)
-                }
-                return
-            }
-
-            val isBlocked = screenTimeManager.isAppBlocked(foregroundApp)
-            if (isBlocked) {
-                if (currentBlockedApp != foregroundApp) {
-                    currentBlockedApp = foregroundApp
-                    BlockingOverlayManager.showOverlay(this, foregroundApp, accessibilityOverlay = false)
-                    logManager.log("Blocked app detected via polling: $foregroundApp", LogType.ERROR)
-                }
-            } else {
-                if (currentBlockedApp != null) {
-                    BlockingOverlayManager.hideOverlay()
-                    currentBlockedApp = null
-                }
-            }
+            appBlocker.checkAndBlock(foregroundApp, accessibilityOverlay = false)
         } catch (e: SecurityException) {
             logManager.log("Usage stats permission not granted", LogType.ERROR)
         } catch (_: Exception) { }
-    }
-
-    private fun isSystemApp(pkg: String): Boolean {
-        return try {
-            packageManager.getApplicationInfo(pkg, 0).flags and ApplicationInfo.FLAG_SYSTEM != 0
-        } catch (_: Exception) { false }
     }
 
     override fun onBind(intent: Intent?): IBinder? = null

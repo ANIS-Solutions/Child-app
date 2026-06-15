@@ -13,11 +13,11 @@ import java.util.concurrent.TimeUnit
 class AiFilterWatchdogWorker(
     appContext: Context,
     workerParams: WorkerParameters,
+    private val preferenceManager: PreferenceManager
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
-        val prefs = PreferenceManager(applicationContext)
-        if (!prefs.isAiFilteringEnabled) {
+        if (!preferenceManager.isAiFilteringEnabled) {
             return Result.success()
         }
         if (!AiFilteringService.isRunning) {

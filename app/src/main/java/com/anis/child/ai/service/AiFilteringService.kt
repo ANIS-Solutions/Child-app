@@ -9,11 +9,11 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.pm.ApplicationInfo
 import android.os.Build
 import android.os.IBinder
 
 import com.anis.child.MainActivity
+import com.anis.child.content.AppBlocker
 import com.anis.child.content.BlockingOverlayManager
 import com.anis.child.data.ContentFilterManager
 import com.anis.child.data.LogManager
@@ -36,6 +36,7 @@ class AiFilteringService : Service() {
     @Inject lateinit var screenTimeManager: ScreenTimeManager
     @Inject lateinit var contentFilterManager: ContentFilterManager
     @Inject lateinit var logManager: LogManager
+    @Inject lateinit var appBlocker: AppBlocker
 
     private var monitoringJob: Job? = null
     private var shouldRun = false
@@ -125,33 +126,16 @@ class AiFilteringService : Service() {
             }
 
             if (preferenceManager.isAiLockdownActive) {
-                if (isSystemApp(pkg) || pkg == "com.android.settings") {
-                    BlockingOverlayManager.hideOverlay()
-                } else {
-                    BlockingOverlayManager.showOverlay(this, pkg, accessibilityOverlay = false)
-                }
+                appBlocker.checkAndBlock(pkg, accessibilityOverlay = false)
                 return
             }
 
             if (!mediaProjectionGranted) {
-                val rules = contentFilterManager.checkText(pkg)
-                if (rules.isBlocked) {
-                    if (isSystemApp(pkg)) {
-                        BlockingOverlayManager.hideOverlay()
-                    } else {
-                        BlockingOverlayManager.showOverlay(this, pkg, accessibilityOverlay = false)
-                    }
-                }
+                appBlocker.checkWithContentFilter(pkg, accessibilityOverlay = false)
             }
         } catch (e: SecurityException) {
             logManager.log("Usage stats permission not granted", LogType.ERROR)
         } catch (_: Exception) { }
-    }
-
-    private fun isSystemApp(pkg: String): Boolean {
-        return try {
-            packageManager.getApplicationInfo(pkg, 0).flags and ApplicationInfo.FLAG_SYSTEM != 0
-        } catch (_: Exception) { false }
     }
 
     private fun stopInternal() {

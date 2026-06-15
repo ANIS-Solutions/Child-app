@@ -68,4 +68,42 @@ class ScreenTimeManagerTest {
         assertTrue("23:59 should be in range 00:00-23:59",
             ScreenTimeManager.isTimeInRange(23, 59, 0, 0, 23, 59))
     }
+
+    @Test
+    fun isTimeInRange_exactOvernightBoundary_twentyThreeToSeven() {
+        assertTrue("23:00 should be in range 23:00-07:00",
+            ScreenTimeManager.isTimeInRange(23, 0, 23, 0, 7, 0))
+        assertTrue("07:00 should be in range 23:00-07:00",
+            ScreenTimeManager.isTimeInRange(7, 0, 23, 0, 7, 0))
+        assertTrue("23:30 should be in range 23:00-07:00",
+            ScreenTimeManager.isTimeInRange(23, 30, 23, 0, 7, 0))
+    }
+
+    @Test
+    fun isTimeInRange_zeroLengthOvernight() {
+        assertTrue("00:00 should be in range 00:00-00:00",
+            ScreenTimeManager.isTimeInRange(0, 0, 0, 0, 0, 0))
+        assertTrue("12:00 should be in range 12:00-12:00",
+            ScreenTimeManager.isTimeInRange(12, 0, 12, 0, 12, 0))
+    }
+
+    @Test
+    fun isTimeInRange_minutePrecision() {
+        assertFalse("09:00 should NOT be in range 09:01-17:00",
+            ScreenTimeManager.isTimeInRange(9, 0, 9, 1, 17, 0))
+        assertTrue("09:01 should be in range 09:01-17:00",
+            ScreenTimeManager.isTimeInRange(9, 1, 9, 1, 17, 0))
+        assertFalse("17:01 should NOT be in range 09:00-17:00",
+            ScreenTimeManager.isTimeInRange(17, 1, 9, 0, 17, 0))
+    }
+
+    @Test
+    fun isTimeInRange_edgeCaseOvernight_minutePrecision() {
+        assertTrue("23:59 should be in range 23:00-00:01",
+            ScreenTimeManager.isTimeInRange(23, 59, 23, 0, 0, 1))
+        assertTrue("00:01 should be in range 23:00-00:01",
+            ScreenTimeManager.isTimeInRange(0, 1, 23, 0, 0, 1))
+        assertFalse("00:02 should NOT be in range 23:00-00:01",
+            ScreenTimeManager.isTimeInRange(0, 2, 23, 0, 0, 1))
+    }
 }

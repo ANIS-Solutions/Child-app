@@ -84,4 +84,40 @@ class ContentFilterManagerTest {
         assertTrue(ContentFilterManager.matchPattern("abc", "*c"))
         assertFalse(ContentFilterManager.matchPattern("abc", "d*"))
     }
+
+    @Test
+    fun matchPattern_onlyWildcard() {
+        assertTrue(ContentFilterManager.matchPattern("wild", "*wild*"))
+        assertTrue(ContentFilterManager.matchPattern("something wild here", "*wild*"))
+        assertFalse(ContentFilterManager.matchPattern("normal", "*wild*"))
+    }
+
+    @Test
+    fun matchPattern_unicodeContent() {
+        assertTrue(ContentFilterManager.matchPattern("café content", "café"))
+        assertTrue(ContentFilterManager.matchPattern("über cool", "*über*"))
+        assertTrue(ContentFilterManager.matchPattern("naïve", "*ïve"))
+    }
+
+    @Test
+    fun matchPattern_numericContent() {
+        assertTrue(ContentFilterManager.matchPattern("test123", "*123"))
+        assertTrue(ContentFilterManager.matchPattern("123test", "123*"))
+        assertTrue(ContentFilterManager.matchPattern("page42content", "*42*"))
+        assertFalse(ContentFilterManager.matchPattern("page1", "*42*"))
+    }
+
+    @Test
+    fun matchPattern_overlappingMatches() {
+        assertTrue(ContentFilterManager.matchPattern("abcabc", "abc"))
+        assertTrue(ContentFilterManager.matchPattern("aaaa", "aa"))
+        assertTrue(ContentFilterManager.matchPattern("testtest", "*test*"))
+    }
+
+    @Test
+    fun matchPattern_specialCharacters() {
+        assertTrue(ContentFilterManager.matchPattern("hello.world", "hello.world"))
+        assertTrue(ContentFilterManager.matchPattern("test(regex)", "*regex*"))
+        assertTrue(ContentFilterManager.matchPattern("price \$5.00", "\$5.00"))
+    }
 }

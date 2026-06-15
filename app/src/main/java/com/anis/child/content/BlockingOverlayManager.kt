@@ -58,6 +58,7 @@ object BlockingOverlayManager {
             overlayView?.let { windowManager?.removeView(it) }
         } catch (_: Exception) {}
         overlayView = null
+        windowManager = null
         currentBlockedApp = null
     }
 

@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.Intent
 import android.graphics.Color
 import android.media.projection.MediaProjectionManager
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -90,6 +91,12 @@ class MainActivity : ComponentActivity() {
         val coarseLocationGranted = permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
         if (fineLocationGranted || coarseLocationGranted) {
             logManager.log("Location permission granted", LogType.SUCCESS)
+            val backgroundGranted = permissions[Manifest.permission.ACCESS_BACKGROUND_LOCATION] == true
+            if (backgroundGranted) {
+                logManager.log("Background location permission granted", LogType.SUCCESS)
+            } else {
+                logManager.log("Background location not granted — foreground only", LogType.INFO)
+            }
             if (preferenceManager.isMonitoringEnabled) {
                 telemetryManager.startMonitoring()
                 logManager.log("Location monitoring started", LogType.INFO)
@@ -402,11 +409,13 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun requestLocationPermissions() {
-        locationPermissionLauncher.launch(
-            arrayOf(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            )
+        val permissions = mutableListOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
         )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            permissions.add(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+        }
+        locationPermissionLauncher.launch(permissions.toTypedArray())
     }
 }

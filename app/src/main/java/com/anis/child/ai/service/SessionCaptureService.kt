@@ -16,13 +16,15 @@ import android.media.ImageReader
 import android.media.projection.MediaProjection
 import android.media.projection.MediaProjectionManager
 import android.os.Build
-import android.os.Handler
-import android.os.HandlerThread
 import android.os.IBinder
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.WindowManager
 import androidx.core.app.NotificationCompat
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.withContext
 import com.anis.child.MainActivity
 import com.anis.child.ai.AiAnalyzer
 import com.anis.child.ai.SessionManager
@@ -56,13 +58,10 @@ class SessionCaptureService : Service() {
     private var mediaProjection: MediaProjection? = null
     private var virtualDisplay: VirtualDisplay? = null
     private var imageReader: ImageReader? = null
-    private var handler: Handler? = null
-    private var handlerThread: HandlerThread? = null
-    private var captureRunnable: Runnable? = null
+    private var captureJob: Job? = null
 
     private var sessionId: Long = -1
     private var intervalMs: Int = 1000
-    private var initializationTimeoutHandler: Handler? = null
 
     private var blurTriggerThreshold = 3
     private val SAFE_FRAMES_TO_HIDE = 3
@@ -118,19 +117,12 @@ class SessionCaptureService : Service() {
         super.onCreate()
         createNotificationChannel()
         startForeground(NOTIFICATION_ID, createNotification())
-        initializationTimeoutHandler = Handler(mainLooper)
 
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_SCREEN_OFF)
             addAction(Intent.ACTION_SCREEN_ON)
         }
         registerReceiver(screenReceiver, filter)
-    }
-
-    private val initializationTimeoutRunnable = Runnable {
-        stopCapture()
-        stopForeground(STOP_FOREGROUND_REMOVE)
-        stopSelf()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -152,7 +144,6 @@ class SessionCaptureService : Service() {
                 }
 
                 if (data != null) {
-                    initializationTimeoutHandler?.postDelayed(initializationTimeoutRunnable, 10000)
                     startCapture(resultCode, data)
                 } else {
                     stopSelf()
@@ -205,83 +196,72 @@ class SessionCaptureService : Service() {
             null
         )
 
-        handlerThread = HandlerThread("CaptureThread").apply { start() }
-        handler = Handler(handlerThread!!.looper)
-
         startCaptureLoop()
     }
 
     private fun startCaptureLoop() {
-        captureRunnable = object : Runnable {
-            override fun run() {
-                if (isAnalyzing) {
-                    Log.w(TAG, "Previous analysis still in progress, skipping this capture cycle")
-                    scheduleNextCapture()
-                    return
+        captureJob?.cancel()
+        captureJob = serviceScope.launch {
+            // Initialization guard: if the first capture doesn't succeed in 10s, stop
+            val initDeadline = System.currentTimeMillis() + 10_000
+            var initialized = false
+
+            while (isActive) {
+                if (!initialized && System.currentTimeMillis() > initDeadline) {
+                    Log.w(TAG, "Initialization timeout — no successful capture in 10s")
+                    stopCapture()
+                    stopForeground(STOP_FOREGROUND_REMOVE)
+                    stopSelf()
+                    return@launch
                 }
-                captureAndAnalyze()
-            }
-        }
-        handler?.post(captureRunnable!!)
-        initializationTimeoutHandler?.removeCallbacks(initializationTimeoutRunnable)
-    }
 
-    private fun scheduleNextCapture() {
-        if (!isAnalyzing && !captureInProgress) {
-            handler?.postDelayed(captureRunnable!!, intervalMs.toLong())
-        }
-    }
+                if (isAnalyzing || captureInProgress) {
+                    delay(intervalMs.toLong())
+                    continue
+                }
 
-    private fun captureAndAnalyze() {
-        if (isAnalyzing) {
-            Log.w(TAG, "Analysis already in progress, skipping")
-            return
-        }
+                if (screenOff) {
+                    delay(intervalMs.toLong())
+                    continue
+                }
 
-        if (screenOff) {
-            Log.d(TAG, "Screen is off, skipping capture")
-            scheduleNextCapture()
-            return
-        }
+                isAnalyzing = true
+                captureInProgress = true
+                val totalStart = System.nanoTime()
 
-        isAnalyzing = true
-        captureInProgress = true
-        val totalStart = System.nanoTime()
+                val captureStart = System.nanoTime()
+                val image = withContext(Dispatchers.IO) { imageReader?.acquireLatestImage() }
+                val captureTime = System.nanoTime() - captureStart
 
-        val captureStart = System.nanoTime()
-        val image = imageReader?.acquireLatestImage()
-        val captureTime = System.nanoTime() - captureStart
+                if (image == null) {
+                    Log.w(TAG, "No image available - capture took ${captureTime / 1_000_000.0}ms")
+                    isAnalyzing = false
+                    captureInProgress = false
+                    delay(intervalMs.toLong())
+                    continue
+                }
 
-        if (image == null) {
-            Log.w(TAG, "No image available - capture took ${captureTime / 1_000_000.0}ms")
-            isAnalyzing = false
-            captureInProgress = false
-            scheduleNextCapture()
-            return
-        }
+                captureCount++
+                initialized = true
+                val timestamp = System.currentTimeMillis()
 
-        captureCount++
-        val timestamp = System.currentTimeMillis()
-        var bitmap: android.graphics.Bitmap? = null
+                val isLimitReached = autoRotateMaxCaptures > 0 && captureCount >= autoRotateMaxCaptures
+                if (isLimitReached) {
+                    Log.d(TAG, "Capture limit reached ($captureCount/$autoRotateMaxCaptures), signaling auto-rotate")
+                }
 
-        val isLimitReached = autoRotateMaxCaptures > 0 && captureCount >= autoRotateMaxCaptures
-        if (isLimitReached) {
-            Log.d(TAG, "Capture limit reached ($captureCount/$autoRotateMaxCaptures), signaling auto-rotate")
-        }
-
-        try {
-            val bitmapStart = System.nanoTime()
-            bitmap = android.graphics.Bitmap.createBitmap(
-                image.width,
-                image.height,
-                android.graphics.Bitmap.Config.ARGB_8888
-            )
-            image.planes[0].buffer.rewind()
-            bitmap.copyPixelsFromBuffer(image.planes[0].buffer)
-            val bitmapTime = System.nanoTime() - bitmapStart
-
-            serviceScope.launch {
                 try {
+                    val bitmap = withContext(Dispatchers.IO) {
+                        val bmp = android.graphics.Bitmap.createBitmap(
+                            image.width,
+                            image.height,
+                            android.graphics.Bitmap.Config.ARGB_8888
+                        )
+                        image.planes[0].buffer.rewind()
+                        bmp.copyPixelsFromBuffer(image.planes[0].buffer)
+                        bmp
+                    }
+
                     val analysisStart = System.nanoTime()
                     val result = aiAnalyzer.analyzeImage(bitmap)
                     val analysisTime = System.nanoTime() - analysisStart
@@ -351,15 +331,12 @@ class SessionCaptureService : Service() {
                         val path = ImageStorageManager.getCacheImagePath(
                             this@SessionCaptureService, sessionId, timestamp
                         )
-                        val bmp = bitmap
-                        val sid = sessionId
-                        val ts = timestamp
-                        serviceScope.launch {
+                        launch {
                             ImageStorageManager.saveImageToCache(
                                 this@SessionCaptureService,
-                                bmp,
-                                sid,
-                                ts
+                                bitmap,
+                                sessionId,
+                                timestamp
                             )
                         }
                         path
@@ -372,7 +349,7 @@ class SessionCaptureService : Service() {
                     }
 
                     val totalTime = System.nanoTime() - totalStart
-                    Log.d(TAG, "TIMING: capture=${captureTime / 1_000_000.0}ms, bitmap=${bitmapTime / 1_000_000.0}ms, analysis=${analysisTime / 1_000_000.0}ms, total=${totalTime / 1_000_000.0}ms")
+                    Log.d(TAG, "TIMING: capture=${captureTime / 1_000_000.0}ms, analysis=${analysisTime / 1_000_000.0}ms, total=${totalTime / 1_000_000.0}ms")
 
                     consecutiveAnalysisFailures = 0
 
@@ -396,7 +373,6 @@ class SessionCaptureService : Service() {
                         }
                     } else {
                         safeResultsBuffer.add(resultEntity)
-
                         val now = System.currentTimeMillis()
                         if (safeResultsBuffer.size >= SAFE_BATCH_SIZE ||
                             (now - lastSafeBatchWrite) > SAFE_BATCH_INTERVAL_MS) {
@@ -431,14 +407,12 @@ class SessionCaptureService : Service() {
                         return@launch
                     }
                 } finally {
-                    bitmap?.recycle()
+                    image.close()
                     isAnalyzing = false
                     captureInProgress = false
-                    scheduleNextCapture()
+                    delay(intervalMs.toLong())
                 }
             }
-        } finally {
-            image.close()
         }
     }
 
@@ -450,11 +424,11 @@ class SessionCaptureService : Service() {
 
     private fun stopCapture() {
         BlurOverlayManager.hideBlurOverlay(this)
-        captureRunnable?.let { handler?.removeCallbacks(it) }
+        captureJob?.cancel()
+        captureJob = null
         virtualDisplay?.release()
         imageReader?.close()
         mediaProjection?.stop()
-        handlerThread?.quitSafely()
         isAnalyzing = false
         captureInProgress = false
         consecutiveAnalysisFailures = 0
@@ -491,9 +465,6 @@ class SessionCaptureService : Service() {
             null,
             null
         )
-
-        handlerThread = HandlerThread("CaptureThread").apply { start() }
-        handler = Handler(handlerThread!!.looper)
 
         consecutiveAnalysisFailures = 0
         isAnalyzing = false
