@@ -68,10 +68,20 @@ class AppRestrictionService : Service() {
         return START_STICKY
     }
 
+    private var lastForegroundApp: String? = null
+
     private suspend fun checkForegroundApp() {
         try {
             val foregroundApp = screenTimeManager.getCurrentForegroundApp()
-            appBlocker.checkAndBlock(foregroundApp, accessibilityOverlay = false)
+            if (foregroundApp.isNotEmpty()) {
+                if (foregroundApp == lastForegroundApp) {
+                    screenTimeManager.recordForegroundTime(foregroundApp, POLL_INTERVAL_MS)
+                }
+                lastForegroundApp = foregroundApp
+                appBlocker.checkAndBlock(foregroundApp, accessibilityOverlay = false)
+            } else {
+                lastForegroundApp = null
+            }
         } catch (e: SecurityException) {
             logManager.log("Usage stats permission not granted", LogType.ERROR)
         } catch (_: Exception) { }

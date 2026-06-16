@@ -13,6 +13,7 @@ import com.anis.child.util.getAppLabel
 import kotlinx.coroutines.flow.first
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.util.Calendar
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -42,6 +43,7 @@ class ScreenTimeManager @Inject constructor(
 ) {
     private val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
     private val packageManager = context.packageManager
+    private val foregroundTimeMap = ConcurrentHashMap<String, Long>()
 
     fun hasUsageStatsPermission(): Boolean {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return false
@@ -173,12 +175,24 @@ class ScreenTimeManager @Inject constructor(
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return ""
         val endTime = System.currentTimeMillis()
         val startTime = endTime - 60_000
-        val stats = usageStatsManager.queryUsageStats(
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val bestStats = usageStatsManager.queryUsageStats(
+                UsageStatsManager.INTERVAL_BEST,
+                startTime,
+                endTime
+            )
+            if (bestStats.isNotEmpty()) {
+                return bestStats.maxByOrNull { it.lastTimeUsed }?.packageName ?: ""
+            }
+        }
+
+        val dailyStats = usageStatsManager.queryUsageStats(
             UsageStatsManager.INTERVAL_DAILY,
-            startTime,
+            endTime - 24 * 60 * 60 * 1000,
             endTime
         )
-        return stats.maxByOrNull { it.lastTimeUsed }?.packageName ?: ""
+        return dailyStats.maxByOrNull { it.lastTimeUsed }?.packageName ?: ""
     }
 
     suspend fun getConfig(): ScreenTimeConfigEntity {
@@ -194,7 +208,10 @@ class ScreenTimeManager @Inject constructor(
     }
 
     suspend fun getSummary(): ScreenTimeSummary {
-        val config = getConfig()
+        val configEntity = screenTimeConfigDao.getConfig()
+        val config = configEntity ?: ScreenTimeConfigEntity()
+        val hasConfig = configEntity != null
+
         val todayMinutes = getTodayScreenTimeMinutes()
         val effectiveLimit = if (config.dailyLimitMinutes > 0) {
             config.dailyLimitMinutes + config.extraTimeEarnedMinutes
@@ -205,19 +222,19 @@ class ScreenTimeManager @Inject constructor(
         val hour = now.get(Calendar.HOUR_OF_DAY)
         val minute = now.get(Calendar.MINUTE)
 
-        val isBedtime = isTimeInRange(
+        val isBedtime = hasConfig && isTimeInRange(
             hour, minute,
             config.bedtimeStartHour, config.bedtimeStartMinute,
             config.bedtimeEndHour, config.bedtimeEndMinute
         )
 
-        val isStudyHours = isTimeInRange(
+        val isStudyHours = hasConfig && isTimeInRange(
             hour, minute,
             config.studyStartHour, config.studyStartMinute,
             config.studyEndHour, config.studyEndMinute
         )
 
-        val isTemporarilyRestricted = config.temporaryRestrictionUntil != null &&
+        val isTemporarilyRestricted = hasConfig && config.temporaryRestrictionUntil != null &&
                 System.currentTimeMillis() < config.temporaryRestrictionUntil!!
 
         return ScreenTimeSummary(
@@ -232,11 +249,62 @@ class ScreenTimeManager @Inject constructor(
         )
     }
 
-    suspend fun isAppBlocked(packageName: String): Boolean {
+    fun recordForegroundTime(packageName: String, durationMs: Long) {
+        if (packageName.isEmpty()) return
+        foregroundTimeMap[packageName] = (foregroundTimeMap[packageName] ?: 0L) + durationMs
+    }
+
+    private fun getUsageStatsTime(packageName: String): Long {
+        return try {
+            val calendar = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            val startOfDay = calendar.timeInMillis
+            val endOfDay = startOfDay + 24 * 60 * 60 * 1000
+
+            val stats = usageStatsManager.queryUsageStats(
+                UsageStatsManager.INTERVAL_DAILY,
+                startOfDay,
+                endOfDay
+            )
+            stats.find { it.packageName == packageName }?.totalTimeInForeground ?: 0L
+        } catch (_: Exception) {
+            0L
+        }
+    }
+
+    fun getAppUsageTodayMs(packageName: String): Long {
+        val usageStatsTime = getUsageStatsTime(packageName)
+        if (usageStatsTime > 0) return usageStatsTime
+        return foregroundTimeMap[packageName] ?: 0L
+    }
+
+    enum class BlockReason { NOT_BLOCKED, PARENT_BLOCK, TIME_LIMIT, GLOBAL_LIMIT }
+
+    suspend fun getBlockReason(packageName: String): BlockReason {
         val restriction = appRestrictionDao.getRestriction(packageName)
-        if (restriction != null && restriction.isBlocked) return true
+        if (restriction != null && restriction.isBlocked) return BlockReason.PARENT_BLOCK
+        if (restriction != null && restriction.dailyTimeLimitMinutes > 0) {
+            val todayUsageMs = getAppUsageTodayMs(packageName)
+            val limitMs = restriction.dailyTimeLimitMinutes * 60_000L
+            if (todayUsageMs >= limitMs) return BlockReason.TIME_LIMIT
+        }
         val summary = getSummary()
-        return summary.isLimitReached || summary.isBedtime || summary.isTemporarilyRestricted
+        if (summary.isLimitReached || summary.isBedtime || summary.isTemporarilyRestricted) {
+            return BlockReason.GLOBAL_LIMIT
+        }
+        return BlockReason.NOT_BLOCKED
+    }
+
+    suspend fun isAppBlocked(packageName: String): Boolean {
+        return getBlockReason(packageName) != BlockReason.NOT_BLOCKED
+    }
+
+    suspend fun hasRestriction(packageName: String): Boolean {
+        return appRestrictionDao.getRestriction(packageName) != null
     }
 
     companion object {
