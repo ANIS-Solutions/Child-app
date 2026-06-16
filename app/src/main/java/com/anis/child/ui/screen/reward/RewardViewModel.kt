@@ -31,7 +31,7 @@ class RewardViewModel @Inject constructor(
 
     private fun loadRewards() {
         viewModelScope.launch {
-            rewardRepository.seedSampleDataIfEmpty()
+            rewardRepository.syncFromApi()
             val balance = rewardRepository.getBalance()
             rewardRepository.getAllRewards().collect { rewards ->
                 _uiState.value = RewardUiState(

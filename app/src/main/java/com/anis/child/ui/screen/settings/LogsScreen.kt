@@ -1,6 +1,5 @@
-package com.anis.child.ui.screen.home
+package com.anis.child.ui.screen.settings
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -8,18 +7,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -43,95 +38,69 @@ import com.anis.child.data.LogType
 import com.anis.child.ui.theme.AppColors
 
 @Composable
-fun LogSection(
+fun LogsScreen(
     logManager: LogManager,
-    modifier: Modifier = Modifier
+    onBack: () -> Unit
 ) {
-    var isExpanded by remember { mutableStateOf(false) }
     var logs by remember { mutableStateOf(emptyList<LogEntry>()) }
 
-    LaunchedEffect(isExpanded) {
-        if (isExpanded) {
-            logs = logManager.getLogs()
-        }
+    LaunchedEffect(Unit) {
+        logs = logManager.getLogs().filter { it.type != LogType.NOTIFICATION }
     }
 
-    Column(modifier = modifier.fillMaxWidth()) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(AppColors.surface50)
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(AppColors.darkSurface)
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+                .statusBarsPadding()
+                .padding(horizontal = 4.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            IconButton(onClick = onBack) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = AppColors.textPrimary)
+            }
             Text(
                 text = "Logs",
-                style = MaterialTheme.typography.bodyMedium,
                 color = AppColors.textPrimary,
-                fontWeight = FontWeight.Medium
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
             )
-
-            val logCount = logManager.getLogsJson().length()
-            if (logCount > 0) {
-                Text(
-                    text = "$logCount entries",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = AppColors.textSecondary
-                )
-            }
-
-            IconButton(onClick = { isExpanded = !isExpanded }) {
-                Icon(
-                    imageVector = if (isExpanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
-                    contentDescription = if (isExpanded) "Collapse" else "Expand",
-                    tint = AppColors.textSecondary
-                )
-            }
         }
 
-        AnimatedVisibility(visible = isExpanded) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp),
-                shape = RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp),
-                colors = CardDefaults.cardColors(containerColor = AppColors.darkBackground)
+        if (logs.isEmpty()) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
             ) {
-                val listState = rememberLazyListState()
+                Text(
+                    text = "No logs yet",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = AppColors.textDisabled
+                )
+            }
+        } else {
+            val listState = rememberLazyListState()
 
-                LaunchedEffect(logs.size) {
-                    if (logs.isNotEmpty()) {
-                        listState.animateScrollToItem(0)
-                    }
+            LaunchedEffect(logs.size) {
+                if (logs.isNotEmpty()) {
+                    listState.animateScrollToItem(0)
                 }
+            }
 
-                if (logs.isEmpty()) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "No logs yet",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = AppColors.textDisabled
-                        )
-                    }
-                } else {
-                    LazyColumn(
-                        state = listState,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(8.dp),
-                        reverseLayout = true
-                    ) {
-                        items(logs) { entry ->
-                            LogItem(
-                                entry = entry,
-                                formatTime = { logManager.formatTimestamp(it) }
-                            )
-                        }
-                    }
+            LazyColumn(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 8.dp),
+                reverseLayout = true,
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                items(logs) { entry ->
+                    LogItem(entry = entry, formatTime = { logManager.formatTimestamp(it) })
                 }
             }
         }
@@ -165,7 +134,7 @@ private fun LogItem(
         modifier = Modifier
             .fillMaxWidth()
             .background(backgroundColor)
-            .padding(vertical = 2.dp, horizontal = 4.dp),
+            .padding(vertical = 4.dp, horizontal = 8.dp),
         horizontalArrangement = Arrangement.Start,
         verticalAlignment = Alignment.Top
     ) {

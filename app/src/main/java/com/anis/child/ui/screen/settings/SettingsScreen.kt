@@ -1,10 +1,17 @@
 package com.anis.child.ui.screen.settings
 
 import android.Manifest
+import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -29,6 +36,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Timeline
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -56,7 +64,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.anis.child.ui.screen.home.LogSection
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.anis.child.ai.SessionState
+import com.anis.child.ai.util.PermissionManager
+import com.anis.child.ui.components.PermissionItem
+import com.anis.child.ui.screen.ai.AiSessionViewModel
 import com.anis.child.ui.theme.AppColors
 
 @Composable
@@ -64,11 +76,9 @@ fun SettingsScreen(
     viewModel: SettingsViewModel,
     onBack: () -> Unit,
     onMonitoringChange: (Boolean) -> Unit,
-    onScreenTimeClick: () -> Unit = {},
     onContentProtectionClick: () -> Unit = {},
-    onAiSessionClick: () -> Unit = {},
-    onLocationHistoryClick: () -> Unit = {},
-    onNotificationsClick: () -> Unit = {},
+    onSessionHistoryClick: () -> Unit = {},
+    onLogsClick: () -> Unit = {},
     onChangePin: () -> Unit = {},
     onLogout: () -> Unit,
 ) {
@@ -145,9 +155,8 @@ fun SettingsScreen(
             )
 
             ParentalControlsSection(
-                onScreenTimeClick = onScreenTimeClick,
                 onContentProtectionClick = onContentProtectionClick,
-                onAiSessionClick = onAiSessionClick,
+                onSessionHistoryClick = onSessionHistoryClick,
                 isAiFilteringEnabled = viewModel.isAiFilteringEnabled,
                 onAiFilteringToggle = { enabled ->
                     if (enabled) {
@@ -159,8 +168,7 @@ fun SettingsScreen(
             )
 
             ActivityHistorySection(
-                onLocationHistoryClick = onLocationHistoryClick,
-                onNotificationsClick = onNotificationsClick,
+                onLogsClick = onLogsClick,
             )
 
             DeviceInfoSection(
@@ -179,11 +187,6 @@ fun SettingsScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
         }
-
-        LogSection(
-            logManager = viewModel.logManager,
-            modifier = Modifier.fillMaxWidth()
-        )
     }
 }
 
@@ -318,12 +321,41 @@ private fun ActionButton(
 
 @Composable
 private fun ParentalControlsSection(
-    onScreenTimeClick: () -> Unit,
     onContentProtectionClick: () -> Unit,
-    onAiSessionClick: () -> Unit,
+    onSessionHistoryClick: () -> Unit,
     isAiFilteringEnabled: Boolean = false,
     onAiFilteringToggle: (Boolean) -> Unit = {},
 ) {
+    val context = LocalContext.current
+    val activity = context as? Activity
+    val sessionViewModel: AiSessionViewModel = hiltViewModel()
+    val sessionState by sessionViewModel.sessionState.collectAsState()
+
+    val mediaProjectionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        sessionViewModel.setMediaProjectionResult(result.resultCode, result.data ?: Intent())
+    }
+
+    val requestPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { _ -> }
+
+    val overlaySettingsLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { _ -> }
+
+    var refreshKey by remember { mutableStateOf(0) }
+
+    val hasNotification = remember { mutableStateOf(PermissionManager.hasNotificationPermission(context)) }
+    val hasOverlay = remember { mutableStateOf(PermissionManager.hasOverlayPermission(context)) }
+
+    fun refreshPermissions() {
+        refreshKey++
+        hasNotification.value = PermissionManager.hasNotificationPermission(context)
+        hasOverlay.value = PermissionManager.hasOverlayPermission(context)
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -337,23 +369,12 @@ private fun ParentalControlsSection(
         ) {
             SectionHeader("Parental Controls")
             SettingsNavRow(
-                icon = Icons.Default.Schedule,
-                title = "Screen Time",
-                description = "Manage daily usage limits and app timers",
-                onClick = onScreenTimeClick
-            )
-            SettingsNavRow(
                 icon = Icons.Default.Security,
                 title = "Content Protection",
                 description = "Block inappropriate content and websites",
                 onClick = onContentProtectionClick
             )
-            SettingsNavRow(
-                icon = Icons.Default.PlayArrow,
-                title = "AI Content Monitoring",
-                description = "Monitor screen content with AI analysis",
-                onClick = onAiSessionClick
-            )
+
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -387,14 +408,169 @@ private fun ParentalControlsSection(
                         checkedTrackColor = AppColors.primary01.copy(alpha = 0.5f)
                     )
                 )
-            }}
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(AppColors.darkSurface.copy(alpha = 0.1f), MaterialTheme.shapes.medium)
+                    .padding(16.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (sessionState is SessionState.Active) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            color = AppColors.success500,
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(modifier = Modifier.size(8.dp))
+                    }
+                    Text(
+                        text = when (val state = sessionState) {
+                            is SessionState.Idle -> "Session Idle"
+                            is SessionState.Active -> "Active - Session #${state.sessionId}"
+                            is SessionState.PermissionRequired -> "Permissions Required"
+                            is SessionState.MediaProjectionRequired -> "Screen Recording Needed"
+                            is SessionState.NotificationPermissionRequired -> "Notification Permission Needed"
+                            is SessionState.Error -> "Error"
+                        },
+                        color = when (sessionState) {
+                            is SessionState.Idle -> AppColors.textSecondary
+                            is SessionState.Active -> AppColors.success500
+                            is SessionState.Error -> AppColors.error500
+                            else -> AppColors.warning500
+                        },
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            when (val state = sessionState) {
+                is SessionState.Idle -> {
+                    Button(
+                        onClick = { activity?.let { sessionViewModel.startSession(it) } },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = AppColors.primary01)
+                    ) {
+                        Icon(Icons.Default.PlayArrow, null, modifier = Modifier.size(20.dp))
+                        Text("Start Monitoring", color = AppColors.darkTextPrimary, modifier = Modifier.padding(start = 8.dp))
+                    }
+                }
+
+                is SessionState.Active -> {
+                    Button(
+                        onClick = { sessionViewModel.stopSession() },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = AppColors.error500)
+                    ) {
+                        Icon(Icons.Default.Stop, null, modifier = Modifier.size(20.dp))
+                        Text("Stop Monitoring", color = AppColors.darkTextPrimary, modifier = Modifier.padding(start = 8.dp))
+                    }
+                }
+
+                is SessionState.MediaProjectionRequired -> {
+                    Text(
+                        text = "Screen recording permission is needed for content analysis.",
+                        color = AppColors.textSecondary,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Button(
+                        onClick = { mediaProjectionLauncher.launch(state.intent) },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = AppColors.primary01)
+                    ) {
+                        Text("Grant Screen Recording", color = AppColors.darkTextPrimary)
+                    }
+                }
+
+                is SessionState.PermissionRequired -> {
+                    Text(
+                        text = "Required permissions are missing.",
+                        color = AppColors.error500,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Button(
+                        onClick = { sessionViewModel.clearPermissionState() },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Back")
+                    }
+                }
+
+                is SessionState.Error -> {
+                    Text(
+                        text = "Error: ${state.message}",
+                        color = AppColors.error500,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Button(
+                        onClick = { sessionViewModel.clearPermissionState() },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Retry")
+                    }
+                }
+
+                is SessionState.NotificationPermissionRequired -> {
+                    Text(
+                        text = "Notification permission is needed.",
+                        color = AppColors.textSecondary,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            PermissionItem(
+                title = "Notification",
+                description = if (hasNotification.value) "Granted" else "Required for blocked content alerts",
+                isGranted = hasNotification.value,
+                onClick = {
+                    if (activity != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    }
+                }
+            )
+
+            PermissionItem(
+                title = "Overlay",
+                description = if (hasOverlay.value) "Granted" else "Required for blocking overlay when content is detected",
+                isGranted = hasOverlay.value,
+                onClick = {
+                    if (activity != null) {
+                        val intent = Intent(
+                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                            Uri.parse("package:${activity.packageName}")
+                        )
+                        overlaySettingsLauncher.launch(intent)
+                    }
+                }
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            SettingsNavRow(
+                icon = Icons.Default.Timeline,
+                title = "Session History",
+                description = "View past AI monitoring sessions",
+                onClick = onSessionHistoryClick
+            )
+        }
     }
 }
 
 @Composable
 private fun ActivityHistorySection(
-    onLocationHistoryClick: () -> Unit,
-    onNotificationsClick: () -> Unit,
+    onLogsClick: () -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -409,16 +585,10 @@ private fun ActivityHistorySection(
         ) {
             SectionHeader("Activity Logs")
             SettingsNavRow(
-                icon = Icons.Default.Timeline,
-                title = "Location History",
-                description = "View past location reports",
-                onClick = onLocationHistoryClick
-            )
-            SettingsNavRow(
-                icon = Icons.Default.Notifications,
-                title = "Notifications",
-                description = "Browse notification history",
-                onClick = onNotificationsClick
+                icon = Icons.Default.Apps,
+                title = "App Logs",
+                description = "View internal app logs",
+                onClick = onLogsClick
             )
         }
     }

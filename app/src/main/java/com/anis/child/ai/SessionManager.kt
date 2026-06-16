@@ -216,7 +216,7 @@ class SessionManager @Inject constructor(
         )
 
         val unsyncedCount = sessionRepository.getUnsyncedCompletedSessionCount()
-        if (unsyncedCount > 0 && unsyncedCount % 5 == 0) {
+        if (unsyncedCount >= 5) {
             Log.d(TAG, "Auto-triggering session sync ($unsyncedCount unsynced sessions)")
             SessionSyncWorker.enqueue(context)
         }

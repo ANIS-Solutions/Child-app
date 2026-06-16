@@ -101,7 +101,7 @@ class AppNotificationListenerService : NotificationListenerService() {
                     isRemoved = false
                 )
             )
-            logManager.log("Notification from $appLabel: ${title?.take(30)}", LogType.INFO)
+             logManager.log("Notification from $appLabel: ${title?.take(30)}", LogType.NOTIFICATION)
         }
     }
 

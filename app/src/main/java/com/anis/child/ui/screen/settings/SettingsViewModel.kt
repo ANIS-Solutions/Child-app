@@ -13,6 +13,7 @@ import com.anis.child.data.LogManager
 import com.anis.child.data.LogType
 import com.anis.child.data.PreferenceManager
 import com.anis.child.data.TelemetryManager
+import com.anis.child.data.local.AppDatabase
 import com.anis.child.worker.AiFilterWatchdogWorker
 import com.anis.child.data.repository.AppsRepository
 import com.anis.child.data.repository.LocationRepository
@@ -24,7 +25,9 @@ import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -36,6 +39,7 @@ class SettingsViewModel @Inject constructor(
     private val locationRepository: LocationRepository,
     private val appsRepository: AppsRepository,
     private val apiService: ApiService,
+    private val appDatabase: AppDatabase,
 ) : ViewModel() {
 
     var isMonitoringEnabled by mutableStateOf(preferenceManager.isMonitoringEnabled)
@@ -190,8 +194,14 @@ class SettingsViewModel @Inject constructor(
 
     fun logout() {
         telemetryManager.stopMonitoring()
+        AiFilteringService.stop(context)
+        AiFilterWatchdogWorker.cancel(context)
         preferenceManager.clear()
         logManager.clear()
-        logManager.log("Logged out", LogType.INFO)
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                appDatabase.clearAllTables()
+            }
+        }
     }
 }

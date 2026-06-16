@@ -25,7 +25,7 @@ class TaskViewModel @Inject constructor(
 
     private fun loadTasks() {
         viewModelScope.launch {
-            taskRepository.seedSampleDataIfEmpty()
+            taskRepository.syncFromApi()
             taskRepository.getAllTasks().collect { taskList ->
                 _tasks.value = taskList
             }

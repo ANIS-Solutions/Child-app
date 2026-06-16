@@ -92,11 +92,7 @@ class PreferenceManager(context: Context) {
         set(value) = sharedPreferences.edit().putBoolean(KEY_IS_AI_LOCKDOWN_ACTIVE, value).apply()
 
     fun clear() {
-        val saveAi = isAiFilteringEnabled
-        val saveLockdown = isAiLockdownActive
         sharedPreferences.edit().clear().apply()
-        isAiFilteringEnabled = saveAi
-        isAiLockdownActive = saveLockdown
     }
 
     fun hasIsAiFilteringEnabled(): Boolean {

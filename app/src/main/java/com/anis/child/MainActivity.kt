@@ -32,9 +32,6 @@ import com.anis.child.data.LogManager
 import com.anis.child.data.LogType
 import com.anis.child.data.PreferenceManager
 import com.anis.child.data.TelemetryManager
-import com.anis.child.ui.screen.ai.AiSessionScreen
-import com.anis.child.ui.screen.ai.AiSessionViewModel
-import com.anis.child.ui.screen.ai.PermissionsCheckScreen
 import com.anis.child.ui.screen.ai.SessionDetailScreen
 import com.anis.child.ui.screen.ai.SessionDetailViewModel
 import com.anis.child.ui.screen.ai.SessionHistoryScreen
@@ -43,18 +40,13 @@ import com.anis.child.ui.screen.contentprotection.ContentProtectionScreen
 import com.anis.child.ui.screen.contentprotection.ContentProtectionViewModel
 import com.anis.child.ui.screen.home.HomeScreen
 import com.anis.child.ui.screen.home.HomeViewModel
-import com.anis.child.ui.screen.location.LocationHistoryScreen
-import com.anis.child.ui.screen.location.LocationHistoryViewModel
-import com.anis.child.ui.screen.notifications.NotificationHistoryScreen
-import com.anis.child.ui.screen.notifications.NotificationHistoryViewModel
 import com.anis.child.ui.screen.pairing.PairingScreen
 import com.anis.child.ui.screen.pairing.PairingViewModel
 import com.anis.child.ui.screen.pin.PinScreen
 import com.anis.child.ui.screen.pin.PinViewModel
 import com.anis.child.ui.screen.reward.RewardScreen
 import com.anis.child.ui.screen.reward.RewardViewModel
-import com.anis.child.ui.screen.screentime.ScreenTimeScreen
-import com.anis.child.ui.screen.screentime.ScreenTimeViewModel
+import com.anis.child.ui.screen.settings.LogsScreen
 import com.anis.child.ui.screen.settings.SettingsScreen
 import com.anis.child.ui.screen.settings.SettingsViewModel
 import com.anis.child.ui.screen.splash.SplashScreen
@@ -242,11 +234,9 @@ class MainActivity : ComponentActivity() {
                                     requestLocationPermissions()
                                 }
                             },
-                            onScreenTimeClick = { navController.navigate("screen_time") },
                             onContentProtectionClick = { navController.navigate("content_protection") },
-                            onAiSessionClick = { navController.navigate("permissions_check") },
-                            onLocationHistoryClick = { navController.navigate("location_history") },
-                            onNotificationsClick = { navController.navigate("notifications") },
+                            onSessionHistoryClick = { navController.navigate("session_history") },
+                            onLogsClick = { navController.navigate("logs") },
                             onChangePin = {
                                 navController.navigate("pin?target=settings&isSettingUp=true")
                             },
@@ -259,10 +249,10 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    composable("screen_time") {
-                        val screenTimeViewModel: ScreenTimeViewModel = hiltViewModel()
-                        ScreenTimeScreen(
-                            viewModel = screenTimeViewModel,
+                    composable("logs") {
+                        val settingsViewModel: SettingsViewModel = hiltViewModel()
+                        LogsScreen(
+                            logManager = settingsViewModel.logManager,
                             onBack = { navController.popBackStack() }
                         )
                     }
@@ -271,44 +261,6 @@ class MainActivity : ComponentActivity() {
                         val contentProtectionViewModel: ContentProtectionViewModel = hiltViewModel()
                         ContentProtectionScreen(
                             viewModel = contentProtectionViewModel,
-                            onBack = { navController.popBackStack() }
-                        )
-                    }
-
-                    composable("location_history") {
-                        val locationViewModel: LocationHistoryViewModel = hiltViewModel()
-                        LocationHistoryScreen(
-                            viewModel = locationViewModel,
-                            onBack = { navController.popBackStack() }
-                        )
-                    }
-
-                    composable("notifications") {
-                        val notificationViewModel: NotificationHistoryViewModel = hiltViewModel()
-                        NotificationHistoryScreen(
-                            viewModel = notificationViewModel,
-                            onBack = { navController.popBackStack() }
-                        )
-                    }
-
-                    composable("permissions_check") {
-                        PermissionsCheckScreen(
-                            onBack = { navController.popBackStack() },
-                            onContinue = {
-                                navController.navigate("ai_session") {
-                                    popUpTo("permissions_check") { inclusive = true }
-                                }
-                            },
-                            onHistoryClick = {
-                                navController.navigate("session_history")
-                            }
-                        )
-                    }
-
-                    composable("ai_session") {
-                        val aiSessionViewModel: AiSessionViewModel = hiltViewModel()
-                        AiSessionScreen(
-                            viewModel = aiSessionViewModel,
                             onBack = { navController.popBackStack() }
                         )
                     }
