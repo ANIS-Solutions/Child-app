@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/blocking_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F0FFFFFF">
+    android:background="#F0FFFFFF"
+    android:clickable="true"
+    android:focusable="true">
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -12,20 +15,21 @@
         android:orientation="vertical"
         android:padding="48dp">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="🚫"
-            android:textSize="64sp" />
+        <ImageView
+            android:id="@+id/blocking_icon"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:scaleType="fitCenter" />
 
         <TextView
+            android:id="@+id/blocking_title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="This app is restricted"
+            android:layout_marginTop="24dp"
             android:textColor="#FF012943"
             android:textSize="20sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:gravity="center" />
 
         <TextView
             android:id="@+id/blocked_app_name"
@@ -39,10 +43,10 @@
             android:gravity="center" />
 
         <TextView
+            android:id="@+id/blocking_description"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="The current application has been\nblocked by your parent's settings"
             android:textColor="#FF004A7B"
             android:textSize="14sp"
             android:gravity="center" />

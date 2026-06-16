@@ -1,14 +1,17 @@
 package com.anis.child.content
 
 import android.content.Context
+import android.graphics.BitmapFactory
 import android.graphics.PixelFormat
 import android.os.Build
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.widget.ImageView
 import android.widget.TextView
 import com.anis.child.R
+import com.anis.child.data.ScreenTimeManager.BlockReason
 import com.anis.child.util.getAppLabel
 
 object BlockingOverlayManager {
@@ -16,7 +19,12 @@ object BlockingOverlayManager {
     private var windowManager: WindowManager? = null
     private var currentBlockedApp: String? = null
 
-    fun showOverlay(context: Context, packageName: String, accessibilityOverlay: Boolean = true) {
+    fun showOverlay(
+        context: Context,
+        packageName: String,
+        accessibilityOverlay: Boolean = true,
+        reason: BlockReason = BlockReason.PARENT_BLOCK
+    ) {
         try {
             if (overlayView != null) hideOverlay()
             if (!canDrawOverlays(context, accessibilityOverlay)) return
@@ -26,9 +34,24 @@ object BlockingOverlayManager {
             overlayView = inflater.inflate(R.layout.overlay_blocked_app, null) as ViewGroup
 
             val label = context.packageManager.getAppLabel(packageName)
+            currentBlockedApp = packageName
 
             overlayView?.findViewById<TextView>(R.id.blocked_app_name)?.text = label
-            currentBlockedApp = packageName
+
+            val isTimeLimit = reason == BlockReason.TIME_LIMIT
+            val assetName = if (isTimeLimit) "TimeLimit_app.png" else "Blocked_app.png"
+
+            try {
+                val bmp = context.assets.open(assetName).use { BitmapFactory.decodeStream(it) }
+                overlayView?.findViewById<ImageView>(R.id.blocking_icon)?.setImageBitmap(bmp)
+            } catch (_: Exception) {}
+
+            overlayView?.findViewById<TextView>(R.id.blocking_title)?.text =
+                if (isTimeLimit) "You have reached app time limit today" else "This app is restricted"
+
+            overlayView?.findViewById<TextView>(R.id.blocking_description)?.text =
+                if (isTimeLimit) "Please close the app and try again tomorrow"
+                else "The current application has been blocked by your parent\u2019s settings"
 
             val type = when {
                 accessibilityOverlay && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ->
@@ -42,10 +65,9 @@ object BlockingOverlayManager {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 type,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
-                        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
-                        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
-                        WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                        WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
+                        WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
                 PixelFormat.TRANSLUCENT
             ).apply { gravity = Gravity.FILL }
 
