@@ -28,19 +28,9 @@ class RewardRepository @Inject constructor(
 
     suspend fun claimReward(id: Long) {
         val reward = rewardDao.getById(id) ?: return
-        val childId = preferenceManager.childId ?: return
 
         safeApiCall {
-            apiService.updateReward(
-                childId = childId,
-                rewardId = reward.remoteId.ifEmpty { id.toString() },
-                RewardUpdateRequest(
-                    name = reward.title,
-                    description = reward.description,
-                    pointsCost = reward.pointCost,
-                    redemptionType = "ONCE"
-                )
-            )
+            apiService.redeemReward(reward.remoteId.ifEmpty { id.toString() })
         }
 
         rewardDao.updateState(id, "active")
@@ -52,9 +42,23 @@ class RewardRepository @Inject constructor(
             is ApiResult.Success -> {
                 val rewards = result.data.data ?: emptyList()
                 for (reward in rewards) {
-                    val existingId = reward.id.toLongOrNull()
-                    val existing = if (existingId != null) rewardDao.getById(existingId) else null
-                    if (existing == null) {
+                    val existing = rewardDao.getByRemoteId(reward.id)
+                    if (existing != null) {
+                        if (existing.title != reward.title ||
+                            existing.description != reward.description ||
+                            existing.pointCost != reward.pointCost ||
+                            existing.type != reward.type ||
+                            existing.state != reward.state
+                        ) {
+                            rewardDao.update(existing.copy(
+                                title = reward.title,
+                                description = reward.description,
+                                pointCost = reward.pointCost,
+                                type = reward.type,
+                                state = reward.state
+                            ))
+                        }
+                    } else {
                         rewardDao.insert(RewardEntity(
                             remoteId = reward.id,
                             title = reward.title,

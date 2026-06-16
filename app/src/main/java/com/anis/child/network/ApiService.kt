@@ -47,6 +47,9 @@ interface ApiService {
     @GET(ApiConfig.Endpoints.CHILDREN_ME)
     suspend fun getChildMe(): ChildMeResponse
 
+    @GET(ApiConfig.Endpoints.MY_QUESTS)
+    suspend fun getMyQuests(): ChildQuestsResponse
+
     @GET(ApiConfig.Endpoints.QUESTS)
     suspend fun getChildQuests(@Path("childId") childId: String): ChildQuestsResponse
 
@@ -76,4 +79,7 @@ interface ApiService {
         @Path("rewardId") rewardId: String,
         @Body request: RewardUpdateRequest
     ): RewardUpdateResponse
+
+    @POST(ApiConfig.Endpoints.REDEEM_REWARD)
+    suspend fun redeemReward(@Path("rewardId") rewardId: String): Response<ResponseBody>
 }

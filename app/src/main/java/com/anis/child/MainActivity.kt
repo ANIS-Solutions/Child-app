@@ -50,8 +50,8 @@ import com.anis.child.ui.screen.settings.LogsScreen
 import com.anis.child.ui.screen.settings.SettingsScreen
 import com.anis.child.ui.screen.settings.SettingsViewModel
 import com.anis.child.ui.screen.splash.SplashScreen
-import com.anis.child.ui.screen.task.TaskScreen
-import com.anis.child.ui.screen.task.TaskViewModel
+import com.anis.child.ui.screen.task.QuestScreen
+import com.anis.child.ui.screen.task.QuestViewModel
 import com.anis.child.ui.theme.ANISTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -183,7 +183,7 @@ class MainActivity : ComponentActivity() {
                             childName = preferenceManager.childName ?: "Child",
                             homeViewModel = homeViewModel,
                             onSettingsClick = { navigateToProtected("settings") },
-                            onTaskClick = { navController.navigate("task") },
+                            onTaskClick = { navController.navigate("quest") },
                             onRewardClick = { navController.navigate("reward") }
                         )
                     }
@@ -293,9 +293,9 @@ class MainActivity : ComponentActivity() {
                         )
                     }
 
-                    composable("task") {
-                        val taskViewModel: TaskViewModel = hiltViewModel()
-                        TaskScreen(
+                    composable("quest") {
+                        val taskViewModel: QuestViewModel = hiltViewModel()
+                        QuestScreen(
                             viewModel = taskViewModel,
                             onBack = { navController.popBackStack() }
                         )

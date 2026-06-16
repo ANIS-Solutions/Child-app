@@ -26,6 +26,9 @@ interface RewardDao {
     @Query("SELECT * FROM rewards WHERE id = :id")
     suspend fun getById(id: Long): RewardEntity?
 
+    @Query("SELECT * FROM rewards WHERE remoteId = :remoteId")
+    suspend fun getByRemoteId(remoteId: String): RewardEntity?
+
     @Query("UPDATE rewards SET state = :state WHERE id = :id")
     suspend fun updateState(id: Long, state: String)
 }

@@ -128,7 +128,7 @@ class SessionHistoryViewModel @Inject constructor(
                     FloatArray(arr.length()) { i -> arr.getDouble(i).toFloat() }
                 }
 
-                val k = minOf(maxOf(embeddings.size / 10, 3), 10, embeddings.size)
+                val k = minOf(maxOf(embeddings.size / 5, 3), 10, embeddings.size)
                 val indices = condensationEngine.extractKeyframes(embeddings, k)
                 val selectedResults = indices.map { resultsForVoting[it] }
 

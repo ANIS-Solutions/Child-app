@@ -20,6 +20,9 @@ interface TaskDao {
     @Query("SELECT * FROM tasks WHERE id = :id")
     suspend fun getTaskById(id: Long): TaskEntity?
 
+    @Query("SELECT * FROM tasks WHERE remoteId = :remoteId")
+    suspend fun getTaskByRemoteId(remoteId: String): TaskEntity?
+
     @Query("UPDATE tasks SET status = :status, completedAt = :completedAt WHERE id = :id")
     suspend fun markCompleted(id: Long, status: String, completedAt: Long = System.currentTimeMillis())
 }

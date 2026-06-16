@@ -46,22 +46,35 @@ class TaskRepository @Inject constructor(
     }
 
     suspend fun syncFromApi(): Boolean {
-        val childId = preferenceManager.childId ?: return false
-        return when (val result = safeApiCall { apiService.getChildQuests(childId) }) {
+        return when (val result = safeApiCall { apiService.getMyQuests() }) {
             is ApiResult.Success -> {
                 val quests = result.data.data ?: emptyList()
                 for (quest in quests) {
-                    val existing = taskDao.getTaskById(quest.id.toLongOrNull() ?: 0L)
-                    if (existing == null) {
+                    val existing = taskDao.getTaskByRemoteId(quest.id)
+                    val status = when (quest.state) {
+                        "COMPLETED", "SUBMITTED" -> quest.state.lowercase()
+                        else -> "pending"
+                    }
+                    if (existing != null) {
+                        if (existing.title != quest.title ||
+                            existing.description != quest.description ||
+                            existing.rewardValue != quest.rewardValue ||
+                            existing.status != status
+                        ) {
+                            taskDao.update(existing.copy(
+                                title = quest.title,
+                                description = quest.description,
+                                rewardValue = quest.rewardValue,
+                                status = status
+                            ))
+                        }
+                    } else {
                         taskDao.insert(TaskEntity(
                             remoteId = quest.id,
                             title = quest.title,
                             description = quest.description,
                             rewardValue = quest.rewardValue,
-                            status = when (quest.state) {
-                                "COMPLETED", "SUBMITTED" -> quest.state.lowercase()
-                                else -> "pending"
-                            }
+                            status = status
                         ))
                     }
                 }

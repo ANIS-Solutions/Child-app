@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -20,8 +19,6 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.TaskAlt
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -41,8 +38,8 @@ import com.anis.child.ui.components.EmptyStateView
 import com.anis.child.ui.theme.AppColors
 
 @Composable
-fun TaskScreen(
-    viewModel: TaskViewModel,
+fun QuestScreen(
+    viewModel: QuestViewModel,
     onBack: () -> Unit
 ) {
     val tasks by viewModel.tasks.collectAsState()
@@ -63,7 +60,7 @@ fun TaskScreen(
                 Icon(Icons.Default.ArrowBack, "Back", tint = AppColors.textPrimary)
             }
             Text(
-                text = "Tasks",
+                text = "Quests",
                 color = AppColors.textPrimary,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
@@ -71,7 +68,7 @@ fun TaskScreen(
         }
 
         if (tasks.isEmpty()) {
-            EmptyStateView(Icons.Default.TaskAlt, "No tasks assigned yet", Modifier.fillMaxSize())
+            EmptyStateView(Icons.Default.TaskAlt, "No quests assigned yet", Modifier.fillMaxSize())
         } else {
             LazyColumn(
                 modifier = Modifier
@@ -80,10 +77,7 @@ fun TaskScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(tasks) { task ->
-                    TaskCard(
-                        task = task,
-                        onComplete = { viewModel.completeTask(task.id) }
-                    )
+                    QuestCard(task = task)
                 }
             }
         }
@@ -91,9 +85,8 @@ fun TaskScreen(
 }
 
 @Composable
-private fun TaskCard(
+private fun QuestCard(
     task: TaskEntity,
-    onComplete: () -> Unit
 ) {
     val isDone = task.status != "pending"
 
@@ -144,22 +137,6 @@ private fun TaskCard(
                         )
                     }
                 }
-            }
-            if (!isDone) {
-                Button(
-                    onClick = onComplete,
-                    shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = AppColors.success500)
-                ) {
-                    Text("Done", color = AppColors.darkTextPrimary)
-                }
-            } else {
-                Text(
-                    text = task.status,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = if (task.status == "approved") AppColors.success500 else AppColors.warning500,
-                    fontWeight = FontWeight.Bold
-                )
             }
         }
     }

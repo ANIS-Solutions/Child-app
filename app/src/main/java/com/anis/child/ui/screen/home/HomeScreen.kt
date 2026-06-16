@@ -135,8 +135,8 @@ fun HomeScreen(
 
             ActionCard(
                 icon = Icons.Default.TaskAlt,
-                title = "See what's your assigned tasks",
-                subtitle = "Complete tasks and earn points",
+                title = "See what's your assigned quests",
+                subtitle = "Complete quests and earn points",
                 color = AppColors.entertainment500,
                 onClick = onTaskClick
             )

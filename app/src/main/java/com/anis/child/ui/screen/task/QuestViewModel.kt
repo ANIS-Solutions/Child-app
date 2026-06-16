@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class TaskViewModel @Inject constructor(
+class QuestViewModel @Inject constructor(
     private val taskRepository: TaskRepository
 ) : ViewModel() {
 
@@ -29,12 +29,6 @@ class TaskViewModel @Inject constructor(
             taskRepository.getAllTasks().collect { taskList ->
                 _tasks.value = taskList
             }
-        }
-    }
-
-    fun completeTask(taskId: Long) {
-        viewModelScope.launch {
-            taskRepository.completeTask(taskId)
         }
     }
 }

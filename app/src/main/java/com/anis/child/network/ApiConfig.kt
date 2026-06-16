@@ -12,10 +12,12 @@ object ApiConfig {
         const val REGISTER_FCM_TOKEN = "children/fcm-token"
         const val ADD_BULK_APPS = "apps/add-bulk"
         const val CHILDREN_ME = "children/me"
+        const val MY_QUESTS = "children/my-quests"
         const val QUESTS = "children/{childId}/quests"
         const val REWARDS = "children/{childId}/rewards"
         const val UPDATE_QUEST = "children/{childId}/quests/{questId}"
         const val UPDATE_REWARD = "children/{childId}/rewards/{rewardId}"
+        const val REDEEM_REWARD = "children/rewards/{rewardId}/redeem"
         const val CHILD_SESSION = "child-session"
     }
 }
