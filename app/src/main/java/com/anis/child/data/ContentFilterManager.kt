@@ -57,16 +57,18 @@ class ContentFilterManager @Inject constructor(
 
     companion object {
         fun matchPattern(text: String, pattern: String): Boolean {
-            return if (pattern.startsWith("*") && pattern.endsWith("*")) {
-                val mid = pattern.removeSurrounding("*")
-                text.contains(mid)
-            } else if (pattern.startsWith("*")) {
-                text.endsWith(pattern.removePrefix("*"))
-            } else if (pattern.endsWith("*")) {
-                text.startsWith(pattern.removeSuffix("*"))
-            } else {
-                text.contains(pattern)
+            val escaped = Regex.escape(pattern.removeSurrounding("*"))
+            val regex = when {
+                pattern.startsWith("*") && pattern.endsWith("*") ->
+                    Regex("\\b$escaped\\b", RegexOption.IGNORE_CASE)
+                pattern.startsWith("*") ->
+                    Regex("\\b${escaped}$", RegexOption.IGNORE_CASE)
+                pattern.endsWith("*") ->
+                    Regex("^${escaped}\\b", RegexOption.IGNORE_CASE)
+                else ->
+                    Regex("\\b${escaped}\\b", RegexOption.IGNORE_CASE)
             }
+            return regex.containsMatchIn(text)
         }
         val DEFAULT_BLOCKED_KEYWORDS = listOf(
             "*porn*", "*xxx*", "*adult*", "*sex*", "*nude*",
