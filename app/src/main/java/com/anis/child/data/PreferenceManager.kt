@@ -91,6 +91,14 @@ class PreferenceManager(context: Context) {
         get() = sharedPreferences.getBoolean(KEY_IS_AI_LOCKDOWN_ACTIVE, false)
         set(value) = sharedPreferences.edit().putBoolean(KEY_IS_AI_LOCKDOWN_ACTIVE, value).apply()
 
+    var promptsEmbeddingId: String?
+        get() = sharedPreferences.getString(KEY_PROMPTS_EMBEDDING_ID, null)
+        set(value) = sharedPreferences.edit().putString(KEY_PROMPTS_EMBEDDING_ID, value).apply()
+
+    var promptsEmbeddingVersion: Long
+        get() = sharedPreferences.getLong(KEY_PROMPTS_EMBEDDING_VERSION, 0)
+        set(value) = sharedPreferences.edit().putLong(KEY_PROMPTS_EMBEDDING_VERSION, value).apply()
+
     fun clear() {
         sharedPreferences.edit().clear().apply()
     }
@@ -119,5 +127,7 @@ class PreferenceManager(context: Context) {
         private const val KEY_REWARD_POINTS = "reward_points"
         private const val KEY_IS_AI_FILTERING_ENABLED = "is_ai_filtering_enabled"
         private const val KEY_IS_AI_LOCKDOWN_ACTIVE = "is_ai_lockdown_active"
+        private const val KEY_PROMPTS_EMBEDDING_ID = "prompts_embedding_id"
+        private const val KEY_PROMPTS_EMBEDDING_VERSION = "prompts_embedding_version"
     }
 }

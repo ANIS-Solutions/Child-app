@@ -3,6 +3,7 @@ package com.anis.child.service
 import android.util.Log
 import com.anis.child.data.local.AppRestrictionDao
 import com.anis.child.data.local.AppRestrictionEntity
+import com.anis.child.data.repository.EmbeddingRepository
 import com.anis.child.data.repository.FCMRepository
 import com.anis.child.util.getAppLabel
 import com.anis.child.worker.AppRestrictionWatchdogWorker
@@ -20,6 +21,7 @@ class FCMService : FirebaseMessagingService() {
 
     @Inject lateinit var fcmRepository: FCMRepository
     @Inject lateinit var appRestrictionDao: AppRestrictionDao
+    @Inject lateinit var embeddingRepository: EmbeddingRepository
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
@@ -43,6 +45,17 @@ class FCMService : FirebaseMessagingService() {
             val packageId = data["packageId"] ?: return
             CoroutineScope(Dispatchers.IO).launch {
                 processAppStateUpdate(packageId, data)
+            }
+        }
+        if (action == ACTION_SYNC_PROMPTS) {
+            val promptId = data["promptId"] ?: return
+            CoroutineScope(Dispatchers.IO).launch {
+                val success = embeddingRepository.fetchAndSaveEmbeddings(promptId)
+                if (success) {
+                    Log.d(TAG, "SYNC_PROMPTS completed for promptId=$promptId")
+                } else {
+                    Log.e(TAG, "SYNC_PROMPTS failed for promptId=$promptId")
+                }
             }
         }
     }
@@ -89,5 +102,6 @@ class FCMService : FirebaseMessagingService() {
     companion object {
         private const val TAG = "FCMService"
         private const val ACTION_SYNC_APP_STATE = "SYNC_APP_STATE"
+        private const val ACTION_SYNC_PROMPTS = "SYNC_PROMPTS"
     }
 }

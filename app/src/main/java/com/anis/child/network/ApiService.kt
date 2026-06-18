@@ -1,7 +1,9 @@
 package com.anis.child.network
 
+import com.anis.child.data.AppPackage
 import com.anis.child.data.AppUsageRequest
 import com.anis.child.data.AppsBulkResponse
+import com.anis.child.data.DailyUsageReport
 import com.anis.child.data.ChildMeResponse
 import com.anis.child.data.ChildQuestsResponse
 import com.anis.child.data.ChildRewardsResponse
@@ -21,6 +23,7 @@ import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.PATCH
@@ -87,9 +90,24 @@ interface ApiService {
     @POST(ApiConfig.Endpoints.REDEEM_REWARD)
     suspend fun redeemReward(@Path("rewardId") rewardId: String): Response<ResponseBody>
 
+    @POST(ApiConfig.Endpoints.INSTALL_APP)
+    suspend fun installApp(@Body request: AppPackage): Response<ResponseBody>
+
+    @DELETE(ApiConfig.Endpoints.DELETE_APP)
+    suspend fun deleteApp(
+        @Path("packageId") packageId: String,
+        @Path("childId") childId: String
+    ): Response<ResponseBody>
+
     @POST(ApiConfig.Endpoints.APP_USAGE)
     suspend fun sendAppUsage(
         @Path("packageName") packageName: String,
         @Body request: AppUsageRequest
     ): Response<ResponseBody>
+
+    @POST(ApiConfig.Endpoints.DAILY_USAGE)
+    suspend fun sendDailyUsage(@Body report: DailyUsageReport): Response<ResponseBody>
+
+    @GET(ApiConfig.Endpoints.PROMPTS_EMBEDDING)
+    suspend fun getPromptsEmbedding(): Response<ResponseBody>
 }

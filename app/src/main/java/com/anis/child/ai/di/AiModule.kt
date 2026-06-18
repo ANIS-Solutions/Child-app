@@ -2,6 +2,7 @@ package com.anis.child.ai.di
 
 import android.content.Context
 import com.anis.child.ai.AiAnalyzer
+import com.anis.child.data.PreferenceManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -16,8 +17,9 @@ object AiModule {
     @Provides
     @Singleton
     fun provideAiAnalyzer(
-        @ApplicationContext context: Context
+        @ApplicationContext context: Context,
+        preferenceManager: PreferenceManager
     ): AiAnalyzer {
-        return AiAnalyzer(context)
+        return AiAnalyzer(context, preferenceManager)
     }
 }

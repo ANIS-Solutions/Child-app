@@ -201,6 +201,9 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 appDatabase.clearAllTables()
+                appDatabase.openHelper.writableDatabase.execSQL(
+                    "DELETE FROM sqlite_sequence WHERE name='sessions'"
+                )
             }
         }
     }

@@ -8,7 +8,9 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.util.Half
+import android.util.Log
 import com.anis.child.R
+import com.anis.child.data.PreferenceManager
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
@@ -22,7 +24,10 @@ import java.nio.ShortBuffer
 import kotlin.math.exp
 import kotlin.math.max
 
-class AiAnalyzer(context: Context) {
+class AiAnalyzer(
+    context: Context,
+    private val preferenceManager: PreferenceManager
+) {
 
     private val bannedWords: List<String> = loadBannedWords(context)
 
@@ -76,27 +81,60 @@ class AiAnalyzer(context: Context) {
 
             visionSession = env.createSession(modelFile.absolutePath, OrtSession.SessionOptions())
 
-            val jsonString = context.assets.open("saved_embeddings.json").bufferedReader().use { it.readText() }
-            val jsonObject = JSONObject(jsonString)
-
-            val baseArray = jsonObject.getJSONArray("Baseline")
-            baselineEmbed = FloatArray(baseArray.length()) { i -> baseArray.getDouble(i).toFloat() }
-
-            val iter = jsonObject.keys()
-            while (iter.hasNext()) {
-                val key = iter.next()
-                if (key != "Baseline") {
-                    val threatArray = jsonObject.getJSONArray(key)
-                    val floatArray = FloatArray(threatArray.length()) { i -> threatArray.getDouble(i).toFloat() }
-                    threatsEmbeds[key] = floatArray
-                }
-            }
+            loadEmbeddings(context)
             modelLoaded = true
         } catch (e: Exception) {
             android.util.Log.e("AiAnalyzer", "Failed to load model", e)
             loadError = e.message
             modelLoaded = false
         }
+    }
+
+    fun reloadEmbeddings(context: Context): Boolean {
+        return try {
+            loadEmbeddings(context)
+            Log.d("AiAnalyzer", "Embeddings reloaded successfully")
+            true
+        } catch (e: Exception) {
+            Log.e("AiAnalyzer", "Failed to reload embeddings", e)
+            loadError = e.message
+            false
+        }
+    }
+
+    private fun loadEmbeddings(context: Context) {
+        val jsonString = embeddingJsonString(context)
+        val jsonObject = JSONObject(jsonString)
+
+        val baseArray = jsonObject.getJSONArray("Baseline")
+        val newBaseline = FloatArray(baseArray.length()) { i -> baseArray.getDouble(i).toFloat() }
+
+        val newThreats = mutableMapOf<String, FloatArray>()
+        val iter = jsonObject.keys()
+        while (iter.hasNext()) {
+            val key = iter.next()
+            if (key != "Baseline") {
+                val threatArray = jsonObject.getJSONArray(key)
+                val floatArray = FloatArray(threatArray.length()) { i -> threatArray.getDouble(i).toFloat() }
+                newThreats[key] = floatArray
+            }
+        }
+
+        baselineEmbed = newBaseline
+        threatsEmbeds.clear()
+        threatsEmbeds.putAll(newThreats)
+    }
+
+    private fun embeddingJsonString(context: Context): String {
+        val localFile = preferenceManager.promptsEmbeddingId?.let { id ->
+            File(context.filesDir, "embeddings/$id.json").takeIf { it.exists() }
+        }
+        if (localFile != null) {
+            Log.d("AiAnalyzer", "Loading embeddings from local file: ${localFile.absolutePath}")
+            return localFile.readText()
+        }
+        Log.d("AiAnalyzer", "Loading embeddings from assets (saved_embeddings.json)")
+        return context.assets.open("saved_embeddings.json").bufferedReader().use { it.readText() }
     }
 
     suspend fun analyzeImage(bitmap: Bitmap): String {

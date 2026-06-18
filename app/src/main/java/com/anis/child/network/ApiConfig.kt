@@ -19,7 +19,11 @@ object ApiConfig {
         const val UPDATE_QUEST = "children/{childId}/quests/{questId}"
         const val UPDATE_REWARD = "children/{childId}/rewards/{rewardId}"
         const val REDEEM_REWARD = "children/rewards/{rewardId}/redeem"
+        const val INSTALL_APP = "apps/"
+        const val DELETE_APP = "/apps/{packageId}/children/{childId}"
         const val APP_USAGE = "apps/usage/{packageName}"
+        const val DAILY_USAGE = "apps/daily-usage"
         const val CHILD_SESSION = "child-session"
+        const val PROMPTS_EMBEDDING = "children/service/prompts-embedding"
     }
 }

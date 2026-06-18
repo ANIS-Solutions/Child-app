@@ -26,14 +26,21 @@ class RewardRepository @Inject constructor(
         return earned - spent
     }
 
-    suspend fun claimReward(id: Long) {
-        val reward = rewardDao.getById(id) ?: return
+    suspend fun claimReward(id: Long): Boolean {
+        val reward = rewardDao.getById(id) ?: return false
 
-        safeApiCall {
-            apiService.redeemReward(reward.remoteId.ifEmpty { id.toString() })
+        if (reward.remoteId.isEmpty()) {
+            rewardDao.updateState(id, "active")
+            return true
         }
 
-        rewardDao.updateState(id, "active")
+        return when (safeApiCall { apiService.redeemReward(reward.remoteId) }) {
+            is ApiResult.Success -> {
+                rewardDao.updateState(id, "active")
+                true
+            }
+            is ApiResult.Error -> false
+        }
     }
 
     suspend fun syncFromApi(): Boolean {

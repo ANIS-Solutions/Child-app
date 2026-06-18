@@ -97,6 +97,16 @@
             </intent-filter>
         </receiver>
 
+        <receiver
+            android:name=".receiver.PackageEventReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.PACKAGE_ADDED" />
+                <action android:name="android.intent.action.PACKAGE_REMOVED" />
+                <data android:scheme="package" />
+            </intent-filter>
+        </receiver>
+
         <service
             android:name=".ai.service.AiFilteringService"
             android:exported="false"

@@ -5,11 +5,19 @@ import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.anis.child.data.ChildData
+import com.anis.child.data.DailyUsageApp
+import com.anis.child.data.DailyUsageReport
+import com.anis.child.data.LogManager
+import com.anis.child.data.LogType
 import com.anis.child.data.PairingRequest
 import com.anis.child.data.PreferenceManager
 import com.anis.child.data.QrData
+import com.anis.child.data.ScreenTimeManager
+import com.anis.child.data.TelemetryManager
 import com.anis.child.data.repository.AuthRepository
 import com.anis.child.network.ApiResult
+import com.anis.child.network.ApiService
+import com.anis.child.worker.DailyUsageWorker
 import com.google.firebase.messaging.FirebaseMessaging
 import com.anis.child.util.resolveDeviceId
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -33,7 +41,11 @@ sealed class PairingUiState {
 class PairingViewModel @Inject constructor(
     private val application: Application,
     private val preferenceManager: PreferenceManager,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val screenTimeManager: ScreenTimeManager,
+    private val apiService: ApiService,
+    private val logManager: LogManager,
+    private val telemetryManager: TelemetryManager
 ) : AndroidViewModel(application) {
 
     private val json = Json { ignoreUnknownKeys = true }
@@ -88,8 +100,14 @@ class PairingViewModel @Inject constructor(
 
             when (result) {
                 is ApiResult.Success -> {
-                    _uiState.value = PairingUiState.Success(result.data)
+                    val child = result.data
+                    _uiState.value = PairingUiState.Success(child)
+                    preferenceManager.childId = child.id
+                    preferenceManager.childName = child.name
                     preferenceManager.needsInitialAppSync = true
+                    DailyUsageWorker.enqueue(getApplication())
+                    sendUsageToday()
+                    telemetryManager.sendLastKnownLocation()
                     _onNavigateToHome.value = true
                 }
                 is ApiResult.Error -> {
@@ -114,6 +132,29 @@ class PairingViewModel @Inject constructor(
             token?.takeIf { it.isNotEmpty() } ?: authRepository.savedFcmToken ?: ""
         } catch (e: Exception) {
             authRepository.savedFcmToken ?: ""
+        }
+    }
+
+    private suspend fun sendUsageToday() {
+        try {
+            val totalMinutes = screenTimeManager.getTodayScreenTimeMinutes()
+            val apps = screenTimeManager.getAppUsageToday()
+                .filter { it.totalTimeInForegroundMs >= 60_000 }
+                .map { DailyUsageApp(it.packageName, (it.totalTimeInForegroundMs / 60000).toInt()) }
+            val report = DailyUsageReport(
+                date = System.currentTimeMillis(),
+                totalScreenTimeMinutes = totalMinutes,
+                apps = apps
+            )
+            val response = apiService.sendDailyUsage(report)
+            if (response.isSuccessful) {
+                logManager.log("Daily usage sent after pairing", LogType.SUCCESS)
+            } else {
+                val errorBody = response.errorBody()?.string()
+                logManager.log("Daily usage failed: HTTP ${response.code()} ${errorBody ?: ""}", LogType.ERROR)
+            }
+        } catch (e: Exception) {
+            logManager.log("Daily usage error: ${e.message}", LogType.ERROR)
         }
     }
 

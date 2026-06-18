@@ -6,11 +6,13 @@ import androidx.work.WorkerFactory
 import androidx.work.WorkerParameters
 import com.anis.child.data.LogManager
 import com.anis.child.data.PreferenceManager
+import com.anis.child.data.ScreenTimeManager
 import com.anis.child.data.local.LocationTelemetryDao
 import com.anis.child.data.repository.LocationRepository
 import com.anis.child.data.repository.SessionRepository
 import com.anis.child.network.ApiService
 import com.anis.child.worker.AiFilterWatchdogWorker
+import com.anis.child.worker.DailyUsageWorker
 import com.anis.child.worker.LocationTelemetryWorker
 import com.anis.child.worker.SessionSyncWorker
 import javax.inject.Inject
@@ -23,7 +25,8 @@ class AnisWorkerFactory @Inject constructor(
     private val dao: LocationTelemetryDao,
     private val logManager: LogManager,
     private val sessionRepository: SessionRepository,
-    private val apiService: ApiService
+    private val apiService: ApiService,
+    private val screenTimeManager: ScreenTimeManager
 ) : WorkerFactory() {
 
     override fun createWorker(
@@ -43,6 +46,10 @@ class AnisWorkerFactory @Inject constructor(
             SessionSyncWorker::class.java.name ->
                 SessionSyncWorker(
                     appContext, workerParameters, sessionRepository, apiService, preferenceManager
+                )
+            DailyUsageWorker::class.java.name ->
+                DailyUsageWorker(
+                    appContext, workerParameters, screenTimeManager, apiService, logManager
                 )
             else -> null
         }

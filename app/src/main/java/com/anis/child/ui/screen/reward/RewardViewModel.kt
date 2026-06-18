@@ -14,7 +14,8 @@ import javax.inject.Inject
 data class RewardUiState(
     val balance: Int = 0,
     val rewards: List<RewardEntity> = emptyList(),
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val errorMessage: String? = null
 )
 
 @HiltViewModel
@@ -45,9 +46,13 @@ class RewardViewModel @Inject constructor(
 
     fun claimReward(rewardId: Long) {
         viewModelScope.launch {
-            rewardRepository.claimReward(rewardId)
+            _uiState.value = _uiState.value.copy(errorMessage = null)
+            val success = rewardRepository.claimReward(rewardId)
             val balance = rewardRepository.getBalance()
-            _uiState.value = _uiState.value.copy(balance = balance)
+            _uiState.value = _uiState.value.copy(
+                balance = balance,
+                errorMessage = if (success) null else "Redemption failed. Please try again."
+            )
         }
     }
 }

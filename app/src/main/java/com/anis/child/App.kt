@@ -3,6 +3,7 @@ package com.anis.child
 import android.app.Application
 import android.util.Log
 import androidx.work.Configuration
+import com.anis.child.data.PreferenceManager
 import com.anis.child.data.local.AppRestrictionDao
 import com.anis.child.di.AnisWorkerFactory
 import com.anis.child.security.IntegrityVerifier
@@ -10,6 +11,7 @@ import com.anis.child.security.RootDetector
 import com.anis.child.security.SecurityState
 import com.anis.child.service.AppRestrictionService
 import com.anis.child.worker.AppRestrictionWatchdogWorker
+import com.anis.child.worker.DailyUsageWorker
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,6 +24,7 @@ class App : Application(), Configuration.Provider {
 
     @Inject lateinit var workerFactory: AnisWorkerFactory
     @Inject lateinit var appRestrictionDao: AppRestrictionDao
+    @Inject lateinit var preferenceManager: PreferenceManager
 
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -42,6 +45,10 @@ class App : Application(), Configuration.Provider {
 
         appScope.launch {
             ensureRestrictionServiceRunning()
+        }
+
+        if (preferenceManager.isLoggedIn) {
+            DailyUsageWorker.enqueue(this)
         }
     }
 

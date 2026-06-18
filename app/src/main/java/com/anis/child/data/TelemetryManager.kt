@@ -16,10 +16,13 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import com.google.android.gms.tasks.Tasks
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -109,6 +112,33 @@ class TelemetryManager @Inject constructor(
         saveAndSend(latitude, longitude)
     }
 
+    suspend fun sendLastKnownLocation(): Boolean = withContext(Dispatchers.IO) {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            logManager.log("Cannot send location — permission not granted", LogType.ERROR)
+            return@withContext false
+        }
+
+        try {
+            val location = Tasks.await(
+                fusedLocationClient.lastLocation,
+                LOCATION_TIMEOUT_SECONDS, TimeUnit.SECONDS
+            )
+            if (location != null) {
+                saveAndSend(location.latitude, location.longitude)
+                logManager.log("Location sent after pairing", LogType.SUCCESS)
+                true
+            } else {
+                logManager.log("No last known location available", LogType.INFO)
+                false
+            }
+        } catch (e: Exception) {
+            logManager.log("Failed to get location: ${e.message}", LogType.ERROR)
+            false
+        }
+    }
+
     suspend fun getUnsentCount(): Int {
         return dao.getUnsentCount()
     }
@@ -116,5 +146,6 @@ class TelemetryManager @Inject constructor(
     companion object {
         private const val LOCATION_UPDATE_INTERVAL = 15 * 60 * 1000L
         private const val MIN_DISTANCE_METERS = 100f
+        private const val LOCATION_TIMEOUT_SECONDS = 10L
     }
 }
