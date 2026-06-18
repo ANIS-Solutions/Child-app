@@ -6,6 +6,7 @@ import androidx.work.Configuration
 import com.anis.child.data.local.AppRestrictionDao
 import com.anis.child.di.AnisWorkerFactory
 import com.anis.child.service.AppRestrictionService
+import com.anis.child.worker.AppRestrictionWatchdogWorker
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,6 +36,7 @@ class App : Application(), Configuration.Provider {
             val blockedApps = appRestrictionDao.getBlockedApps()
             if (blockedApps.isNotEmpty()) {
                 AppRestrictionService.start(this)
+                AppRestrictionWatchdogWorker.enqueue(this)
                 Log.d(TAG, "Auto-started AppRestrictionService on app launch (${blockedApps.size} blocked apps)")
             }
         } catch (e: Exception) {

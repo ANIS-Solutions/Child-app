@@ -7,6 +7,8 @@ import android.os.Looper
 import androidx.core.content.ContextCompat
 import com.anis.child.data.local.LocationTelemetryDao
 import com.anis.child.data.local.LocationTelemetryEntity
+import com.anis.child.data.repository.LocationRepository
+import com.anis.child.network.ApiResult
 import com.anis.child.worker.LocationTelemetryWorker
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -25,7 +27,8 @@ import javax.inject.Singleton
 class TelemetryManager @Inject constructor(
     @ApplicationContext private val context: Context,
     private val dao: LocationTelemetryDao,
-    private val logManager: LogManager
+    private val logManager: LogManager,
+    private val locationRepository: LocationRepository
 ) {
     private val fusedLocationClient: FusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(context)
@@ -34,10 +37,10 @@ class TelemetryManager @Inject constructor(
         override fun onLocationResult(result: LocationResult) {
             result.lastLocation?.let { location ->
                 CoroutineScope(Dispatchers.IO).launch {
-                    saveLocation(location.latitude, location.longitude)
+                    val entity = saveAndSend(location.latitude, location.longitude)
                     logManager.log(
                         "Location: ${String.format("%.6f", location.latitude)}, ${String.format("%.6f", location.longitude)}",
-                        LogType.LOCATION
+                        if (entity == null) LogType.SUCCESS else LogType.LOCATION
                     )
                 }
             }
@@ -67,7 +70,7 @@ class TelemetryManager @Inject constructor(
                 Looper.getMainLooper()
             )
             LocationTelemetryWorker.enqueue(context)
-            logManager.log("Monitoring started (every 1 hour)", LogType.INFO)
+            logManager.log("Monitoring started (every 5 min)", LogType.INFO)
         } catch (e: SecurityException) {
             logManager.log("Failed to start monitoring: ${e.message}", LogType.ERROR)
             e.printStackTrace()
@@ -80,14 +83,31 @@ class TelemetryManager @Inject constructor(
         logManager.log("Monitoring stopped", LogType.INFO)
     }
 
-    suspend fun saveLocation(latitude: Double, longitude: Double) {
+    private suspend fun saveAndSend(latitude: Double, longitude: Double): LocationTelemetryEntity? {
         val entity = LocationTelemetryEntity(
             latitude = latitude,
             longitude = longitude,
             timestamp = System.currentTimeMillis(),
             isSent = false
         )
-        dao.insert(entity)
+        val id = dao.insert(entity)
+        val saved = entity.copy(id = id)
+
+        return when (locationRepository.sendTelemetry(latitude, longitude)) {
+            is ApiResult.Success -> {
+                dao.delete(id)
+                logManager.log("Sent immediately: ${String.format("%.4f", latitude)}, ${String.format("%.4f", longitude)}", LogType.SUCCESS)
+                null
+            }
+            is ApiResult.Error -> {
+                logManager.log("Queued for retry: ${String.format("%.4f", latitude)}, ${String.format("%.4f", longitude)}", LogType.LOCATION)
+                saved
+            }
+        }
+    }
+
+    suspend fun saveLocation(latitude: Double, longitude: Double) {
+        saveAndSend(latitude, longitude)
     }
 
     suspend fun getUnsentCount(): Int {
@@ -95,8 +115,8 @@ class TelemetryManager @Inject constructor(
     }
 
     companion object {
-        private const val LOCATION_UPDATE_INTERVAL = 60 * 60 * 1000L
-        private const val FASTEST_LOCATION_INTERVAL = 30 * 60 * 1000L
-        private const val MIN_DISTANCE_METERS = 100f
+        private const val LOCATION_UPDATE_INTERVAL = 5 * 60 * 1000L
+        private const val FASTEST_LOCATION_INTERVAL = 2 * 60 * 1000L
+        private const val MIN_DISTANCE_METERS = 0f
     }
 }

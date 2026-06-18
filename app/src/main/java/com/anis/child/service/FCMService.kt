@@ -5,6 +5,7 @@ import com.anis.child.data.local.AppRestrictionDao
 import com.anis.child.data.local.AppRestrictionEntity
 import com.anis.child.data.repository.FCMRepository
 import com.anis.child.util.getAppLabel
+import com.anis.child.worker.AppRestrictionWatchdogWorker
 import com.anis.child.worker.LocationTelemetryWorker
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
@@ -51,6 +52,7 @@ class FCMService : FirebaseMessagingService() {
             val blockedApps = appRestrictionDao.getBlockedApps()
             if (blockedApps.isNotEmpty()) {
                 AppRestrictionService.start(this)
+                AppRestrictionWatchdogWorker.enqueue(this)
                 Log.d(TAG, "Auto-started AppRestrictionService (${blockedApps.size} blocked apps)")
             }
         } catch (e: Exception) {
@@ -76,6 +78,7 @@ class FCMService : FirebaseMessagingService() {
             Log.d(TAG, "Upserted restriction for $packageId: isBlocked=${entity.isBlocked}, verify=${verify?.isBlocked}")
             if (entity.isBlocked || entity.dailyTimeLimitMinutes > 0) {
                 AppRestrictionService.start(this)
+                AppRestrictionWatchdogWorker.enqueue(this)
                 Log.d(TAG, "Auto-started AppRestrictionService")
             }
         } catch (e: Exception) {

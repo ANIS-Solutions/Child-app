@@ -13,7 +13,10 @@ import com.anis.child.data.LogManager
 import com.anis.child.data.LogType
 import com.anis.child.util.getAppLabel
 import com.anis.child.util.registerReceiverSafe
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -58,16 +61,18 @@ class AppNotificationListenerService : NotificationListenerService() {
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification) {
-        kotlinx.coroutines.runBlocking {
-            val existing = notificationDao.getAll().first()
-            val match = existing.find {
-                it.packageName == sbn.packageName &&
-                        it.timestamp >= sbn.postTime - 5000 &&
-                        it.timestamp <= sbn.postTime + 5000
-            }
-            if (match != null) {
-                notificationDao.markAsRemoved(match.id)
-            }
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val existing = notificationDao.getAll().first()
+                val match = existing.find {
+                    it.packageName == sbn.packageName &&
+                            it.timestamp >= sbn.postTime - 5000 &&
+                            it.timestamp <= sbn.postTime + 5000
+                }
+                if (match != null) {
+                    notificationDao.markAsRemoved(match.id)
+                }
+            } catch (_: Exception) {}
         }
     }
 
@@ -89,8 +94,9 @@ class AppNotificationListenerService : NotificationListenerService() {
 
         val appLabel = packageManager.getAppLabel(packageName)
 
-        kotlinx.coroutines.runBlocking {
-            notificationDao.insert(
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                notificationDao.insert(
                 NotificationInterceptEntity(
                     packageName = packageName,
                     appLabel = appLabel,
@@ -100,8 +106,9 @@ class AppNotificationListenerService : NotificationListenerService() {
                     isRead = false,
                     isRemoved = false
                 )
-            )
-             logManager.log("Notification from $appLabel: ${title?.take(30)}", LogType.NOTIFICATION)
+                )
+                logManager.log("Notification from $appLabel: ${title?.take(30)}", LogType.NOTIFICATION)
+            } catch (_: Exception) {}
         }
     }
 

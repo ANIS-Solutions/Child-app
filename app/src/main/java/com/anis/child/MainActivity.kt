@@ -5,8 +5,10 @@ import android.app.Activity
 import android.content.Intent
 import android.graphics.Color
 import android.media.projection.MediaProjectionManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.View
 import android.view.WindowManager
@@ -101,6 +103,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         logManager.log("App started", LogType.INFO)
+        requestBatteryOptimizationExemption()
 
         BlurOverlayManager.registerReceiver(
             context = this,
@@ -364,6 +367,21 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
         BlurOverlayManager.unregisterReceiver(this)
         hideBlockedOverlay()
+    }
+
+    private fun requestBatteryOptimizationExemption() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            try {
+                val intent = Intent(
+                    Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS,
+                    Uri.parse("package:${packageName}")
+                )
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                startActivity(intent)
+            } catch (e: Exception) {
+                Log.e(TAG, "Battery optimization exemption request failed", e)
+            }
+        }
     }
 
     private fun requestLocationPermissions() {

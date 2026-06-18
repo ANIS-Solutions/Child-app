@@ -33,6 +33,7 @@ import com.anis.child.ai.util.BlurOverlayManager
 import com.anis.child.ai.util.ImageStorageManager
 import com.anis.child.data.local.AnalysisResultEntity
 import com.anis.child.data.repository.SessionRepository
+import com.anis.child.util.registerReceiverSafe
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -122,7 +123,7 @@ class SessionCaptureService : Service() {
             addAction(Intent.ACTION_SCREEN_OFF)
             addAction(Intent.ACTION_SCREEN_ON)
         }
-        registerReceiver(screenReceiver, filter)
+        registerReceiverSafe(screenReceiver, filter)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

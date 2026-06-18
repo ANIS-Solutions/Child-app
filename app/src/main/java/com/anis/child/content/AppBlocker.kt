@@ -24,7 +24,7 @@ class AppBlocker @Inject constructor(
     private val packageManager: PackageManager = context.packageManager
     private var blockedAppShown: String? = null
 
-    fun checkAndBlock(packageName: String, accessibilityOverlay: Boolean = true) {
+    suspend fun checkAndBlock(packageName: String, accessibilityOverlay: Boolean = true) {
         if (packageName.isEmpty() || packageName == context.packageName) {
             blockedAppShown = null
             hideOverlay()
@@ -37,9 +37,7 @@ class AppBlocker @Inject constructor(
             return
         }
 
-        val reason = kotlinx.coroutines.runBlocking {
-            screenTimeManager.getBlockReason(packageName)
-        }
+        val reason = screenTimeManager.getBlockReason(packageName)
 
         if (reason != BlockReason.NOT_BLOCKED) {
             if (blockedAppShown != packageName) {

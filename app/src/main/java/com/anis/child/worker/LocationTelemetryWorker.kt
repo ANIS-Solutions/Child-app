@@ -103,12 +103,11 @@ class LocationTelemetryWorker(
                 1, TimeUnit.HOURS
             )
                 .setConstraints(constraints)
-                .setInitialDelay(1, TimeUnit.MINUTES)
                 .build()
 
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
                 WORK_NAME,
-                ExistingPeriodicWorkPolicy.KEEP,
+                ExistingPeriodicWorkPolicy.UPDATE,
                 workRequest
             )
         }

@@ -15,8 +15,11 @@ import com.anis.child.content.BlockingOverlayManager
 import com.anis.child.data.LogManager
 import com.anis.child.data.LogType
 import com.anis.child.data.ScreenTimeManager
-import dagger.hilt.android.AndroidEntryPoint
 import com.anis.child.util.registerReceiverSafe
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -122,7 +125,9 @@ class AppBlockAccessibilityService : AccessibilityService() {
             return
         }
 
-        appBlocker.checkAndBlock(pkg, accessibilityOverlay = true)
+        CoroutineScope(Dispatchers.IO).launch {
+            appBlocker.checkAndBlock(pkg, accessibilityOverlay = true)
+        }
 
         if (!BlockingOverlayManager.isShowing()) {
             blockedPackageName = null

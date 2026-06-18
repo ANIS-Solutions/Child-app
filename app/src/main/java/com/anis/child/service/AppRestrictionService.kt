@@ -28,6 +28,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
@@ -43,7 +44,10 @@ class AppRestrictionService : Service() {
 
     private var monitoringJob: Job? = null
     private var usageSyncJob: Job? = null
-    private var isRunning = false
+    @Volatile
+    private var _isRunning = false
+    @Volatile
+    private var lastHeartbeatMs = 0L
     private val appUsageSyncMap = ConcurrentHashMap<String, Long>()
     private var lastForegroundApp: String? = null
 
@@ -62,21 +66,28 @@ class AppRestrictionService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        if (isRunning) return START_STICKY
+        if (_isRunning) {
+            startForeground(NOTIFICATION_ID, buildNotification())
+            return START_STICKY
+        }
+        _isRunning = true
         isRunning = true
 
         val notification = buildNotification()
         startForeground(NOTIFICATION_ID, notification)
 
+        lastHeartbeatMs = System.currentTimeMillis()
+
         monitoringJob = CoroutineScope(Dispatchers.IO).launch {
-            while (isRunning) {
+            while (isActive && _isRunning) {
+                lastHeartbeatMs = System.currentTimeMillis()
                 checkForegroundApp()
                 delay(POLL_INTERVAL_MS)
             }
         }
 
         usageSyncJob = CoroutineScope(Dispatchers.IO).launch {
-            while (isRunning) {
+            while (isActive && _isRunning) {
                 delay(USAGE_SYNC_INTERVAL_MS)
                 sendUsage()
             }
@@ -146,6 +157,7 @@ class AppRestrictionService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        _isRunning = false
         isRunning = false
         monitoringJob?.cancel()
         usageSyncJob?.cancel()
@@ -183,6 +195,10 @@ class AppRestrictionService : Service() {
     }
 
     companion object {
+        @Volatile
+        var isRunning = false
+            private set
+
         private const val NOTIFICATION_ID = 1002
         private const val CHANNEL_ID = "app_restriction_service"
         private const val POLL_INTERVAL_MS = 3000L

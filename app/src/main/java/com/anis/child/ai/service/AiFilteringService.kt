@@ -41,6 +41,10 @@ class AiFilteringService : Service() {
     private var monitoringJob: Job? = null
     private var shouldRun = false
     private var mediaProjectionGranted = false
+    private var pollStarted = false
+
+    @Volatile
+    private var lastHeartbeatMs = 0L
 
     private val screenReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -65,7 +69,28 @@ class AiFilteringService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        when (intent?.action) {
+        val action = intent?.action
+
+        if (action == null) {
+            if (shouldRun || preferenceManager.isAiFilteringEnabled) {
+                if (!pollStarted) {
+                    shouldRun = true
+                    mediaProjectionGranted = false
+                    if (!preferenceManager.isAiLockdownActive) {
+                        preferenceManager.isAiLockdownActive = true
+                    }
+                    startForeground(NOTIFICATION_ID, buildFallbackNotification())
+                    startPolling()
+                    isRunning = true
+                    logManager.log("AI filtering service restarted (START_STICKY)", LogType.INFO)
+                } else {
+                    startForeground(NOTIFICATION_ID, buildFallbackNotification())
+                }
+            }
+            return START_STICKY
+        }
+
+        when (action) {
             ACTION_START -> {
                 if (shouldRun) return START_STICKY
                 shouldRun = true
@@ -79,8 +104,9 @@ class AiFilteringService : Service() {
             ACTION_STOP -> {
                 if (!preferenceManager.isAiFilteringEnabled) {
                     stopInternal()
+                    return START_NOT_STICKY
                 }
-                return START_NOT_STICKY
+                return START_STICKY
             }
             ACTION_GRANT_MEDIA_PROJECTION -> {
                 val resultCode = intent.getIntExtra(EXTRA_RESULT_CODE, -1)
@@ -107,8 +133,12 @@ class AiFilteringService : Service() {
     }
 
     private fun startPolling() {
+        if (pollStarted) return
+        pollStarted = true
+        lastHeartbeatMs = System.currentTimeMillis()
         monitoringJob = CoroutineScope(Dispatchers.IO).launch {
             while (shouldRun) {
+                lastHeartbeatMs = System.currentTimeMillis()
                 if (!screenOff) {
                     checkAndBlock()
                 }
@@ -140,6 +170,7 @@ class AiFilteringService : Service() {
 
     private fun stopInternal() {
         shouldRun = false
+        pollStarted = false
         monitoringJob?.cancel()
         mediaProjectionGranted = false
         preferenceManager.isAiLockdownActive = false
@@ -155,12 +186,11 @@ class AiFilteringService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         shouldRun = false
+        pollStarted = false
         monitoringJob?.cancel()
         try { unregisterReceiver(screenReceiver) } catch (_: Exception) {}
         BlockingOverlayManager.hideOverlay()
-        if (preferenceManager.isAiFilteringEnabled) {
-            startService(Intent(this, AiFilteringService::class.java).apply { action = ACTION_START })
-        }
+        isRunning = false
     }
 
     private fun createNotificationChannel() {
