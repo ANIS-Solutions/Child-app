@@ -27,6 +27,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -42,6 +44,7 @@ class AppRestrictionService : Service() {
     @Inject lateinit var appBlocker: AppBlocker
     @Inject lateinit var apiService: ApiService
 
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var monitoringJob: Job? = null
     private var usageSyncJob: Job? = null
     @Volatile
@@ -78,7 +81,7 @@ class AppRestrictionService : Service() {
 
         lastHeartbeatMs = System.currentTimeMillis()
 
-        monitoringJob = CoroutineScope(Dispatchers.IO).launch {
+        monitoringJob = serviceScope.launch {
             while (isActive && _isRunning) {
                 lastHeartbeatMs = System.currentTimeMillis()
                 checkForegroundApp()
@@ -86,7 +89,7 @@ class AppRestrictionService : Service() {
             }
         }
 
-        usageSyncJob = CoroutineScope(Dispatchers.IO).launch {
+        usageSyncJob = serviceScope.launch {
             while (isActive && _isRunning) {
                 delay(USAGE_SYNC_INTERVAL_MS)
                 sendUsage()
@@ -156,14 +159,13 @@ class AppRestrictionService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
-        super.onDestroy()
         _isRunning = false
         isRunning = false
-        monitoringJob?.cancel()
-        usageSyncJob?.cancel()
+        serviceScope.cancel()
         try { unregisterReceiver(overlayReceiver) } catch (_: Exception) {}
         BlockingOverlayManager.hideOverlay()
         logManager.log("Restriction service stopped", LogType.INFO)
+        super.onDestroy()
     }
 
     private fun createNotificationChannel() {

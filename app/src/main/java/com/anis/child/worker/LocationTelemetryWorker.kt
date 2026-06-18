@@ -100,7 +100,7 @@ class LocationTelemetryWorker(
                 .build()
 
             val workRequest = PeriodicWorkRequestBuilder<LocationTelemetryWorker>(
-                1, TimeUnit.HOURS
+                6, TimeUnit.HOURS
             )
                 .setConstraints(constraints)
                 .build()

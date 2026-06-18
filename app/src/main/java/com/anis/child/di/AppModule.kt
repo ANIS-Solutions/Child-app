@@ -1,6 +1,7 @@
 package com.anis.child.di
 
 import android.content.Context
+import androidx.security.crypto.MasterKey
 import com.anis.child.data.LogManager
 import com.anis.child.data.PreferenceManager
 import com.anis.child.data.local.AppDatabase
@@ -47,6 +48,14 @@ object AppModule {
     @Singleton
     fun providePreferenceManager(@ApplicationContext context: Context): PreferenceManager {
         return PreferenceManager(context)
+    }
+
+    @Provides
+    @Singleton
+    fun provideMasterKey(@ApplicationContext context: Context): MasterKey {
+        return MasterKey.Builder(context)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
     }
 
     @Provides
@@ -128,7 +137,10 @@ object AppModule {
         appLoggingInterceptor: AppLoggingInterceptor
     ): OkHttpClient {
         val loggingInterceptor = HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
+            level = if (com.anis.child.BuildConfig.DEBUG)
+                HttpLoggingInterceptor.Level.HEADERS
+            else
+                HttpLoggingInterceptor.Level.NONE
         }
         return OkHttpClient.Builder()
             .addInterceptor(authInterceptor)

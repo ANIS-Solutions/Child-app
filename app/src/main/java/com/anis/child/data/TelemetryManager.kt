@@ -48,10 +48,9 @@ class TelemetryManager @Inject constructor(
     }
 
     private val locationRequest = LocationRequest.Builder(
-        Priority.PRIORITY_HIGH_ACCURACY,
+        Priority.PRIORITY_BALANCED_POWER_ACCURACY,
         LOCATION_UPDATE_INTERVAL
     )
-        .setMinUpdateIntervalMillis(FASTEST_LOCATION_INTERVAL)
         .setMinUpdateDistanceMeters(MIN_DISTANCE_METERS)
         .build()
 
@@ -70,7 +69,7 @@ class TelemetryManager @Inject constructor(
                 Looper.getMainLooper()
             )
             LocationTelemetryWorker.enqueue(context)
-            logManager.log("Monitoring started (every 5 min)", LogType.INFO)
+            logManager.log("Monitoring started (every 15 min, 100m filter)", LogType.INFO)
         } catch (e: SecurityException) {
             logManager.log("Failed to start monitoring: ${e.message}", LogType.ERROR)
             e.printStackTrace()
@@ -115,8 +114,7 @@ class TelemetryManager @Inject constructor(
     }
 
     companion object {
-        private const val LOCATION_UPDATE_INTERVAL = 5 * 60 * 1000L
-        private const val FASTEST_LOCATION_INTERVAL = 2 * 60 * 1000L
-        private const val MIN_DISTANCE_METERS = 0f
+        private const val LOCATION_UPDATE_INTERVAL = 15 * 60 * 1000L
+        private const val MIN_DISTANCE_METERS = 100f
     }
 }

@@ -71,8 +71,8 @@
 -keep class com.google.android.gms.location.** { *; }
 -dontwarn com.google.android.gms.**
 
-# Keep model classes used for serialization
--keep class com.anis.child.** { *; }
+# (serialization models under com.anis.child.data are kept by the
+#  kotlinx.serialization rules at lines 17-23 above)
 
 # Keep R8 from removing generic signatures
 -keepattributes Signature

@@ -22,7 +22,7 @@
 
     <application
         android:name=".App"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
@@ -100,7 +100,11 @@
         <service
             android:name=".ai.service.AiFilteringService"
             android:exported="false"
-            android:foregroundServiceType="specialUse" />
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_FGS_SPECIAL_USE"
+                android:value="AI-based content filtering for real-time child safety screen monitoring" />
+        </service>
 
         <provider
             android:name="androidx.startup.InitializationProvider"

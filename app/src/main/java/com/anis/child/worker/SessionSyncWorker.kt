@@ -5,6 +5,7 @@ import androidx.work.CoroutineWorker
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import com.anis.child.ai.util.ImageStorageManager
 import com.anis.child.data.PreferenceManager
 import com.anis.child.data.local.AnalysisResultEntity
 import com.anis.child.data.local.SessionSyncEntity
@@ -77,11 +78,11 @@ class SessionSyncWorker(
                 val imagePath = result.imagePath
                 if (imagePath != null) {
                     keepImagePaths.add(imagePath)
-                    val imageFile = File(imagePath)
-                    if (imageFile.exists()) {
+                    val imageBytes = ImageStorageManager.readImageBytes(applicationContext, imagePath)
+                    if (imageBytes != null) {
                         val fileName = "${result.id}_${result.sessionId}.png"
                         val mediaType = "image/png".toMediaTypeOrNull()
-                        val requestBody = imageFile.readBytes().toRequestBody(mediaType)
+                        val requestBody = imageBytes.toRequestBody(mediaType)
                         imageParts.add(MultipartBody.Part.createFormData("images", fileName, requestBody))
                     }
                 }

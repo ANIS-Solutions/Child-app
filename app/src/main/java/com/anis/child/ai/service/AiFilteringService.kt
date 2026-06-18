@@ -25,6 +25,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -38,6 +40,7 @@ class AiFilteringService : Service() {
     @Inject lateinit var logManager: LogManager
     @Inject lateinit var appBlocker: AppBlocker
 
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var monitoringJob: Job? = null
     private var shouldRun = false
     private var mediaProjectionGranted = false
@@ -136,7 +139,7 @@ class AiFilteringService : Service() {
         if (pollStarted) return
         pollStarted = true
         lastHeartbeatMs = System.currentTimeMillis()
-        monitoringJob = CoroutineScope(Dispatchers.IO).launch {
+        monitoringJob = serviceScope.launch {
             while (shouldRun) {
                 lastHeartbeatMs = System.currentTimeMillis()
                 if (!screenOff) {
@@ -184,13 +187,13 @@ class AiFilteringService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
-        super.onDestroy()
         shouldRun = false
         pollStarted = false
-        monitoringJob?.cancel()
+        serviceScope.cancel()
         try { unregisterReceiver(screenReceiver) } catch (_: Exception) {}
         BlockingOverlayManager.hideOverlay()
         isRunning = false
+        super.onDestroy()
     }
 
     private fun createNotificationChannel() {

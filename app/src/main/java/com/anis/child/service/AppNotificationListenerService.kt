@@ -15,6 +15,8 @@ import com.anis.child.util.getAppLabel
 import com.anis.child.util.registerReceiverSafe
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import dagger.hilt.android.AndroidEntryPoint
@@ -25,6 +27,8 @@ class AppNotificationListenerService : NotificationListenerService() {
 
     @Inject lateinit var notificationDao: NotificationInterceptDao
     @Inject lateinit var logManager: LogManager
+
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val enableReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
@@ -61,7 +65,7 @@ class AppNotificationListenerService : NotificationListenerService() {
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification) {
-        CoroutineScope(Dispatchers.IO).launch {
+        serviceScope.launch {
             try {
                 val existing = notificationDao.getAll().first()
                 val match = existing.find {
@@ -77,8 +81,9 @@ class AppNotificationListenerService : NotificationListenerService() {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
+        serviceScope.cancel()
         try { unregisterReceiver(enableReceiver) } catch (_: Exception) {}
+        super.onDestroy()
     }
 
     private fun interceptNotification(sbn: StatusBarNotification) {
@@ -94,7 +99,7 @@ class AppNotificationListenerService : NotificationListenerService() {
 
         val appLabel = packageManager.getAppLabel(packageName)
 
-        CoroutineScope(Dispatchers.IO).launch {
+        serviceScope.launch {
             try {
                 notificationDao.insert(
                 NotificationInterceptEntity(

@@ -3,10 +3,11 @@ package com.anis.child.ai.util
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import androidx.security.crypto.EncryptedFile
+import androidx.security.crypto.MasterKey
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.io.FileOutputStream
 
 object ImageStorageManager {
 
@@ -14,6 +15,18 @@ object ImageStorageManager {
     private const val JPEG_QUALITY = 80
     private const val IMAGES_DIR = "session_images"
     private const val CACHE_DIR = "session_cache"
+
+    private fun encryptedFile(context: Context, file: File): EncryptedFile {
+        val masterKey = MasterKey.Builder(context)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
+        return EncryptedFile.Builder(
+            context,
+            file,
+            masterKey,
+            EncryptedFile.FileEncryptionScheme.AES256_GCM_HKDF_4KB
+        ).build()
+    }
 
     suspend fun saveImage(
         context: Context,
@@ -33,7 +46,7 @@ object ImageStorageManager {
             val fileName = "$timestamp.jpg"
             val imageFile = File(sessionDir, fileName)
 
-            FileOutputStream(imageFile).use { outputStream ->
+            encryptedFile(context, imageFile).openFileOutput().use { outputStream ->
                 scaledBitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, outputStream)
             }
 
@@ -64,7 +77,7 @@ object ImageStorageManager {
             val fileName = "$timestamp.jpg"
             val imageFile = File(sessionDir, fileName)
 
-            FileOutputStream(imageFile).use { outputStream ->
+            encryptedFile(context, imageFile).openFileOutput().use { outputStream ->
                 scaledBitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, outputStream)
             }
 
@@ -95,7 +108,18 @@ object ImageStorageManager {
                 if (!destDir.exists()) destDir.mkdirs()
 
                 val dest = File(destDir, "$timestamp.jpg")
-                src.renameTo(dest)
+
+                val srcEf = encryptedFile(context, src)
+                val destEf = encryptedFile(context, dest)
+
+                srcEf.openFileInput().use { input ->
+                    destEf.openFileOutput().use { output ->
+                        input.copyTo(output)
+                    }
+                }
+
+                src.delete()
+                true
             } catch (e: Exception) {
                 e.printStackTrace()
                 false
@@ -109,11 +133,29 @@ object ImageStorageManager {
         }
     }
 
-    suspend fun loadBitmapFromPath(path: String): Bitmap? = withContext(Dispatchers.IO) {
+    suspend fun loadBitmapFromPath(context: Context, path: String): Bitmap? = withContext(Dispatchers.IO) {
         try {
             val file = File(path)
             if (file.exists()) {
-                BitmapFactory.decodeFile(path)
+                encryptedFile(context, file).openFileInput().use { input ->
+                    BitmapFactory.decodeStream(input)
+                }
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    suspend fun readImageBytes(context: Context, path: String): ByteArray? = withContext(Dispatchers.IO) {
+        try {
+            val file = File(path)
+            if (file.exists()) {
+                encryptedFile(context, file).openFileInput().use { input ->
+                    input.readBytes()
+                }
             } else {
                 null
             }

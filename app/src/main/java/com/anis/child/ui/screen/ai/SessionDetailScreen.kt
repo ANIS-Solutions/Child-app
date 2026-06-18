@@ -342,10 +342,11 @@ private fun KeyframeSection(keyframeResults: List<AnalysisResultEntity>) {
 private fun KeyframeThumbnail(result: AnalysisResultEntity) {
     val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
+    val context = LocalContext.current
 
     LaunchedEffect(result.imagePath) {
         result.imagePath?.let { path ->
-            bitmap = ImageStorageManager.loadBitmapFromPath(path)
+            bitmap = ImageStorageManager.loadBitmapFromPath(context, path)
         }
     }
 
@@ -399,12 +400,13 @@ private fun KeyframeThumbnail(result: AnalysisResultEntity) {
 private fun AnalysisResultItem(result: AnalysisResultEntity) {
     val timeFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
     val isBlocked = result.decision == "BLOCKED"
+    val context = LocalContext.current
 
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
 
     LaunchedEffect(result.imagePath) {
         result.imagePath?.let { path ->
-            bitmap = ImageStorageManager.loadBitmapFromPath(path)
+            bitmap = ImageStorageManager.loadBitmapFromPath(context, path)
         }
     }
 
