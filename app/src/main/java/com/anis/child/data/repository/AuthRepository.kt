@@ -2,6 +2,7 @@ package com.anis.child.data.repository
 
 import com.anis.child.data.ChildData
 import com.anis.child.data.PairingRequest
+import com.anis.child.data.PairingResponse
 import com.anis.child.data.PreferenceManager
 import com.anis.child.network.ApiResult
 import com.anis.child.network.ApiService
@@ -17,10 +18,25 @@ class AuthRepository @Inject constructor(
     val savedFcmToken: String? get() = preferenceManager.fcmToken
 
     suspend fun pairDevice(request: PairingRequest): ApiResult<ChildData> {
-        val enrichedRequest = request.copy(fcmToken = request.fcmToken.ifEmpty {
+        return processPairingResult(safeApiCall {
+            apiService.pairDevice(enrichRequest(request))
+        })
+    }
+
+    suspend fun repairDevice(request: PairingRequest): ApiResult<ChildData> {
+        return processPairingResult(safeApiCall {
+            apiService.repairDevice(enrichRequest(request))
+        })
+    }
+
+    private fun enrichRequest(request: PairingRequest): PairingRequest {
+        return request.copy(fcmToken = request.fcmToken.ifEmpty {
             preferenceManager.fcmToken ?: ""
         })
-        return when (val result = safeApiCall { apiService.pairDevice(enrichedRequest) }) {
+    }
+
+    private fun processPairingResult(result: ApiResult<PairingResponse>): ApiResult<ChildData> {
+        return when (result) {
             is ApiResult.Success -> {
                 val response = result.data
                 if (response.success && response.accessToken != null) {

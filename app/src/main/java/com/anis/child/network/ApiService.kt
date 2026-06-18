@@ -1,5 +1,6 @@
 package com.anis.child.network
 
+import com.anis.child.data.AppUsageRequest
 import com.anis.child.data.AppsBulkResponse
 import com.anis.child.data.ChildMeResponse
 import com.anis.child.data.ChildQuestsResponse
@@ -31,6 +32,9 @@ interface ApiService {
 
     @POST(ApiConfig.Endpoints.PAIR_DEVICE)
     suspend fun pairDevice(@Body request: PairingRequest): PairingResponse
+
+    @POST(ApiConfig.Endpoints.REPAIR_DEVICE)
+    suspend fun repairDevice(@Body request: PairingRequest): PairingResponse
 
     @POST(ApiConfig.Endpoints.SEND_TELEMETRY)
     suspend fun sendTelemetry(
@@ -82,4 +86,10 @@ interface ApiService {
 
     @POST(ApiConfig.Endpoints.REDEEM_REWARD)
     suspend fun redeemReward(@Path("rewardId") rewardId: String): Response<ResponseBody>
+
+    @POST(ApiConfig.Endpoints.APP_USAGE)
+    suspend fun sendAppUsage(
+        @Path("packageName") packageName: String,
+        @Body request: AppUsageRequest
+    ): Response<ResponseBody>
 }

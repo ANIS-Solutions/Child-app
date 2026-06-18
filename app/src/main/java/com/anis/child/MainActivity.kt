@@ -167,7 +167,7 @@ class MainActivity : ComponentActivity() {
                             viewModel = pairingViewModel,
                             onNavigateToHome = {
                                 logManager.log("Paired successfully", LogType.SUCCESS)
-                                navController.navigate("home") {
+                                navController.navigate("pin?target=home&isSettingUp=true") {
                                     popUpTo("pairing") { inclusive = true }
                                 }
                             }
@@ -208,8 +208,14 @@ class MainActivity : ComponentActivity() {
                             viewModel = pinViewModel,
                             isSettingUp = isSettingUp,
                             onVerified = {
-                                navController.navigate(target) {
-                                    popUpTo("home")
+                                if (isSettingUp) {
+                                    navController.navigate(target) {
+                                        popUpTo(0) { inclusive = true }
+                                    }
+                                } else {
+                                    navController.navigate(target) {
+                                        popUpTo("home")
+                                    }
                                 }
                             },
                             onCancel = {

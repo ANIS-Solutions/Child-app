@@ -179,3 +179,10 @@ data class ChildMeData(
     @SerialName("deviceId") val deviceId: String? = null,
     @SerialName("deviceName") val deviceName: String? = null
 )
+
+@Serializable
+data class AppUsageRequest(
+    @SerialName("duration") val duration: Int,
+    @SerialName("timestamp") val timestamp: Long,
+    @SerialName("isLive") val isLive: Boolean
+)

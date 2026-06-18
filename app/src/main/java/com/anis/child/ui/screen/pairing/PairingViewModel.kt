@@ -60,7 +60,7 @@ class PairingViewModel @Inject constructor(
 
     fun processQrCode(qrContent: String) {
         val qrData = parseQrCode(qrContent)
-        if (qrData == null || qrData.action != "PAIR_DEVICE") {
+        if (qrData == null || (qrData.action != "PAIR_DEVICE" && qrData.action != "REPAIR_DEVICE")) {
             _uiState.value = PairingUiState.Error("Invalid QR code")
             return
         }
@@ -80,7 +80,13 @@ class PairingViewModel @Inject constructor(
                 deviceName = deviceName
             )
 
-            when (val result = authRepository.pairDevice(request)) {
+            val result = when (qrData.action) {
+                "PAIR_DEVICE" -> authRepository.pairDevice(request)
+                "REPAIR_DEVICE" -> authRepository.repairDevice(request)
+                else -> return@launch
+            }
+
+            when (result) {
                 is ApiResult.Success -> {
                     _uiState.value = PairingUiState.Success(result.data)
                     preferenceManager.needsInitialAppSync = true
