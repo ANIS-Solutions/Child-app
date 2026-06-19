@@ -35,13 +35,14 @@ import androidx.compose.ui.unit.sp
 import com.anis.child.data.LogEntry
 import com.anis.child.data.LogManager
 import com.anis.child.data.LogType
-import com.anis.child.ui.theme.AppColors
+import com.anis.child.ui.theme.LocalAppColors
 
 @Composable
 fun LogsScreen(
     logManager: LogManager,
     onBack: () -> Unit
 ) {
+    val appColors = LocalAppColors.current
     var logs by remember { mutableStateOf(emptyList<LogEntry>()) }
 
     LaunchedEffect(Unit) {
@@ -51,7 +52,7 @@ fun LogsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.surface50)
+            .background(appColors.surface50)
     ) {
         Row(
             modifier = Modifier
@@ -61,11 +62,11 @@ fun LogsScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = AppColors.textPrimary)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = appColors.textPrimary)
             }
             Text(
                 text = "Logs",
-                color = AppColors.textPrimary,
+                color = appColors.textPrimary,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
@@ -79,7 +80,7 @@ fun LogsScreen(
                 Text(
                     text = "No logs yet",
                     style = MaterialTheme.typography.bodySmall,
-                    color = AppColors.textDisabled
+                    color = appColors.textDisabled
                 )
             }
         } else {
@@ -112,22 +113,23 @@ private fun LogItem(
     entry: LogEntry,
     formatTime: (Long) -> String
 ) {
+    val appColors = LocalAppColors.current
     val backgroundColor = when (entry.type) {
         LogType.INFO -> Color.Transparent
-        LogType.SUCCESS -> AppColors.success500.copy(alpha = 0.1f)
-        LogType.ERROR -> AppColors.error500.copy(alpha = 0.1f)
-        LogType.LOCATION -> AppColors.primary01.copy(alpha = 0.1f)
-        LogType.HTTP -> AppColors.warning500.copy(alpha = 0.1f)
+        LogType.SUCCESS -> appColors.success500.copy(alpha = 0.1f)
+        LogType.ERROR -> appColors.error500.copy(alpha = 0.1f)
+        LogType.LOCATION -> appColors.primary01.copy(alpha = 0.1f)
+        LogType.HTTP -> appColors.warning500.copy(alpha = 0.1f)
         LogType.NOTIFICATION -> Color.Transparent
     }
 
     val textColor = when (entry.type) {
-        LogType.INFO -> AppColors.textPrimary
-        LogType.SUCCESS -> AppColors.success500
-        LogType.ERROR -> AppColors.error500
-        LogType.LOCATION -> AppColors.primary01
-        LogType.HTTP -> AppColors.warning500
-        LogType.NOTIFICATION -> AppColors.textPrimary
+        LogType.INFO -> appColors.textPrimary
+        LogType.SUCCESS -> appColors.success500
+        LogType.ERROR -> appColors.error500
+        LogType.LOCATION -> appColors.primary01
+        LogType.HTTP -> appColors.warning500
+        LogType.NOTIFICATION -> appColors.textPrimary
     }
 
     Row(
@@ -144,7 +146,7 @@ private fun LogItem(
                 fontFamily = FontFamily.Monospace,
                 fontSize = 10.sp
             ),
-            color = AppColors.textDisabled,
+            color = appColors.textDisabled,
             modifier = Modifier.width(50.dp)
         )
 

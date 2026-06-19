@@ -20,6 +20,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CardGiftcard
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.TaskAlt
 import androidx.compose.material.icons.filled.Timer
@@ -42,7 +44,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.anis.child.data.AppUsageInfo
-import com.anis.child.ui.theme.AppColors
+import com.anis.child.ui.theme.LocalAppColors
+import com.anis.child.ui.theme.ThemeManager
 
 @Composable
 fun HomeScreen(
@@ -52,12 +55,13 @@ fun HomeScreen(
     onTaskClick: () -> Unit = {},
     onRewardClick: () -> Unit = {}
 ) {
+    val appColors = LocalAppColors.current
     val homeData by homeViewModel.homeData.collectAsState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.surface50)
+            .background(appColors.surface50)
     ) {
         Row(
             modifier = Modifier
@@ -70,12 +74,12 @@ fun HomeScreen(
                 modifier = Modifier
                     .size(44.dp)
                     .clip(CircleShape)
-                    .background(AppColors.primary01.copy(alpha = 0.15f)),
+                    .background(appColors.primary01.copy(alpha = 0.15f)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = childName.firstOrNull()?.uppercase() ?: "C",
-                    color = AppColors.primary01,
+                    color = appColors.primary01,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
@@ -84,24 +88,25 @@ fun HomeScreen(
             Column {
                 Text(
                     text = "Hi, $childName!",
-                    color = AppColors.textPrimary,
+                    color = appColors.textPrimary,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = "Let's see what's happening",
-                    color = AppColors.textSecondary,
+                    color = appColors.textSecondary,
                     style = MaterialTheme.typography.bodySmall
                 )
             }
             Spacer(Modifier.weight(1f))
-            IconButton(onClick = onSettingsClick) {
+            IconButton(onClick = { ThemeManager.toggle() }) {
                 Icon(
-                    imageVector = Icons.Default.Settings,
-                    contentDescription = "Settings",
-                    tint = AppColors.textSecondary
+                    imageVector = if (ThemeManager.isDarkMode) Icons.Default.LightMode else Icons.Default.DarkMode,
+                    contentDescription = if (ThemeManager.isDarkMode) "Switch to Light Mode" else "Switch to Dark Mode",
+                    tint = appColors.textSecondary
                 )
             }
+            
         }
 
         Column(
@@ -126,18 +131,13 @@ fun HomeScreen(
                 apps = homeData.topApps
             )
 
-            TopAppsCard(
-                title = "Top Apps This Week",
-                apps = homeData.weeklyTopApps
-            )
-
             Spacer(Modifier.height(8.dp))
 
             ActionCard(
                 icon = Icons.Default.TaskAlt,
                 title = "See what's your assigned quests",
                 subtitle = "Complete quests and earn points",
-                color = AppColors.entertainment500,
+                color = appColors.entertainment500,
                 onClick = onTaskClick
             )
 
@@ -149,6 +149,14 @@ fun HomeScreen(
                 onClick = onRewardClick
             )
 
+            ActionCard(
+                icon = Icons.Default.Settings,
+                title = "Parent PyPass",
+                subtitle = "Manage your child's account and preferences",
+                color = Color(0xFFD3D3D3),
+                onClick = onSettingsClick
+            )
+
             Spacer(Modifier.height(16.dp))
         }
     }
@@ -156,13 +164,14 @@ fun HomeScreen(
 
 @Composable
 private fun TodayScreenTimeCard(todayMinutes: Int, dailyLimit: Int) {
+    val appColors = LocalAppColors.current
     val isOverLimit = dailyLimit > 0 && todayMinutes >= dailyLimit
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = if (isOverLimit) AppColors.error500.copy(alpha = 0.1f)
-            else AppColors.primary01.copy(alpha = 0.08f)
+            containerColor = if (isOverLimit) appColors.error500.copy(alpha = 0.1f)
+            else appColors.primary01.copy(alpha = 0.08f)
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -170,14 +179,14 @@ private fun TodayScreenTimeCard(todayMinutes: Int, dailyLimit: Int) {
                 Icon(
                     Icons.Default.Timer,
                     null,
-                    tint = if (isOverLimit) AppColors.error500 else AppColors.primary01,
+                    tint = if (isOverLimit) appColors.error500 else appColors.primary01,
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(
                     text = "Today's Screen Time",
                     style = MaterialTheme.typography.bodyLarge,
-                    color = AppColors.textPrimary,
+                    color = appColors.textPrimary,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -185,7 +194,7 @@ private fun TodayScreenTimeCard(todayMinutes: Int, dailyLimit: Int) {
             Text(
                 text = "${todayMinutes}m",
                 style = MaterialTheme.typography.headlineMedium,
-                color = if (isOverLimit) AppColors.error500 else AppColors.primary01,
+                color = if (isOverLimit) appColors.error500 else appColors.primary01,
                 fontWeight = FontWeight.Bold
             )
             if (isOverLimit) {
@@ -194,14 +203,14 @@ private fun TodayScreenTimeCard(todayMinutes: Int, dailyLimit: Int) {
                     Icon(
                         Icons.Default.Warning,
                         null,
-                        tint = AppColors.error500,
+                        tint = appColors.error500,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(Modifier.width(4.dp))
                     Text(
                         text = "You've exceeded your daily limit of ${dailyLimit}m",
                         style = MaterialTheme.typography.bodySmall,
-                        color = AppColors.error500,
+                        color = appColors.error500,
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -212,10 +221,11 @@ private fun TodayScreenTimeCard(todayMinutes: Int, dailyLimit: Int) {
 
 @Composable
 private fun WeeklyCard(weeklyTotal: Int, weeklyAverage: Int) {
+    val appColors = LocalAppColors.current
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = AppColors.primary01.copy(alpha = 0.08f)
+            containerColor = appColors.primary01.copy(alpha = 0.08f)
         )
     ) {
         Row(
@@ -228,19 +238,19 @@ private fun WeeklyCard(weeklyTotal: Int, weeklyAverage: Int) {
                 Icon(
                     Icons.Default.Timer,
                     null,
-                    tint = AppColors.primary01,
+                    tint = appColors.primary01,
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = "This Week",
                     style = MaterialTheme.typography.bodySmall,
-                    color = AppColors.textSecondary
+                    color = appColors.textSecondary
                 )
                 Text(
                     text = "${weeklyTotal}m",
                     style = MaterialTheme.typography.headlineSmall,
-                    color = AppColors.primary01,
+                    color = appColors.primary01,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -248,19 +258,19 @@ private fun WeeklyCard(weeklyTotal: Int, weeklyAverage: Int) {
                 Icon(
                     Icons.Default.TrendingUp,
                     null,
-                    tint = AppColors.primary01,
+                    tint = appColors.primary01,
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = "Daily Avg",
                     style = MaterialTheme.typography.bodySmall,
-                    color = AppColors.textSecondary
+                    color = appColors.textSecondary
                 )
                 Text(
                     text = "${weeklyAverage}m",
                     style = MaterialTheme.typography.headlineSmall,
-                    color = AppColors.primary01,
+                    color = appColors.primary01,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -270,19 +280,20 @@ private fun WeeklyCard(weeklyTotal: Int, weeklyAverage: Int) {
 
 @Composable
 private fun TopAppsCard(title: String, apps: List<AppUsageInfo>) {
+    val appColors = LocalAppColors.current
     if (apps.isEmpty()) return
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = AppColors.darkSurface.copy(alpha = 0.05f)
+            containerColor = appColors.darkSurface.copy(alpha = 0.05f)
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyLarge,
-                color = AppColors.textPrimary,
+                color = appColors.textPrimary,
                 fontWeight = FontWeight.Bold
             )
             Spacer(Modifier.height(8.dp))
@@ -296,19 +307,19 @@ private fun TopAppsCard(title: String, apps: List<AppUsageInfo>) {
                     Text(
                         text = "${index + 1}.",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = AppColors.textSecondary,
+                        color = appColors.textSecondary,
                         modifier = Modifier.width(24.dp)
                     )
                     Text(
                         text = app.label,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = AppColors.textPrimary,
+                        color = appColors.textPrimary,
                         modifier = Modifier.weight(1f)
                     )
                     Text(
                         text = formatDuration(app.totalTimeInForegroundMs),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = AppColors.primary01,
+                        color = appColors.primary01,
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -325,6 +336,7 @@ private fun ActionCard(
     color: Color,
     onClick: () -> Unit
 ) {
+    val appColors = LocalAppColors.current
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
@@ -358,13 +370,13 @@ private fun ActionCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = title,
-                    color = AppColors.textPrimary,
+                    color = appColors.textPrimary,
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
                     text = subtitle,
-                    color = AppColors.textSecondary,
+                    color = appColors.textSecondary,
                     style = MaterialTheme.typography.bodySmall
                 )
             }

@@ -46,7 +46,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.anis.child.ai.util.PermissionManager
 import com.anis.child.ui.components.PermissionItem
-import com.anis.child.ui.theme.AppColors
+import com.anis.child.ui.theme.LocalAppColors
 
 @Composable
 fun PermissionsCheckScreen(
@@ -54,6 +54,7 @@ fun PermissionsCheckScreen(
     onContinue: () -> Unit,
     onHistoryClick: () -> Unit = {}
 ) {
+    val appColors = LocalAppColors.current
     val context = LocalContext.current
     val activity = context as? Activity
 
@@ -80,7 +81,7 @@ fun PermissionsCheckScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.surface50)
+            .background(appColors.surface50)
     ) {
         Row(
             modifier = Modifier
@@ -90,11 +91,11 @@ fun PermissionsCheckScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = AppColors.textPrimary)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = appColors.textPrimary)
             }
             Text(
                 text = "Permissions",
-                color = AppColors.textPrimary,
+                color = appColors.textPrimary,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
@@ -112,13 +113,13 @@ fun PermissionsCheckScreen(
                 text = "Required Permissions",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = AppColors.textPrimary
+                color = appColors.textPrimary
             )
 
             Text(
                 text = "Grant the following permissions to enable AI content monitoring.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = AppColors.textSecondary
+                color = appColors.textSecondary
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -170,9 +171,9 @@ fun PermissionsCheckScreen(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
                     containerColor = if (allGranted) {
-                        AppColors.success500.copy(alpha = 0.15f)
+                        appColors.success500.copy(alpha = 0.15f)
                     } else {
-                        AppColors.warning500.copy(alpha = 0.15f)
+                        appColors.warning500.copy(alpha = 0.15f)
                     }
                 )
             ) {
@@ -186,7 +187,7 @@ fun PermissionsCheckScreen(
                     Icon(
                         imageVector = if (allGranted) Icons.Default.CheckCircle else Icons.Default.Warning,
                         contentDescription = null,
-                        tint = if (allGranted) AppColors.success500 else AppColors.warning500,
+                        tint = if (allGranted) appColors.success500 else appColors.warning500,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.size(8.dp))
@@ -198,7 +199,7 @@ fun PermissionsCheckScreen(
                         },
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
-                        color = if (allGranted) AppColors.success500 else AppColors.warning500
+                        color = if (allGranted) appColors.success500 else appColors.warning500
                     )
                 }
             }
@@ -215,8 +216,8 @@ fun PermissionsCheckScreen(
                 enabled = allGranted,
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = AppColors.primary01,
-                    disabledContainerColor = AppColors.textSecondary.copy(alpha = 0.3f)
+                    containerColor = appColors.primary01,
+                    disabledContainerColor = appColors.textSecondary.copy(alpha = 0.3f)
                 )
             ) {
                 Icon(
@@ -226,7 +227,7 @@ fun PermissionsCheckScreen(
                 )
                 Text(
                     text = "Continue",
-                    color = AppColors.darkTextPrimary,
+                    color = appColors.darkTextPrimary,
                     modifier = Modifier.padding(start = 8.dp)
                 )
             }
@@ -235,12 +236,12 @@ fun PermissionsCheckScreen(
                 onClick = onHistoryClick,
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = AppColors.darkSurface.copy(alpha = 0.2f)
+                    containerColor = appColors.darkSurface.copy(alpha = 0.2f)
                 )
             ) {
                 Text(
                     text = "View Session History",
-                    color = AppColors.textPrimary
+                    color = appColors.textPrimary
                 )
             }
         }

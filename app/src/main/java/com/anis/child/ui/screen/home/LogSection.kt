@@ -40,13 +40,14 @@ import androidx.compose.ui.unit.sp
 import com.anis.child.data.LogEntry
 import com.anis.child.data.LogManager
 import com.anis.child.data.LogType
-import com.anis.child.ui.theme.AppColors
+import com.anis.child.ui.theme.LocalAppColors
 
 @Composable
 fun LogSection(
     logManager: LogManager,
     modifier: Modifier = Modifier
 ) {
+    val appColors = LocalAppColors.current
     var isExpanded by remember { mutableStateOf(false) }
     var logs by remember { mutableStateOf(emptyList<LogEntry>()) }
 
@@ -60,7 +61,7 @@ fun LogSection(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(AppColors.darkSurface)
+                .background(appColors.darkSurface)
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
@@ -68,7 +69,7 @@ fun LogSection(
             Text(
                 text = "Logs",
                 style = MaterialTheme.typography.bodyMedium,
-                color = AppColors.textPrimary,
+                color = appColors.textPrimary,
                 fontWeight = FontWeight.Medium
             )
 
@@ -77,7 +78,7 @@ fun LogSection(
                 Text(
                     text = "$logCount entries",
                     style = MaterialTheme.typography.bodySmall,
-                    color = AppColors.textSecondary
+                    color = appColors.textSecondary
                 )
             }
 
@@ -85,7 +86,7 @@ fun LogSection(
                 Icon(
                     imageVector = if (isExpanded) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
                     contentDescription = if (isExpanded) "Collapse" else "Expand",
-                    tint = AppColors.textSecondary
+                    tint = appColors.textSecondary
                 )
             }
         }
@@ -96,7 +97,7 @@ fun LogSection(
                     .fillMaxWidth()
                     .height(200.dp),
                 shape = RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp),
-                colors = CardDefaults.cardColors(containerColor = AppColors.darkBackground)
+                colors = CardDefaults.cardColors(containerColor = appColors.darkBackground)
             ) {
                 val listState = rememberLazyListState()
 
@@ -114,7 +115,7 @@ fun LogSection(
                         Text(
                             text = "No logs yet",
                             style = MaterialTheme.typography.bodySmall,
-                            color = AppColors.textDisabled
+                            color = appColors.textDisabled
                         )
                     }
                 } else {
@@ -143,22 +144,23 @@ private fun LogItem(
     entry: LogEntry,
     formatTime: (Long) -> String
 ) {
+    val appColors = LocalAppColors.current
     val backgroundColor = when (entry.type) {
         LogType.INFO -> Color.Transparent
-        LogType.SUCCESS -> AppColors.success500.copy(alpha = 0.1f)
-        LogType.ERROR -> AppColors.error500.copy(alpha = 0.1f)
-        LogType.LOCATION -> AppColors.primary01.copy(alpha = 0.1f)
-        LogType.HTTP -> AppColors.warning500.copy(alpha = 0.1f)
+        LogType.SUCCESS -> appColors.success500.copy(alpha = 0.1f)
+        LogType.ERROR -> appColors.error500.copy(alpha = 0.1f)
+        LogType.LOCATION -> appColors.primary01.copy(alpha = 0.1f)
+        LogType.HTTP -> appColors.warning500.copy(alpha = 0.1f)
         LogType.NOTIFICATION -> Color.Transparent
     }
 
     val textColor = when (entry.type) {
-        LogType.INFO -> AppColors.textPrimary
-        LogType.SUCCESS -> AppColors.success500
-        LogType.ERROR -> AppColors.error500
-        LogType.LOCATION -> AppColors.primary01
-        LogType.HTTP -> AppColors.warning500
-        LogType.NOTIFICATION -> AppColors.textPrimary
+        LogType.INFO -> appColors.textPrimary
+        LogType.SUCCESS -> appColors.success500
+        LogType.ERROR -> appColors.error500
+        LogType.LOCATION -> appColors.primary01
+        LogType.HTTP -> appColors.warning500
+        LogType.NOTIFICATION -> appColors.textPrimary
     }
 
     Row(
@@ -175,7 +177,7 @@ private fun LogItem(
                 fontFamily = FontFamily.Monospace,
                 fontSize = 10.sp
             ),
-            color = AppColors.textDisabled,
+            color = appColors.textDisabled,
             modifier = Modifier.width(50.dp)
         )
 

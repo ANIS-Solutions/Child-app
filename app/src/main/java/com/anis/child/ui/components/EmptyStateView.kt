@@ -14,7 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import com.anis.child.ui.theme.AppColors
+import com.anis.child.ui.theme.LocalAppColors
 
 @Composable
 fun EmptyStateView(
@@ -22,11 +22,12 @@ fun EmptyStateView(
     message: String,
     modifier: Modifier = Modifier
 ) {
+    val appColors = LocalAppColors.current
     Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(icon, null, tint = AppColors.textDisabled, modifier = Modifier.size(64.dp))
+            Icon(icon, null, tint = appColors.textDisabled, modifier = Modifier.size(64.dp))
             Spacer(Modifier.height(16.dp))
-            Text(message, color = AppColors.textSecondary)
+            Text(message, color = appColors.textSecondary)
         }
     }
 }

@@ -103,6 +103,10 @@ class PreferenceManager(context: Context) {
         sharedPreferences.edit().clear().apply()
     }
 
+    var isDarkTheme: Boolean
+        get() = sharedPreferences.getBoolean(KEY_IS_DARK_THEME, false)
+        set(value) = sharedPreferences.edit().putBoolean(KEY_IS_DARK_THEME, value).apply()
+
     fun hasIsAiFilteringEnabled(): Boolean {
         return sharedPreferences.contains(KEY_IS_AI_FILTERING_ENABLED)
     }
@@ -129,5 +133,6 @@ class PreferenceManager(context: Context) {
         private const val KEY_IS_AI_LOCKDOWN_ACTIVE = "is_ai_lockdown_active"
         private const val KEY_PROMPTS_EMBEDDING_ID = "prompts_embedding_id"
         private const val KEY_PROMPTS_EMBEDDING_VERSION = "prompts_embedding_version"
+        private const val KEY_IS_DARK_THEME = "is_dark_theme"
     }
 }

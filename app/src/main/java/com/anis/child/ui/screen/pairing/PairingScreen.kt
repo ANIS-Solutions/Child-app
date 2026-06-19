@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.anis.child.ui.theme.AppColors
+import com.anis.child.ui.theme.LocalAppColors
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -46,6 +46,7 @@ fun PairingScreen(
     viewModel: PairingViewModel,
     onNavigateToHome: () -> Unit
 ) {
+    val appColors = LocalAppColors.current
     val uiState by viewModel.uiState.collectAsState()
     val navigateToHome by viewModel.onNavigateToHome.collectAsState()
 
@@ -94,7 +95,7 @@ fun PairingScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(AppColors.surface50)
+                    .background(appColors.surface50)
                     .padding(32.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
@@ -105,7 +106,7 @@ fun PairingScreen(
                         "Please grant camera permission to continue"
                     },
                     style = MaterialTheme.typography.bodyLarge,
-                    color = AppColors.textPrimary,
+                    color = appColors.textPrimary,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(top = 100.dp)
                 )
@@ -124,6 +125,7 @@ fun PairingScreen(
 private fun QrScannerContent(
     onQrCodeScanned: (String) -> Unit
 ) {
+    val appColors = LocalAppColors.current
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     var hasScanned by mutableStateOf(false)
@@ -131,7 +133,7 @@ private fun QrScannerContent(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.surface50)
+            .background(appColors.surface50)
     ) {
         AndroidView(
             factory = { ctx ->
@@ -209,11 +211,11 @@ private fun QrScannerContent(
         ) {
             Text(
                 text = "Point camera at QR code",
-                color = AppColors.textPrimary,
+                color = appColors.textPrimary,
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier
                     .background(
-                        AppColors.surface50.copy(alpha = 0.8f),
+                        appColors.surface50.copy(alpha = 0.8f),
                         MaterialTheme.shapes.medium
                     )
                     .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -224,10 +226,11 @@ private fun QrScannerContent(
 
 @Composable
 private fun LoadingOverlay() {
+    val appColors = LocalAppColors.current
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.surface50),
+            .background(appColors.surface50),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -235,12 +238,12 @@ private fun LoadingOverlay() {
         ) {
             CircularProgressIndicator(
                 modifier = Modifier.size(64.dp),
-                color = AppColors.primary01
+                color = appColors.primary01
             )
             Text(
                 text = "Pairing device...",
                 style = MaterialTheme.typography.bodyLarge,
-                color = AppColors.textPrimary,
+                color = appColors.textPrimary,
                 modifier = Modifier.padding(top = 16.dp)
             )
         }
@@ -252,10 +255,11 @@ private fun SuccessContent(
     childName: String,
     onContinue: () -> Unit
 ) {
+    val appColors = LocalAppColors.current
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.surface50),
+            .background(appColors.surface50),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -265,25 +269,25 @@ private fun SuccessContent(
             Box(
                 modifier = Modifier
                     .size(80.dp)
-                    .background(AppColors.success500, CircleShape),
+                    .background(appColors.success500, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "✓",
                     style = MaterialTheme.typography.headlineLarge,
-                    color = AppColors.darkTextPrimary
+                    color = appColors.darkTextPrimary
                 )
             }
             Text(
                 text = "Pairing Successful!",
                 style = MaterialTheme.typography.headlineSmall,
-                color = AppColors.textPrimary,
+                color = appColors.textPrimary,
                 modifier = Modifier.padding(top = 24.dp)
             )
             Text(
                 text = "Connected to $childName",
                 style = MaterialTheme.typography.bodyLarge,
-                color = AppColors.textSecondary,
+                color = appColors.textSecondary,
                 modifier = Modifier.padding(top = 8.dp)
             )
             androidx.compose.material3.Button(
@@ -302,10 +306,11 @@ private fun ErrorContent(
     details: String? = null,
     onRetry: () -> Unit
 ) {
+    val appColors = LocalAppColors.current
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.surface50),
+            .background(appColors.surface50),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -317,32 +322,32 @@ private fun ErrorContent(
             Box(
                 modifier = Modifier
                     .size(80.dp)
-                    .background(AppColors.error500, CircleShape),
+                    .background(appColors.error500, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "✕",
                     style = MaterialTheme.typography.headlineLarge,
-                    color = AppColors.darkTextPrimary
+                    color = appColors.darkTextPrimary
                 )
             }
             Text(
                 text = "Pairing Failed",
                 style = MaterialTheme.typography.headlineSmall,
-                color = AppColors.textPrimary,
+                color = appColors.textPrimary,
                 modifier = Modifier.padding(top = 24.dp)
             )
             Text(
                 text = message,
                 style = MaterialTheme.typography.bodyLarge,
-                color = AppColors.textSecondary,
+                color = appColors.textSecondary,
                 modifier = Modifier.padding(top = 8.dp)
             )
             if (details != null) {
                 Text(
                     text = details,
                     style = MaterialTheme.typography.bodySmall,
-                    color = AppColors.textDisabled,
+                    color = appColors.textDisabled,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp)
                 )

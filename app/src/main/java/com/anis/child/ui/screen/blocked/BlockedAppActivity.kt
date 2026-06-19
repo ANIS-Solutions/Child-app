@@ -34,9 +34,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.anis.child.data.PreferenceManager
 import com.anis.child.data.ScreenTimeManager
 import com.anis.child.data.ScreenTimeManager.BlockReason
-import com.anis.child.ui.theme.AppColors
+import com.anis.child.ui.theme.ANISTheme
+import com.anis.child.ui.theme.LocalAppColors
+import com.anis.child.ui.theme.ThemeManager
 import com.anis.child.util.getAppLabel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
@@ -46,6 +49,7 @@ import javax.inject.Inject
 class BlockedAppActivity : ComponentActivity() {
 
     @Inject lateinit var screenTimeManager: ScreenTimeManager
+    @Inject lateinit var preferenceManager: PreferenceManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,14 +68,18 @@ class BlockedAppActivity : ComponentActivity() {
         val reason = (intent.getSerializableExtra(EXTRA_REASON) as? BlockReason) ?: BlockReason.PARENT_BLOCK
         val appLabel = packageManager.getAppLabel(packageName)
 
+        ThemeManager.init(preferenceManager)
+
         setContent {
-            BlockedAppScreen(
-                appLabel = appLabel,
-                reason = reason,
-                packageName = packageName,
-                screenTimeManager = screenTimeManager,
-                onUnblocked = { finish() }
-            )
+            ANISTheme(darkTheme = ThemeManager.isDarkMode) {
+                BlockedAppScreen(
+                    appLabel = appLabel,
+                    reason = reason,
+                    packageName = packageName,
+                    screenTimeManager = screenTimeManager,
+                    onUnblocked = { finish() }
+                )
+            }
         }
     }
 
@@ -97,6 +105,7 @@ private fun BlockedAppScreen(
     screenTimeManager: ScreenTimeManager,
     onUnblocked: () -> Unit
 ) {
+    val appColors = LocalAppColors.current
     val context = LocalContext.current
 
     LaunchedEffect(packageName) {
@@ -135,7 +144,7 @@ private fun BlockedAppScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.surface50)
+            .background(appColors.surface50)
     ) {
         Column(
             modifier = Modifier
@@ -159,7 +168,7 @@ private fun BlockedAppScreen(
 
             Text(
                 text = titleText,
-                color = AppColors.textPrimary,
+                color = appColors.textPrimary,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
@@ -168,7 +177,7 @@ private fun BlockedAppScreen(
             Text(
                 text = appLabel,
                 modifier = Modifier.padding(top = 4.dp),
-                color = AppColors.textSecondary,
+                color = appColors.textSecondary,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
@@ -177,7 +186,7 @@ private fun BlockedAppScreen(
             Text(
                 text = descriptionText,
                 modifier = Modifier.padding(top = 8.dp),
-                color = AppColors.textSecondary,
+                color = appColors.textSecondary,
                 fontSize = 14.sp,
                 textAlign = TextAlign.Center
             )

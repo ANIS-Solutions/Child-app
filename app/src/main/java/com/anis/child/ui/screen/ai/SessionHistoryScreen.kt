@@ -52,7 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.anis.child.data.local.AnalysisResultEntity
 import com.anis.child.data.local.SessionEntity
-import com.anis.child.ui.theme.AppColors
+import com.anis.child.ui.theme.LocalAppColors
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -64,6 +64,7 @@ fun SessionHistoryScreen(
     onSessionClick: (Long) -> Unit,
     viewModel: SessionHistoryViewModel = hiltViewModel()
 ) {
+    val appColors = LocalAppColors.current
     val sessions by viewModel.sessions.collectAsState()
     val voteState by viewModel.voteState.collectAsState()
     val unsyncedCount by viewModel.unsyncedCount.collectAsState()
@@ -71,7 +72,7 @@ fun SessionHistoryScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.surface50)
+            .background(appColors.surface50)
     ) {
         Row(
             modifier = Modifier
@@ -81,11 +82,11 @@ fun SessionHistoryScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onNavigateBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = AppColors.textPrimary)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = appColors.textPrimary)
             }
             Text(
                 text = "Session History",
-                color = AppColors.textPrimary,
+                color = appColors.textPrimary,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
@@ -125,13 +126,13 @@ fun SessionHistoryScreen(
                     Text(
                         text = "No sessions yet",
                         style = MaterialTheme.typography.titleMedium,
-                        color = AppColors.textSecondary
+                        color = appColors.textSecondary
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "Start a monitoring session to see history here",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = AppColors.textSecondary
+                        color = appColors.textSecondary
                     )
                 }
             }
@@ -164,10 +165,11 @@ private fun SyncCard(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val appColors = LocalAppColors.current
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = AppColors.primary01.copy(alpha = 0.1f)
+            containerColor = appColors.primary01.copy(alpha = 0.1f)
         )
     ) {
         Column(
@@ -181,13 +183,13 @@ private fun SyncCard(
                         text = "$unsyncedCount unsynced sessions",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        color = AppColors.textPrimary
+                        color = appColors.textPrimary
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "Run CondensationEngine across all sessions to select best keyframes",
                         style = MaterialTheme.typography.bodySmall,
-                        color = AppColors.textSecondary
+                        color = appColors.textSecondary
                     )
                     Spacer(modifier = Modifier.height(12.dp))
 
@@ -195,7 +197,7 @@ private fun SyncCard(
                         Text(
                             text = it,
                             style = MaterialTheme.typography.bodySmall,
-                            color = AppColors.error500
+                            color = appColors.error500
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                     }
@@ -205,20 +207,20 @@ private fun SyncCard(
                         enabled = voteState.status != VoteStatus.Voting,
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = AppColors.primary01
+                            containerColor = appColors.primary01
                         )
                     ) {
                         if (voteState.status == VoteStatus.Voting) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(18.dp),
-                                color = AppColors.darkTextPrimary,
+                                color = appColors.darkTextPrimary,
                                 strokeWidth = 2.dp
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                         }
                         Text(
                             text = if (voteState.status == VoteStatus.Voting) "Voting..." else "Vote All Sessions",
-                            color = AppColors.darkTextPrimary
+                            color = appColors.darkTextPrimary
                         )
                     }
                 }
@@ -230,7 +232,7 @@ private fun SyncCard(
                         text = "Selected ${results.size} keyframes, $embCount embeddings from $unsyncedCount sessions",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        color = AppColors.textPrimary
+                        color = appColors.textPrimary
                     )
                     Spacer(modifier = Modifier.height(8.dp))
 
@@ -247,7 +249,7 @@ private fun SyncCard(
                         Text(
                             text = it,
                             style = MaterialTheme.typography.bodySmall,
-                            color = AppColors.error500
+                            color = appColors.error500
                         )
                     }
 
@@ -257,10 +259,10 @@ private fun SyncCard(
                         onClick = onSend,
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = AppColors.primary01
+                            containerColor = appColors.primary01
                         )
                     ) {
-                        Text("Send to Server", color = AppColors.darkTextPrimary)
+                        Text("Send to Server", color = appColors.darkTextPrimary)
                     }
                 }
 
@@ -268,14 +270,14 @@ private fun SyncCard(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(18.dp),
-                            color = AppColors.primary01,
+                            color = appColors.primary01,
                             strokeWidth = 2.dp
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "Sending to server...",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = AppColors.textPrimary
+                            color = appColors.textPrimary
                         )
                     }
                 }
@@ -291,10 +293,11 @@ private fun SyncSentCard(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val appColors = LocalAppColors.current
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = AppColors.success500.copy(alpha = 0.15f)
+            containerColor = appColors.success500.copy(alpha = 0.15f)
         )
     ) {
         Column(
@@ -307,16 +310,16 @@ private fun SyncSentCard(
                 text = "Data sent successfully",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
-                color = AppColors.textPrimary
+                color = appColors.textPrimary
             )
             Spacer(modifier = Modifier.height(8.dp))
             Button(
                 onClick = onDismiss,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = AppColors.success500
+                    containerColor = appColors.success500
                 )
             ) {
-                Text("Done", color = AppColors.darkTextPrimary)
+                Text("Done", color = appColors.darkTextPrimary)
             }
         }
     }
@@ -324,6 +327,7 @@ private fun SyncSentCard(
 
 @Composable
 private fun KeyframeThumbnail(result: AnalysisResultEntity) {
+    val appColors = LocalAppColors.current
     var bitmap by remember(result.id) { mutableStateOf<android.graphics.Bitmap?>(null) }
 
     androidx.compose.runtime.LaunchedEffect(result.imagePath) {
@@ -349,13 +353,13 @@ private fun KeyframeThumbnail(result: AnalysisResultEntity) {
         } ?: Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(AppColors.darkSurface.copy(alpha = 0.2f)),
+                .background(appColors.darkSurface.copy(alpha = 0.2f)),
             contentAlignment = Alignment.Center
         ) {
             Text(
                 text = "No image",
                 style = MaterialTheme.typography.labelSmall,
-                color = AppColors.textSecondary
+                color = appColors.textSecondary
             )
         }
     }
@@ -367,13 +371,14 @@ private fun SessionHistoryItem(
     onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
+    val appColors = LocalAppColors.current
     val dateFormat = SimpleDateFormat("MMM dd, yyyy HH:mm", Locale.getDefault())
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        colors = CardDefaults.cardColors(containerColor = AppColors.darkSurface.copy(alpha = 0.1f))
+        colors = CardDefaults.cardColors(containerColor = appColors.darkSurface.copy(alpha = 0.1f))
     ) {
         Column(
             modifier = Modifier
@@ -389,13 +394,13 @@ private fun SessionHistoryItem(
                     text = dateFormat.format(Date(session.startTime)),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = AppColors.textPrimary
+                    color = appColors.textPrimary
                 )
                 IconButton(onClick = onDelete) {
                     Icon(
                         Icons.Default.Delete,
                         contentDescription = "Delete",
-                        tint = AppColors.error500
+                        tint = appColors.error500
                     )
                 }
             }
@@ -410,15 +415,15 @@ private fun SessionHistoryItem(
                     Text(
                         text = "Status",
                         style = MaterialTheme.typography.bodySmall,
-                        color = AppColors.textSecondary
+                        color = appColors.textSecondary
                     )
                     Text(
                         text = session.status,
                         style = MaterialTheme.typography.bodyMedium,
                         color = if (session.status == "ACTIVE") {
-                            AppColors.success500
+                            appColors.success500
                         } else {
-                            AppColors.textPrimary
+                            appColors.textPrimary
                         }
                     )
                 }
@@ -426,24 +431,24 @@ private fun SessionHistoryItem(
                     Text(
                         text = "Interval",
                         style = MaterialTheme.typography.bodySmall,
-                        color = AppColors.textSecondary
+                        color = appColors.textSecondary
                     )
                     Text(
                         text = "${session.intervalMs}ms",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = AppColors.textPrimary
+                        color = appColors.textPrimary
                     )
                 }
                 Column {
                     Text(
                         text = "Captures",
                         style = MaterialTheme.typography.bodySmall,
-                        color = AppColors.textSecondary
+                        color = appColors.textSecondary
                     )
                     Text(
                         text = "${session.totalCaptures}",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = AppColors.textPrimary
+                        color = appColors.textPrimary
                     )
                 }
             }
@@ -458,14 +463,14 @@ private fun SessionHistoryItem(
                         onClick = {},
                         label = { Text("Blocked: ${session.blockedCount}") },
                         colors = AssistChipDefaults.assistChipColors(
-                            containerColor = AppColors.error500.copy(alpha = 0.2f)
+                            containerColor = appColors.error500.copy(alpha = 0.2f)
                         )
                     )
                     AssistChip(
                         onClick = {},
                         label = { Text("Safe: ${session.safeCount}") },
                         colors = AssistChipDefaults.assistChipColors(
-                            containerColor = AppColors.success500.copy(alpha = 0.2f)
+                            containerColor = appColors.success500.copy(alpha = 0.2f)
                         )
                     )
                 }

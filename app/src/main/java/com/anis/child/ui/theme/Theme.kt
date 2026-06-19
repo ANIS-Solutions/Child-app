@@ -9,40 +9,41 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalContext
 
 private val DarkColorScheme = darkColorScheme(
-    primary = AppColors.primary01,
-    onPrimary = AppColors.darkTextPrimary,
-    secondary = AppColors.secondary500,
-    onSecondary = AppColors.darkTextPrimary,
-    tertiary = AppColors.game500,
-    onTertiary = AppColors.darkTextPrimary,
-    background = AppColors.darkBackground,
-    onBackground = AppColors.darkTextPrimary,
-    surface = AppColors.darkSurface,
-    onSurface = AppColors.darkOnSurface,
-    surfaceVariant = AppColors.darkSurfaceElevated,
-    onSurfaceVariant = AppColors.darkTextSecondary,
-    error = AppColors.error500,
-    onError = AppColors.darkTextPrimary
+    primary = DarkAppColors.primary01,
+    onPrimary = DarkAppColors.darkTextPrimary,
+    secondary = DarkAppColors.secondary500,
+    onSecondary = DarkAppColors.darkTextPrimary,
+    tertiary = DarkAppColors.game500,
+    onTertiary = DarkAppColors.darkTextPrimary,
+    background = DarkAppColors.darkBackground,
+    onBackground = DarkAppColors.darkTextPrimary,
+    surface = DarkAppColors.darkSurface,
+    onSurface = DarkAppColors.darkOnSurface,
+    surfaceVariant = DarkAppColors.darkSurfaceElevated,
+    onSurfaceVariant = DarkAppColors.darkTextSecondary,
+    error = DarkAppColors.error500,
+    onError = DarkAppColors.darkTextPrimary
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = AppColors.primary01,
-    onPrimary = AppColors.darkTextPrimary,
-    secondary = AppColors.secondary500,
-    onSecondary = AppColors.darkTextPrimary,
-    tertiary = AppColors.game500,
-    onTertiary = AppColors.darkTextPrimary,
-    background = AppColors.surface50,
-    onBackground = AppColors.textPrimary,
-    surface = AppColors.surface50,
-    onSurface = AppColors.textPrimary,
-    surfaceVariant = AppColors.surfaceOverlay,
-    onSurfaceVariant = AppColors.textSecondary,
-    error = AppColors.error500,
-    onError = AppColors.darkTextPrimary
+    primary = LightAppColors.primary01,
+    onPrimary = LightAppColors.darkTextPrimary,
+    secondary = LightAppColors.secondary500,
+    onSecondary = LightAppColors.darkTextPrimary,
+    tertiary = LightAppColors.game500,
+    onTertiary = LightAppColors.darkTextPrimary,
+    background = LightAppColors.surface50,
+    onBackground = LightAppColors.textPrimary,
+    surface = LightAppColors.surface50,
+    onSurface = LightAppColors.textPrimary,
+    surfaceVariant = LightAppColors.surfaceOverlay,
+    onSurfaceVariant = LightAppColors.textSecondary,
+    error = LightAppColors.error500,
+    onError = LightAppColors.darkTextPrimary
 )
 
 @Composable
@@ -60,10 +61,13 @@ fun ANISTheme(
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
+    val appColors = if (darkTheme) DarkAppColors else LightAppColors
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+    CompositionLocalProvider(LocalAppColors provides appColors) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            content = content
+        )
+    }
 }

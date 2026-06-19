@@ -33,7 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.anis.child.ui.theme.AppColors
+import com.anis.child.ui.theme.LocalAppColors
 import kotlinx.coroutines.delay
 
 @Composable
@@ -43,6 +43,7 @@ fun PinScreen(
     onVerified: () -> Unit,
     onCancel: (() -> Unit)? = null
 ) {
+    val appColors = LocalAppColors.current
     val uiState by viewModel.uiState.collectAsState()
     val enteredPin by viewModel.enteredPin.collectAsState()
 
@@ -61,7 +62,7 @@ fun PinScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.surface50)
+            .background(appColors.surface50)
     ) {
         Column(
             modifier = Modifier
@@ -82,7 +83,7 @@ fun PinScreen(
             Text(
                 text = title,
                 style = MaterialTheme.typography.headlineSmall,
-                color = AppColors.textPrimary,
+                color = appColors.textPrimary,
                 fontWeight = FontWeight.Bold
             )
 
@@ -100,7 +101,7 @@ fun PinScreen(
             Text(
                 text = subtitle,
                 style = MaterialTheme.typography.bodyMedium,
-                color = AppColors.textSecondary,
+                color = appColors.textSecondary,
                 textAlign = TextAlign.Center
             )
 
@@ -125,10 +126,10 @@ fun PinScreen(
                 Button(
                     onClick = onCancel,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = AppColors.error500
+                        containerColor = appColors.error500
                     )
                 ) {
-                    Text("Cancel", color = AppColors.darkTextPrimary)
+                    Text("Cancel", color = appColors.darkTextPrimary)
                 }
             }
 
@@ -137,10 +138,10 @@ fun PinScreen(
                 Button(
                     onClick = { viewModel.reset() },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = AppColors.primary01
+                        containerColor = appColors.primary01
                     )
                 ) {
-                    Text("Try Again", color = AppColors.darkTextPrimary)
+                    Text("Try Again", color = appColors.darkTextPrimary)
                 }
             }
         }
@@ -153,6 +154,7 @@ private fun PinDots(
     maxLength: Int,
     isError: Boolean
 ) {
+    val appColors = LocalAppColors.current
     Row(
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -160,9 +162,9 @@ private fun PinDots(
         for (i in 0 until maxLength) {
             val isFilled = i < pin.length
             val color = when {
-                isError -> AppColors.error500
-                isFilled -> AppColors.primary01
-                else -> AppColors.textDisabled
+                isError -> appColors.error500
+                isFilled -> appColors.primary01
+                else -> appColors.textDisabled
             }
             Box(
                 modifier = Modifier
@@ -180,6 +182,7 @@ private fun PinKeypad(
     onDeleteClick: () -> Unit,
     enabled: Boolean
 ) {
+    val appColors = LocalAppColors.current
     Column(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -218,7 +221,7 @@ private fun PinKeypad(
                 Icon(
                     imageVector = Icons.Default.Backspace,
                     contentDescription = "Delete",
-                    tint = if (enabled) AppColors.textPrimary else AppColors.textDisabled,
+                    tint = if (enabled) appColors.textPrimary else appColors.textDisabled,
                     modifier = Modifier.size(32.dp)
                 )
             }
@@ -232,8 +235,9 @@ private fun PinKey(
     enabled: Boolean,
     onClick: () -> Unit
 ) {
-    val bgColor = if (enabled) AppColors.darkSurface.copy(alpha = 0.1f) else AppColors.textDisabled.copy(alpha = 0.1f)
-    val textColor = if (enabled) AppColors.textPrimary else AppColors.textDisabled
+    val appColors = LocalAppColors.current
+    val bgColor = if (enabled) appColors.darkSurface.copy(alpha = 0.1f) else appColors.textDisabled.copy(alpha = 0.1f)
+    val textColor = if (enabled) appColors.textPrimary else appColors.textDisabled
 
     Button(
         onClick = onClick,
@@ -242,7 +246,7 @@ private fun PinKey(
         shape = CircleShape,
         colors = ButtonDefaults.buttonColors(
             containerColor = bgColor,
-            disabledContainerColor = AppColors.textDisabled.copy(alpha = 0.05f)
+            disabledContainerColor = appColors.textDisabled.copy(alpha = 0.05f)
         )
     ) {
         Text(

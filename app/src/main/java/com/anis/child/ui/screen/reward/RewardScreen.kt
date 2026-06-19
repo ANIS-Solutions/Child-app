@@ -39,19 +39,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.anis.child.data.local.RewardEntity
 import com.anis.child.ui.components.EmptyStateView
-import com.anis.child.ui.theme.AppColors
+import com.anis.child.ui.theme.LocalAppColors
 
 @Composable
 fun RewardScreen(
     viewModel: RewardViewModel,
     onBack: () -> Unit
 ) {
+    val appColors = LocalAppColors.current
     val uiState by viewModel.uiState.collectAsState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.surface50)
+            .background(appColors.surface50)
     ) {
         Row(
             modifier = Modifier
@@ -61,11 +62,11 @@ fun RewardScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, "Back", tint = AppColors.textPrimary)
+                Icon(Icons.Default.ArrowBack, "Back", tint = appColors.textPrimary)
             }
             Text(
                 text = "Rewards",
-                color = AppColors.textPrimary,
+                color = appColors.textPrimary,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
@@ -73,7 +74,7 @@ fun RewardScreen(
 
         if (uiState.isLoading) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = AppColors.primary01)
+                CircularProgressIndicator(color = appColors.primary01)
             }
         } else {
             LazyColumn(
@@ -91,7 +92,7 @@ fun RewardScreen(
                     Text(
                         text = "Available Rewards",
                         style = MaterialTheme.typography.titleMedium,
-                        color = AppColors.textPrimary,
+                        color = appColors.textPrimary,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -118,7 +119,7 @@ fun RewardScreen(
                         Text(
                             text = "History",
                             style = MaterialTheme.typography.titleMedium,
-                            color = AppColors.textPrimary,
+                            color = appColors.textPrimary,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -133,9 +134,10 @@ fun RewardScreen(
 
 @Composable
 private fun BalanceCard(balance: Int) {
+    val appColors = LocalAppColors.current
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = AppColors.primary01)
+        colors = CardDefaults.cardColors(containerColor = appColors.primary01)
     ) {
         Row(
             modifier = Modifier
@@ -144,19 +146,19 @@ private fun BalanceCard(balance: Int) {
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(Icons.Default.Star, null, tint = AppColors.warning500, modifier = Modifier.size(36.dp))
+            Icon(Icons.Default.Star, null, tint = appColors.warning500, modifier = Modifier.size(36.dp))
             Spacer(Modifier.width(12.dp))
             Column {
                 Text(
                     text = "$balance",
                     style = MaterialTheme.typography.displayMedium,
-                    color = AppColors.darkTextPrimary,
+                    color = appColors.darkTextPrimary,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = "Reward Points",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = AppColors.darkTextPrimary.copy(alpha = 0.8f)
+                    color = appColors.darkTextPrimary.copy(alpha = 0.8f)
                 )
             }
         }
@@ -169,9 +171,10 @@ private fun RewardCard(
     canAfford: Boolean,
     onClaim: () -> Unit
 ) {
+    val appColors = LocalAppColors.current
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = AppColors.darkSurface.copy(alpha = 0.05f))
+        colors = CardDefaults.cardColors(containerColor = appColors.darkSurface.copy(alpha = 0.05f))
     ) {
         Row(
             modifier = Modifier
@@ -179,20 +182,20 @@ private fun RewardCard(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(Icons.Default.CardGiftcard, null, tint = AppColors.primary01, modifier = Modifier.size(36.dp))
+            Icon(Icons.Default.CardGiftcard, null, tint = appColors.primary01, modifier = Modifier.size(36.dp))
             Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = reward.title,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = AppColors.textPrimary,
+                    color = appColors.textPrimary,
                     fontWeight = FontWeight.Medium
                 )
                 if (reward.description.isNotEmpty()) {
                     Text(
                         text = reward.description,
                         style = MaterialTheme.typography.bodySmall,
-                        color = AppColors.textSecondary
+                        color = appColors.textSecondary
                     )
                 }
             }
@@ -200,7 +203,7 @@ private fun RewardCard(
                 Text(
                     text = "${reward.pointCost} pts",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = if (canAfford) AppColors.warning500 else AppColors.error500,
+                    color = if (canAfford) appColors.warning500 else appColors.error500,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(Modifier.height(4.dp))
@@ -209,10 +212,10 @@ private fun RewardCard(
                     enabled = canAfford,
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (canAfford) AppColors.success500 else AppColors.textDisabled.copy(alpha = 0.3f)
+                        containerColor = if (canAfford) appColors.success500 else appColors.textDisabled.copy(alpha = 0.3f)
                     )
                 ) {
-                    Text("Claim", color = AppColors.darkTextPrimary)
+                    Text("Claim", color = appColors.darkTextPrimary)
                 }
             }
         }
@@ -221,9 +224,10 @@ private fun RewardCard(
 
 @Composable
 private fun HistoryCard(reward: RewardEntity) {
+    val appColors = LocalAppColors.current
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = AppColors.darkSurface.copy(alpha = 0.03f))
+        colors = CardDefaults.cardColors(containerColor = appColors.darkSurface.copy(alpha = 0.03f))
     ) {
         Row(
             modifier = Modifier
@@ -234,15 +238,15 @@ private fun HistoryCard(reward: RewardEntity) {
             Icon(
                 imageVector = if (reward.state == "consumed") Icons.Default.CheckCircle else Icons.Default.Star,
                 null,
-                tint = if (reward.state == "consumed") AppColors.success500 else AppColors.textDisabled,
+                tint = if (reward.state == "consumed") appColors.success500 else appColors.textDisabled,
                 modifier = Modifier.size(24.dp)
             )
             Spacer(Modifier.width(8.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(reward.title, style = MaterialTheme.typography.bodyMedium, color = AppColors.textPrimary)
-                Text(reward.state, style = MaterialTheme.typography.bodySmall, color = AppColors.textSecondary)
+                Text(reward.title, style = MaterialTheme.typography.bodyMedium, color = appColors.textPrimary)
+                Text(reward.state, style = MaterialTheme.typography.bodySmall, color = appColors.textSecondary)
             }
-            Text("${reward.pointCost} pts", style = MaterialTheme.typography.bodySmall, color = AppColors.textSecondary)
+            Text("${reward.pointCost} pts", style = MaterialTheme.typography.bodySmall, color = appColors.textSecondary)
         }
     }
 }

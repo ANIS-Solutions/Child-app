@@ -55,6 +55,7 @@ import com.anis.child.ui.screen.splash.SplashScreen
 import com.anis.child.ui.screen.task.QuestScreen
 import com.anis.child.ui.screen.task.QuestViewModel
 import com.anis.child.ui.theme.ANISTheme
+import com.anis.child.ui.theme.ThemeManager
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -136,8 +137,10 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        ThemeManager.init(preferenceManager)
+
         setContent {
-            ANISTheme {
+            ANISTheme(darkTheme = ThemeManager.isDarkMode) {
                 val navController = rememberNavController()
 
                 fun navigateToProtected(route: String) {

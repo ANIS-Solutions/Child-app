@@ -44,19 +44,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.anis.child.data.AppUsageInfo
 import com.anis.child.data.ScreenTimeSummary
-import com.anis.child.ui.theme.AppColors
+import com.anis.child.ui.theme.LocalAppColors
 
 @Composable
 fun ScreenTimeScreen(
     viewModel: ScreenTimeViewModel,
     onBack: () -> Unit
 ) {
+    val appColors = LocalAppColors.current
     val uiState by viewModel.uiState.collectAsState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.surface50)
+            .background(appColors.surface50)
     ) {
         Row(
             modifier = Modifier
@@ -66,11 +67,11 @@ fun ScreenTimeScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, "Back", tint = AppColors.textPrimary)
+                Icon(Icons.Default.ArrowBack, "Back", tint = appColors.textPrimary)
             }
             Text(
                 text = "Screen Time",
-                color = AppColors.textPrimary,
+                color = appColors.textPrimary,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
@@ -78,7 +79,7 @@ fun ScreenTimeScreen(
 
         if (uiState.isLoading) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = AppColors.primary01)
+                CircularProgressIndicator(color = appColors.primary01)
             }
         } else {
             LazyColumn(
@@ -107,7 +108,7 @@ fun ScreenTimeScreen(
                     Text(
                         text = "App Usage Today",
                         style = MaterialTheme.typography.titleMedium,
-                        color = AppColors.textPrimary,
+                        color = appColors.textPrimary,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -117,7 +118,7 @@ fun ScreenTimeScreen(
                         Text(
                             text = "No usage data available",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = AppColors.textSecondary,
+                            color = appColors.textSecondary,
                             modifier = Modifier.padding(vertical = 16.dp)
                         )
                     }
@@ -132,7 +133,7 @@ fun ScreenTimeScreen(
                     Text(
                         text = "Restriction Controls",
                         style = MaterialTheme.typography.titleMedium,
-                        color = AppColors.textPrimary,
+                        color = appColors.textPrimary,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -150,18 +151,19 @@ fun ScreenTimeScreen(
 
 @Composable
 private fun PermissionBanner(onOpenSettings: () -> Unit) {
+    val appColors = LocalAppColors.current
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = AppColors.warning500.copy(alpha = 0.15f))
+        colors = CardDefaults.cardColors(containerColor = appColors.warning500.copy(alpha = 0.15f))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Warning, null, tint = AppColors.warning500, modifier = Modifier.size(24.dp))
+                Icon(Icons.Default.Warning, null, tint = appColors.warning500, modifier = Modifier.size(24.dp))
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "Usage Access Required",
                     style = MaterialTheme.typography.bodyLarge,
-                    color = AppColors.textPrimary,
+                    color = appColors.textPrimary,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -169,14 +171,14 @@ private fun PermissionBanner(onOpenSettings: () -> Unit) {
             Text(
                 text = "ANIS needs usage access permission to track screen time and enforce app restrictions.",
                 style = MaterialTheme.typography.bodySmall,
-                color = AppColors.textSecondary
+                color = appColors.textSecondary
             )
             Spacer(modifier = Modifier.height(12.dp))
             Button(
                 onClick = onOpenSettings,
-                colors = ButtonDefaults.buttonColors(containerColor = AppColors.primary01)
+                colors = ButtonDefaults.buttonColors(containerColor = appColors.primary01)
             ) {
-                Text("Grant Permission", color = AppColors.darkTextPrimary)
+                Text("Grant Permission", color = appColors.darkTextPrimary)
             }
         }
     }
@@ -184,15 +186,16 @@ private fun PermissionBanner(onOpenSettings: () -> Unit) {
 
 @Composable
 private fun SummaryCard(summary: ScreenTimeSummary) {
+    val appColors = LocalAppColors.current
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = AppColors.darkSurface.copy(alpha = 0.08f))
+        colors = CardDefaults.cardColors(containerColor = appColors.darkSurface.copy(alpha = 0.08f))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = "Today's Usage",
                 style = MaterialTheme.typography.bodyLarge,
-                color = AppColors.textPrimary,
+                color = appColors.textPrimary,
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(12.dp))
@@ -201,11 +204,11 @@ private fun SummaryCard(summary: ScreenTimeSummary) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                StatItem("Used", "${summary.todayTotalMinutes}m", AppColors.primary01)
+                StatItem("Used", "${summary.todayTotalMinutes}m", appColors.primary01)
                 if (summary.dailyLimitMinutes > 0) {
-                    StatItem("Limit", "${summary.dailyLimitMinutes}m", AppColors.warning500)
+                    StatItem("Limit", "${summary.dailyLimitMinutes}m", appColors.warning500)
                     StatItem("Remaining", "${summary.remainingMinutes}m",
-                        if (summary.isLimitReached) AppColors.error500 else AppColors.success500)
+                        if (summary.isLimitReached) appColors.error500 else appColors.success500)
                 }
             }
 
@@ -215,8 +218,8 @@ private fun SummaryCard(summary: ScreenTimeSummary) {
                 LinearProgressIndicator(
                     progress = { progress },
                     modifier = Modifier.fillMaxWidth().height(8.dp),
-                    color = if (summary.isLimitReached) AppColors.error500 else AppColors.primary01,
-                    trackColor = AppColors.textDisabled.copy(alpha = 0.3f)
+                    color = if (summary.isLimitReached) appColors.error500 else appColors.primary01,
+                    trackColor = appColors.textDisabled.copy(alpha = 0.3f)
                 )
             }
         }
@@ -225,6 +228,7 @@ private fun SummaryCard(summary: ScreenTimeSummary) {
 
 @Composable
 private fun TimeStatusRow(summary: ScreenTimeSummary) {
+    val appColors = LocalAppColors.current
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -233,19 +237,19 @@ private fun TimeStatusRow(summary: ScreenTimeSummary) {
             modifier = Modifier.weight(1f),
             label = if (summary.isLimitReached) "Limit Reached" else "Within Limit",
             icon = if (summary.isLimitReached) Icons.Default.Block else Icons.Default.CheckCircle,
-            color = if (summary.isLimitReached) AppColors.error500 else AppColors.success500
+            color = if (summary.isLimitReached) appColors.error500 else appColors.success500
         )
         StatusChip(
             modifier = Modifier.weight(1f),
             label = if (summary.isBedtime) "Bedtime" else "Not Bedtime",
             icon = Icons.Default.Schedule,
-            color = if (summary.isBedtime) AppColors.warning500 else AppColors.success500
+            color = if (summary.isBedtime) appColors.warning500 else appColors.success500
         )
         StatusChip(
             modifier = Modifier.weight(1f),
             label = if (summary.isStudyHours) "Study Time" else "Free Time",
             icon = Icons.Default.Timer,
-            color = if (summary.isStudyHours) AppColors.primary01 else AppColors.textSecondary
+            color = if (summary.isStudyHours) appColors.primary01 else appColors.textSecondary
         )
     }
 }
@@ -257,6 +261,7 @@ private fun StatusChip(
     color: Color,
     modifier: Modifier = Modifier
 ) {
+    val appColors = LocalAppColors.current
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(containerColor = color.copy(alpha = 0.1f)),
@@ -279,9 +284,10 @@ private fun StatusChip(
 
 @Composable
 private fun AppUsageRow(app: AppUsageInfo) {
+    val appColors = LocalAppColors.current
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = AppColors.darkSurface.copy(alpha = 0.05f))
+        colors = CardDefaults.cardColors(containerColor = appColors.darkSurface.copy(alpha = 0.05f))
     ) {
         Row(
             modifier = Modifier
@@ -294,19 +300,19 @@ private fun AppUsageRow(app: AppUsageInfo) {
                 Text(
                     text = app.label,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = AppColors.textPrimary,
+                    color = appColors.textPrimary,
                     fontWeight = FontWeight.Medium
                 )
                 Text(
                     text = app.packageName,
                     style = MaterialTheme.typography.bodySmall,
-                    color = AppColors.textSecondary
+                    color = appColors.textSecondary
                 )
             }
             Text(
                 text = formatDuration(app.totalTimeInForegroundMs),
                 style = MaterialTheme.typography.bodyMedium,
-                color = AppColors.primary01,
+                color = appColors.primary01,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -318,9 +324,10 @@ private fun RestrictionControls(
     onStartService: () -> Unit,
     onStopService: () -> Unit
 ) {
+    val appColors = LocalAppColors.current
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = AppColors.darkSurface.copy(alpha = 0.05f))
+        colors = CardDefaults.cardColors(containerColor = appColors.darkSurface.copy(alpha = 0.05f))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -332,24 +339,24 @@ private fun RestrictionControls(
                     Text(
                         text = "App Restriction Service",
                         style = MaterialTheme.typography.bodyLarge,
-                        color = AppColors.textPrimary,
+                        color = appColors.textPrimary,
                         fontWeight = FontWeight.Medium
                     )
                     Text(
                         text = "Not running — restrictions not enforced",
                         style = MaterialTheme.typography.bodySmall,
-                        color = AppColors.textSecondary
+                        color = appColors.textSecondary
                     )
                 }
                 Button(
                     onClick = onStartService,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = AppColors.primary01
+                        containerColor = appColors.primary01
                     )
                 ) {
                     Text(
                         text = "Start",
-                        color = AppColors.darkTextPrimary
+                        color = appColors.darkTextPrimary
                     )
                 }
             }
@@ -359,8 +366,9 @@ private fun RestrictionControls(
 
 @Composable
 private fun StatItem(label: String, value: String, color: Color) {
+    val appColors = LocalAppColors.current
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(text = value, style = MaterialTheme.typography.headlineSmall, color = color, fontWeight = FontWeight.Bold)
-        Text(text = label, style = MaterialTheme.typography.bodySmall, color = AppColors.textSecondary)
+        Text(text = label, style = MaterialTheme.typography.bodySmall, color = appColors.textSecondary)
     }
 }

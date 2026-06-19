@@ -69,7 +69,7 @@ import com.anis.child.ai.SessionState
 import com.anis.child.ai.util.PermissionManager
 import com.anis.child.ui.components.PermissionItem
 import com.anis.child.ui.screen.ai.AiSessionViewModel
-import com.anis.child.ui.theme.AppColors
+import com.anis.child.ui.theme.LocalAppColors
 
 @Composable
 fun SettingsScreen(
@@ -82,6 +82,7 @@ fun SettingsScreen(
     onChangePin: () -> Unit = {},
     onLogout: () -> Unit,
 ) {
+    val appColors = LocalAppColors.current
     val context = LocalContext.current
     var showDisableAiDialog by remember { mutableStateOf(false) }
 
@@ -103,7 +104,7 @@ fun SettingsScreen(
                         showDisableAiDialog = false
                     }
                 ) {
-                    Text("Disable", color = AppColors.error500)
+                    Text("Disable", color = appColors.error500)
                 }
             },
             dismissButton = {
@@ -117,7 +118,7 @@ fun SettingsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.surface50)
+            .background(appColors.surface50)
     ) {
         Row(
             modifier = Modifier
@@ -127,11 +128,11 @@ fun SettingsScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = AppColors.textPrimary)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = appColors.textPrimary)
             }
             Text(
                 text = "Settings",
-                color = AppColors.textPrimary,
+                color = appColors.textPrimary,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
@@ -192,10 +193,11 @@ fun SettingsScreen(
 
 @Composable
 private fun SectionHeader(title: String) {
+    val appColors = LocalAppColors.current
     Text(
         text = title,
         style = MaterialTheme.typography.titleSmall,
-        color = AppColors.textSecondary,
+        color = appColors.textSecondary,
         fontWeight = FontWeight.SemiBold,
         modifier = Modifier.padding(start = 4.dp, top = 4.dp, bottom = 4.dp)
     )
@@ -210,11 +212,12 @@ private fun MonitoringSection(
     onSendAppsClick: () -> Unit,
     isSendingApps: Boolean,
 ) {
+    val appColors = LocalAppColors.current
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = AppColors.darkSurface.copy(alpha = 0.08f)
+            containerColor = appColors.darkSurface.copy(alpha = 0.08f)
         )
     ) {
         Column(
@@ -230,7 +233,7 @@ private fun MonitoringSection(
                 Icon(
                     imageVector = Icons.Default.LocationOn,
                     contentDescription = null,
-                    tint = AppColors.primary01,
+                    tint = appColors.primary01,
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(12.dp))
@@ -238,20 +241,20 @@ private fun MonitoringSection(
                     Text(
                         text = "Location Monitoring",
                         style = MaterialTheme.typography.bodyLarge,
-                        color = AppColors.textPrimary
+                        color = appColors.textPrimary
                     )
                     Text(
                         text = "Share location with parent every hour",
                         style = MaterialTheme.typography.bodySmall,
-                        color = AppColors.textSecondary
+                        color = appColors.textSecondary
                     )
                 }
                 Switch(
                     checked = isMonitoringEnabled,
                     onCheckedChange = onMonitoringChange,
                     colors = SwitchDefaults.colors(
-                        checkedThumbColor = AppColors.primary01,
-                        checkedTrackColor = AppColors.primary01.copy(alpha = 0.5f)
+                        checkedThumbColor = appColors.primary01,
+                        checkedTrackColor = appColors.primary01.copy(alpha = 0.5f)
                     )
                 )
             }
@@ -283,24 +286,25 @@ private fun ActionButton(
     loadingLabel: String,
     onClick: () -> Unit,
 ) {
+    val appColors = LocalAppColors.current
     Button(
         onClick = onClick,
         enabled = !isLoading,
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = ButtonDefaults.buttonColors(
-            containerColor = AppColors.darkSurface.copy(alpha = 0.15f)
+            containerColor = appColors.darkSurface.copy(alpha = 0.15f)
         )
     ) {
         if (isLoading) {
             CircularProgressIndicator(
                 modifier = Modifier.size(18.dp),
-                color = AppColors.textPrimary,
+                color = appColors.textPrimary,
                 strokeWidth = 2.dp
             )
             Text(
                 text = loadingLabel,
-                color = AppColors.textPrimary,
+                color = appColors.textPrimary,
                 modifier = Modifier.padding(start = 8.dp)
             )
         } else {
@@ -308,11 +312,11 @@ private fun ActionButton(
                 imageVector = icon,
                 contentDescription = null,
                 modifier = Modifier.size(18.dp),
-                tint = AppColors.textPrimary
+                tint = appColors.textPrimary
             )
             Text(
                 text = label,
-                color = AppColors.textPrimary,
+                color = appColors.textPrimary,
                 modifier = Modifier.padding(start = 8.dp)
             )
         }
@@ -326,6 +330,7 @@ private fun ParentalControlsSection(
     isAiFilteringEnabled: Boolean = false,
     onAiFilteringToggle: (Boolean) -> Unit = {},
 ) {
+    val appColors = LocalAppColors.current
     val context = LocalContext.current
     val activity = context as? Activity
     val sessionViewModel: AiSessionViewModel = hiltViewModel()
@@ -360,7 +365,7 @@ private fun ParentalControlsSection(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = AppColors.darkSurface.copy(alpha = 0.08f)
+            containerColor = appColors.darkSurface.copy(alpha = 0.08f)
         )
     ) {
         Column(
@@ -384,7 +389,7 @@ private fun ParentalControlsSection(
                 Icon(
                     imageVector = Icons.Default.Security,
                     contentDescription = null,
-                    tint = AppColors.primary01,
+                    tint = appColors.primary01,
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(12.dp))
@@ -392,20 +397,20 @@ private fun ParentalControlsSection(
                     Text(
                         text = "AI Content Filtering",
                         style = MaterialTheme.typography.bodyLarge,
-                        color = AppColors.textPrimary
+                        color = appColors.textPrimary
                     )
                     Text(
                         text = "Auto-start on boot, blocks apps until permission granted",
                         style = MaterialTheme.typography.bodySmall,
-                        color = AppColors.textSecondary
+                        color = appColors.textSecondary
                     )
                 }
                 Switch(
                     checked = isAiFilteringEnabled,
                     onCheckedChange = onAiFilteringToggle,
                     colors = SwitchDefaults.colors(
-                        checkedThumbColor = AppColors.primary01,
-                        checkedTrackColor = AppColors.primary01.copy(alpha = 0.5f)
+                        checkedThumbColor = appColors.primary01,
+                        checkedTrackColor = appColors.primary01.copy(alpha = 0.5f)
                     )
                 )
             }
@@ -415,14 +420,14 @@ private fun ParentalControlsSection(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(AppColors.darkSurface.copy(alpha = 0.1f), MaterialTheme.shapes.medium)
+                    .background(appColors.darkSurface.copy(alpha = 0.1f), MaterialTheme.shapes.medium)
                     .padding(16.dp)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     if (sessionState is SessionState.Active) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(16.dp),
-                            color = AppColors.success500,
+                            color = appColors.success500,
                             strokeWidth = 2.dp
                         )
                         Spacer(modifier = Modifier.size(8.dp))
@@ -437,10 +442,10 @@ private fun ParentalControlsSection(
                             is SessionState.Error -> "Error"
                         },
                         color = when (sessionState) {
-                            is SessionState.Idle -> AppColors.textSecondary
-                            is SessionState.Active -> AppColors.success500
-                            is SessionState.Error -> AppColors.error500
-                            else -> AppColors.warning500
+                            is SessionState.Idle -> appColors.textSecondary
+                            is SessionState.Active -> appColors.success500
+                            is SessionState.Error -> appColors.error500
+                            else -> appColors.warning500
                         },
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = FontWeight.Medium
@@ -455,10 +460,10 @@ private fun ParentalControlsSection(
                     Button(
                         onClick = { activity?.let { sessionViewModel.startSession(it) } },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = AppColors.primary01)
+                        colors = ButtonDefaults.buttonColors(containerColor = appColors.primary01)
                     ) {
                         Icon(Icons.Default.PlayArrow, null, modifier = Modifier.size(20.dp))
-                        Text("Start Monitoring", color = AppColors.darkTextPrimary, modifier = Modifier.padding(start = 8.dp))
+                        Text("Start Monitoring", color = appColors.darkTextPrimary, modifier = Modifier.padding(start = 8.dp))
                     }
                 }
 
@@ -466,33 +471,33 @@ private fun ParentalControlsSection(
                     Button(
                         onClick = { sessionViewModel.stopSession() },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = AppColors.error500)
+                        colors = ButtonDefaults.buttonColors(containerColor = appColors.error500)
                     ) {
                         Icon(Icons.Default.Stop, null, modifier = Modifier.size(20.dp))
-                        Text("Stop Monitoring", color = AppColors.darkTextPrimary, modifier = Modifier.padding(start = 8.dp))
+                        Text("Stop Monitoring", color = appColors.darkTextPrimary, modifier = Modifier.padding(start = 8.dp))
                     }
                 }
 
                 is SessionState.MediaProjectionRequired -> {
                     Text(
                         text = "Screen recording permission is needed for content analysis.",
-                        color = AppColors.textSecondary,
+                        color = appColors.textSecondary,
                         style = MaterialTheme.typography.bodySmall
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Button(
                         onClick = { mediaProjectionLauncher.launch(state.intent) },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = AppColors.primary01)
+                        colors = ButtonDefaults.buttonColors(containerColor = appColors.primary01)
                     ) {
-                        Text("Grant Screen Recording", color = AppColors.darkTextPrimary)
+                        Text("Grant Screen Recording", color = appColors.darkTextPrimary)
                     }
                 }
 
                 is SessionState.PermissionRequired -> {
                     Text(
                         text = "Required permissions are missing.",
-                        color = AppColors.error500,
+                        color = appColors.error500,
                         style = MaterialTheme.typography.bodySmall
                     )
                     Spacer(modifier = Modifier.height(4.dp))
@@ -507,7 +512,7 @@ private fun ParentalControlsSection(
                 is SessionState.Error -> {
                     Text(
                         text = "Error: ${state.message}",
-                        color = AppColors.error500,
+                        color = appColors.error500,
                         style = MaterialTheme.typography.bodySmall
                     )
                     Spacer(modifier = Modifier.height(4.dp))
@@ -522,7 +527,7 @@ private fun ParentalControlsSection(
                 is SessionState.NotificationPermissionRequired -> {
                     Text(
                         text = "Notification permission is needed.",
-                        color = AppColors.textSecondary,
+                        color = appColors.textSecondary,
                         style = MaterialTheme.typography.bodySmall
                     )
                 }
@@ -572,11 +577,12 @@ private fun ParentalControlsSection(
 private fun ActivityHistorySection(
     onLogsClick: () -> Unit,
 ) {
+    val appColors = LocalAppColors.current
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = AppColors.darkSurface.copy(alpha = 0.08f)
+            containerColor = appColors.darkSurface.copy(alpha = 0.08f)
         )
     ) {
         Column(
@@ -596,11 +602,12 @@ private fun ActivityHistorySection(
 
 @Composable
 private fun DeviceInfoSection(childId: String?, childName: String?) {
+    val appColors = LocalAppColors.current
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = AppColors.darkSurface.copy(alpha = 0.08f)
+            containerColor = appColors.darkSurface.copy(alpha = 0.08f)
         )
     ) {
         Column(
@@ -622,13 +629,14 @@ private fun DeviceInfoSection(childId: String?, childName: String?) {
 
 @Composable
 private fun PermissionsSection() {
+    val appColors = LocalAppColors.current
     val context = LocalContext.current
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = AppColors.darkSurface.copy(alpha = 0.08f)
+            containerColor = appColors.darkSurface.copy(alpha = 0.08f)
         )
     ) {
         Column(
@@ -654,6 +662,7 @@ private fun PermissionsSection() {
 
 @Composable
 private fun PermissionRow(name: String, isGranted: Boolean) {
+    val appColors = LocalAppColors.current
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -661,18 +670,18 @@ private fun PermissionRow(name: String, isGranted: Boolean) {
         Text(
             text = name,
             style = MaterialTheme.typography.bodyMedium,
-            color = AppColors.textSecondary,
+            color = appColors.textSecondary,
             modifier = Modifier.weight(1f)
         )
         Surface(
             shape = RoundedCornerShape(8.dp),
-            color = if (isGranted) AppColors.success500.copy(alpha = 0.15f)
-            else AppColors.error500.copy(alpha = 0.15f)
+            color = if (isGranted) appColors.success500.copy(alpha = 0.15f)
+            else appColors.error500.copy(alpha = 0.15f)
         ) {
             Text(
                 text = if (isGranted) "Granted" else "Denied",
                 style = MaterialTheme.typography.labelSmall,
-                color = if (isGranted) AppColors.success500 else AppColors.error500,
+                color = if (isGranted) appColors.success500 else appColors.error500,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
             )
@@ -687,11 +696,12 @@ private fun AccountSection(
     onChangePin: () -> Unit,
     onLogout: () -> Unit,
 ) {
+    val appColors = LocalAppColors.current
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = AppColors.darkSurface.copy(alpha = 0.08f)
+            containerColor = appColors.darkSurface.copy(alpha = 0.08f)
         )
     ) {
         Column(
@@ -720,12 +730,12 @@ private fun AccountSection(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = AppColors.error500
+                    containerColor = appColors.error500
                 )
             ) {
                 Text(
                     text = "Logout",
-                    color = AppColors.darkTextPrimary,
+                    color = appColors.darkTextPrimary,
                     fontWeight = FontWeight.SemiBold
                 )
             }
@@ -740,10 +750,11 @@ private fun SettingsNavRow(
     description: String,
     onClick: () -> Unit,
 ) {
+    val appColors = LocalAppColors.current
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(12.dp),
-        color = AppColors.darkSurface.copy(alpha = 0.08f)
+        color = appColors.darkSurface.copy(alpha = 0.08f)
     ) {
         Row(
             modifier = Modifier
@@ -754,7 +765,7 @@ private fun SettingsNavRow(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = AppColors.primary01,
+                tint = appColors.primary01,
                 modifier = Modifier.size(24.dp)
             )
             Spacer(modifier = Modifier.width(12.dp))
@@ -762,18 +773,18 @@ private fun SettingsNavRow(
                 Text(
                     text = title,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = AppColors.textPrimary
+                    color = appColors.textPrimary
                 )
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodySmall,
-                    color = AppColors.textSecondary
+                    color = appColors.textSecondary
                 )
             }
             Icon(
                 imageVector = Icons.Default.ChevronRight,
                 contentDescription = null,
-                tint = AppColors.textDisabled,
+                tint = appColors.textDisabled,
                 modifier = Modifier.size(20.dp)
             )
         }
@@ -782,6 +793,7 @@ private fun SettingsNavRow(
 
 @Composable
 private fun InfoRow(label: String, value: String) {
+    val appColors = LocalAppColors.current
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -789,13 +801,13 @@ private fun InfoRow(label: String, value: String) {
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
-            color = AppColors.textSecondary,
+            color = appColors.textSecondary,
             modifier = Modifier.weight(0.35f)
         )
         Text(
             text = value,
             style = MaterialTheme.typography.bodyMedium,
-            color = AppColors.textPrimary
+            color = appColors.textPrimary
         )
     }
 }

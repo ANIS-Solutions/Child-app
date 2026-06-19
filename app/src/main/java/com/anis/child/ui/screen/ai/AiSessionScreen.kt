@@ -38,13 +38,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.anis.child.ai.SessionState
-import com.anis.child.ui.theme.AppColors
+import com.anis.child.ui.theme.LocalAppColors
 
 @Composable
 fun AiSessionScreen(
     viewModel: AiSessionViewModel,
     onBack: () -> Unit
 ) {
+    val appColors = LocalAppColors.current
     val context = LocalContext.current
     val activity = context as? Activity
     val sessionState by viewModel.sessionState.collectAsState()
@@ -58,7 +59,7 @@ fun AiSessionScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.surface50)
+            .background(appColors.surface50)
     ) {
         Row(
             modifier = Modifier
@@ -68,11 +69,11 @@ fun AiSessionScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = AppColors.textPrimary)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = appColors.textPrimary)
             }
             Text(
                 text = "AI Content Monitoring",
-                color = AppColors.textPrimary,
+                color = appColors.textPrimary,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
@@ -89,7 +90,7 @@ fun AiSessionScreen(
             Text(
                 text = "Session Status",
                 style = MaterialTheme.typography.titleMedium,
-                color = AppColors.textPrimary
+                color = appColors.textPrimary
             )
 
             val currentState = sessionState
@@ -104,7 +105,7 @@ fun AiSessionScreen(
                             activity?.let { viewModel.startSession(it) }
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = AppColors.primary01)
+                        colors = ButtonDefaults.buttonColors(containerColor = appColors.primary01)
                     ) {
                         Icon(
                             imageVector = Icons.Default.PlayArrow,
@@ -113,7 +114,7 @@ fun AiSessionScreen(
                         )
                         Text(
                             text = "Start Monitoring",
-                            color = AppColors.darkTextPrimary,
+                            color = appColors.darkTextPrimary,
                             modifier = Modifier.padding(start = 8.dp)
                         )
                     }
@@ -123,7 +124,7 @@ fun AiSessionScreen(
                     Button(
                         onClick = { viewModel.stopSession() },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = AppColors.error500)
+                        colors = ButtonDefaults.buttonColors(containerColor = appColors.error500)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Stop,
@@ -132,7 +133,7 @@ fun AiSessionScreen(
                         )
                         Text(
                             text = "Stop Monitoring",
-                            color = AppColors.darkTextPrimary,
+                            color = appColors.darkTextPrimary,
                             modifier = Modifier.padding(start = 8.dp)
                         )
                     }
@@ -141,7 +142,7 @@ fun AiSessionScreen(
                 is SessionState.PermissionRequired -> {
                     Text(
                         text = "Required permissions are missing. Please grant them in settings.",
-                        color = AppColors.error500,
+                        color = appColors.error500,
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Button(
@@ -155,7 +156,7 @@ fun AiSessionScreen(
                 is SessionState.MediaProjectionRequired -> {
                     Text(
                         text = "Screen recording permission is needed for content analysis.",
-                        color = AppColors.textSecondary,
+                        color = appColors.textSecondary,
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Button(
@@ -163,11 +164,11 @@ fun AiSessionScreen(
                             mediaProjectionLauncher.launch(currentState.intent)
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(containerColor = AppColors.primary01)
+                        colors = ButtonDefaults.buttonColors(containerColor = appColors.primary01)
                     ) {
                         Text(
                             text = "Grant Screen Recording",
-                            color = AppColors.darkTextPrimary
+                            color = appColors.darkTextPrimary
                         )
                     }
                 }
@@ -175,7 +176,7 @@ fun AiSessionScreen(
                 is SessionState.Error -> {
                     Text(
                         text = "Error: ${currentState.message}",
-                        color = AppColors.error500,
+                        color = appColors.error500,
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Button(
@@ -189,7 +190,7 @@ fun AiSessionScreen(
                 is SessionState.NotificationPermissionRequired -> {
                     Text(
                         text = "Notification permission is needed.",
-                        color = AppColors.textSecondary,
+                        color = appColors.textSecondary,
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -200,19 +201,20 @@ fun AiSessionScreen(
 
 @Composable
 private fun StatusCard(state: SessionState) {
+    val appColors = LocalAppColors.current
     val (statusText, statusColor) = when (state) {
-        is SessionState.Idle -> "Idle" to AppColors.textSecondary
-        is SessionState.Active -> "Active - Session #${state.sessionId}" to AppColors.success500
-        is SessionState.PermissionRequired -> "Permissions Required" to AppColors.warning500
-        is SessionState.MediaProjectionRequired -> "Screen Recording Needed" to AppColors.warning500
-        is SessionState.NotificationPermissionRequired -> "Notification Permission Needed" to AppColors.warning500
-        is SessionState.Error -> "Error" to AppColors.error500
+        is SessionState.Idle -> "Idle" to appColors.textSecondary
+        is SessionState.Active -> "Active - Session #${state.sessionId}" to appColors.success500
+        is SessionState.PermissionRequired -> "Permissions Required" to appColors.warning500
+        is SessionState.MediaProjectionRequired -> "Screen Recording Needed" to appColors.warning500
+        is SessionState.NotificationPermissionRequired -> "Notification Permission Needed" to appColors.warning500
+        is SessionState.Error -> "Error" to appColors.error500
     }
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .background(AppColors.darkSurface.copy(alpha = 0.1f), MaterialTheme.shapes.medium)
+            .background(appColors.darkSurface.copy(alpha = 0.1f), MaterialTheme.shapes.medium)
             .padding(16.dp)
     ) {
         Row(
@@ -221,7 +223,7 @@ private fun StatusCard(state: SessionState) {
             if (state is SessionState.Active) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(16.dp),
-                    color = AppColors.success500,
+                    color = appColors.success500,
                     strokeWidth = 2.dp
                 )
                 Spacer(modifier = Modifier.size(8.dp))

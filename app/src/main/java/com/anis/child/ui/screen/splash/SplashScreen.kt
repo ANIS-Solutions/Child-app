@@ -23,13 +23,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.anis.child.ui.theme.AppColors
+import com.anis.child.ui.theme.LocalAppColors
 import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreen(
     onSplashComplete: () -> Unit
 ) {
+    val appColors = LocalAppColors.current
     var startAnimation by remember { mutableStateOf(false) }
     val alphaAnim by animateFloatAsState(
         targetValue = if (startAnimation) 1f else 0f,
@@ -46,7 +47,7 @@ fun SplashScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.primary01),
+            .background(appColors.primary01),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -56,19 +57,19 @@ fun SplashScreen(
             Text(
                 text = "ANIS",
                 style = MaterialTheme.typography.displayLarge,
-                color = AppColors.darkTextPrimary,
+                color = appColors.darkTextPrimary,
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Child Safety",
                 style = MaterialTheme.typography.headlineSmall,
-                color = AppColors.darkTextPrimary.copy(alpha = 0.8f)
+                color = appColors.darkTextPrimary.copy(alpha = 0.8f)
             )
             Spacer(modifier = Modifier.height(32.dp))
             CircularProgressIndicator(
                 modifier = Modifier.size(32.dp),
-                color = AppColors.darkTextPrimary.copy(alpha = 0.7f),
+                color = appColors.darkTextPrimary.copy(alpha = 0.7f),
                 strokeWidth = 2.dp
             )
         }

@@ -48,19 +48,20 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
-import com.anis.child.ui.theme.AppColors
+import com.anis.child.ui.theme.LocalAppColors
 
 @Composable
 fun ContentProtectionScreen(
     viewModel: ContentProtectionViewModel,
     onBack: () -> Unit
 ) {
+    val appColors = LocalAppColors.current
     val uiState by viewModel.uiState.collectAsState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppColors.surface50)
+            .background(appColors.surface50)
     ) {
         Row(
             modifier = Modifier
@@ -70,11 +71,11 @@ fun ContentProtectionScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, "Back", tint = AppColors.textPrimary)
+                Icon(Icons.Default.ArrowBack, "Back", tint = appColors.textPrimary)
             }
             Text(
                 text = "Content Protection",
-                color = AppColors.textPrimary,
+                color = appColors.textPrimary,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
@@ -82,7 +83,7 @@ fun ContentProtectionScreen(
 
         if (uiState.isLoading) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = AppColors.primary01)
+                CircularProgressIndicator(color = appColors.primary01)
             }
         } else {
             LazyColumn(
@@ -110,13 +111,14 @@ private fun AppCard(
     onToggleBlock: () -> Unit,
     onSetLimit: (Int) -> Unit
 ) {
+    val appColors = LocalAppColors.current
     var showLimitDialog by remember { mutableStateOf(false) }
 
     Card(
         colors = CardDefaults.cardColors(
             containerColor = if (app.isBlocked || app.dailyTimeLimitMinutes > 0)
-                AppColors.error500.copy(alpha = 0.06f)
-            else AppColors.darkSurface.copy(alpha = 0.03f)
+                appColors.error500.copy(alpha = 0.06f)
+            else appColors.darkSurface.copy(alpha = 0.03f)
         ),
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -135,19 +137,19 @@ private fun AppCard(
                     text = app.label,
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Bold,
-                    color = AppColors.textPrimary
+                    color = appColors.textPrimary
                 )
                 Text(
                     text = app.packageName,
                     style = MaterialTheme.typography.bodySmall,
-                    color = AppColors.textSecondary,
+                    color = appColors.textSecondary,
                     maxLines = 1
                 )
                 if (app.dailyTimeLimitMinutes > 0) {
                     Text(
                         text = "${app.dailyTimeLimitMinutes} min/day limit",
                         style = MaterialTheme.typography.labelSmall,
-                        color = AppColors.warning500
+                        color = appColors.warning500
                     )
                 }
             }
@@ -184,6 +186,7 @@ private fun AppCard(
 
 @Composable
 private fun AppIcon(icon: Drawable?, modifier: Modifier = Modifier) {
+    val appColors = LocalAppColors.current
     val bmp = remember(icon) {
         icon?.toBitmap(128, 128)?.asImageBitmap()
     }
@@ -197,7 +200,7 @@ private fun AppIcon(icon: Drawable?, modifier: Modifier = Modifier) {
         Box(
             modifier = modifier
                 .clip(RoundedCornerShape(8.dp))
-                .background(AppColors.darkSurface.copy(alpha = 0.1f))
+                .background(appColors.darkSurface.copy(alpha = 0.1f))
         )
     }
 }
@@ -208,6 +211,7 @@ private fun LimitDialog(
     onConfirm: (Int) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val appColors = LocalAppColors.current
     var text by remember { mutableStateOf(if (currentMinutes > 0) currentMinutes.toString() else "") }
 
     AlertDialog(
@@ -218,7 +222,7 @@ private fun LimitDialog(
                 Text(
                     "Enter the maximum minutes this app can be used per day. Set to 0 to remove the limit.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = AppColors.textSecondary
+                    color = appColors.textSecondary
                 )
                 Spacer(Modifier.height(12.dp))
                 OutlinedTextField(
