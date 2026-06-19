@@ -47,17 +47,18 @@ class FCMService : FirebaseMessagingService() {
                 processAppStateUpdate(packageId, data)
             }
         }
-        if (action == ACTION_SYNC_PROMPTS) {
-            val promptId = data["promptId"] ?: return
-            CoroutineScope(Dispatchers.IO).launch {
-                val success = embeddingRepository.fetchAndSaveEmbeddings(promptId)
-                if (success) {
-                    Log.d(TAG, "SYNC_PROMPTS completed for promptId=$promptId")
-                } else {
-                    Log.e(TAG, "SYNC_PROMPTS failed for promptId=$promptId")
-                }
-            }
-        }
+        // DEACTIVATED: temporarily disabled receiving new embeddings from server
+        // if (action == ACTION_SYNC_PROMPTS) {
+        //     val promptId = data["promptId"] ?: return
+        //     CoroutineScope(Dispatchers.IO).launch {
+        //         val success = embeddingRepository.fetchAndSaveEmbeddings(promptId)
+        //         if (success) {
+        //             Log.d(TAG, "SYNC_PROMPTS completed for promptId=$promptId")
+        //         } else {
+        //             Log.e(TAG, "SYNC_PROMPTS failed for promptId=$promptId")
+        //         }
+        //     }
+        // }
     }
 
     private suspend fun ensureRestrictionServiceRunning() {
