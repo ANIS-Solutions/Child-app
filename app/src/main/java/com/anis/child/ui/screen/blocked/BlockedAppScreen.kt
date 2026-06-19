@@ -27,7 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anis.child.data.ScreenTimeManager
-import com.anis.child.data.ScreenTimeManager.BlockReason
+import com.anis.child.data.BlockReason
 import com.anis.child.ui.theme.LocalAppColors
 import kotlinx.coroutines.delay
 

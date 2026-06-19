@@ -8,7 +8,9 @@ import android.media.projection.MediaProjectionManager
 import android.os.BatteryManager
 import android.os.Debug
 import android.util.Log
-import com.anis.child.ai.service.SessionCaptureService
+import com.anis.child.ai.service.startSessionCaptureService
+import com.anis.child.ai.service.stopSessionCaptureService
+import com.anis.child.ai.service.DEFAULT_AUTO_ROTATE_MAX_CAPTURES
 import com.anis.child.ai.util.ImageStorageManager
 import com.anis.child.ai.util.PermissionManager
 import com.anis.child.ai.util.PermissionType
@@ -50,7 +52,7 @@ class SessionManager @Inject constructor(
 
     var sessionIntervalMs: Int = 1000
     var blurTriggerThreshold: Int = 3
-    var autoRotateMaxCaptures: Int = SessionCaptureService.DEFAULT_AUTO_ROTATE_MAX_CAPTURES
+    var autoRotateMaxCaptures: Int = DEFAULT_AUTO_ROTATE_MAX_CAPTURES
 
     private val condensationEngine = CondensationEngine()
 
@@ -113,7 +115,7 @@ class SessionManager @Inject constructor(
 
         Log.d(TAG, "Starting SessionCaptureService with sessionId=$sessionId")
 
-        SessionCaptureService.startService(
+        startSessionCaptureService(
             context = context,
             sessionId = sessionId,
             intervalMs = intervalMs,
@@ -127,7 +129,7 @@ class SessionManager @Inject constructor(
     fun stopSession() {
         val currentState = _sessionState.value
         if (currentState is SessionState.Active) {
-            SessionCaptureService.stopService(context)
+            stopSessionCaptureService(context)
 
             val (batteryEnd, isCharging, cpuDeltaMs, cpuPercent, ramPssMb) = readDeviceStats()
 
@@ -329,13 +331,4 @@ class SessionManager @Inject constructor(
         Debug.getMemoryInfo(memInfo)
         return memInfo.totalPss / 1024.0
     }
-}
-
-sealed class SessionState {
-    data object Idle : SessionState()
-    data class Active(val sessionId: Long) : SessionState()
-    data class PermissionRequired(val missingPermissions: List<PermissionType>) : SessionState()
-    data class MediaProjectionRequired(val intent: Intent) : SessionState()
-    data object NotificationPermissionRequired : SessionState()
-    data class Error(val message: String) : SessionState()
 }

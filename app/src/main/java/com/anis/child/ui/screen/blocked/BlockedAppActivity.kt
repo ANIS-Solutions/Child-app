@@ -10,7 +10,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.OnBackPressedCallback
 import com.anis.child.data.PreferenceManager
 import com.anis.child.data.ScreenTimeManager
-import com.anis.child.data.ScreenTimeManager.BlockReason
+import com.anis.child.data.BlockReason
 import com.anis.child.ui.theme.ANISTheme
 import com.anis.child.ui.theme.ThemeManager
 import com.anis.child.util.getAppLabel

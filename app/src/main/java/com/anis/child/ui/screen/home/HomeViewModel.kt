@@ -8,7 +8,6 @@ import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.anis.child.data.AppUsageInfo
 import com.anis.child.data.LogManager
 import com.anis.child.data.LogType
 import com.anis.child.data.PreferenceManager
@@ -23,18 +22,7 @@ import com.anis.child.network.ApiResult
 import com.anis.child.network.ApiService
 import com.anis.child.network.safeApiCall
 import dagger.hilt.android.lifecycle.HiltViewModel
-import java.util.Calendar
 import javax.inject.Inject
-
-data class HomeScreenData(
-    val todayMinutes: Int = 0,
-    val dailyLimit: Int = 0,
-    val weeklyTotal: Int = 0,
-    val weeklyAverage: Int = 0,
-    val topApps: List<AppUsageInfo> = emptyList(),
-    val weeklyTopApps: List<AppUsageInfo> = emptyList(),
-    val hasUsagePermission: Boolean = false
-)
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -189,15 +177,5 @@ class HomeViewModel @Inject constructor(
                 _isFetchingChild.value = false
             }
         }
-    }
-}
-
-private fun parseAgeFromDob(dob: String): Int? {
-    return try {
-        val year = dob.substring(0, 4).toInt()
-        val currentYear = Calendar.getInstance().get(Calendar.YEAR)
-        currentYear - year
-    } catch (_: Exception) {
-        null
     }
 }

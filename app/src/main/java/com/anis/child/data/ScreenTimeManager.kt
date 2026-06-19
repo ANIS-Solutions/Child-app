@@ -17,24 +17,6 @@ import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
-data class AppUsageInfo(
-    val packageName: String,
-    val label: String,
-    val totalTimeInForegroundMs: Long,
-    val category: String = "General"
-)
-
-data class ScreenTimeSummary(
-    val todayTotalMinutes: Int,
-    val dailyLimitMinutes: Int,
-    val remainingMinutes: Int,
-    val isLimitReached: Boolean,
-    val isBedtime: Boolean,
-    val isStudyHours: Boolean,
-    val isTemporarilyRestricted: Boolean,
-    val extraTimeEarned: Int
-)
-
 @Singleton
 class ScreenTimeManager @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -282,8 +264,6 @@ class ScreenTimeManager @Inject constructor(
         return foregroundTimeMap[packageName] ?: 0L
     }
 
-    enum class BlockReason { NOT_BLOCKED, PARENT_BLOCK, TIME_LIMIT, GLOBAL_LIMIT }
-
     suspend fun getBlockReason(packageName: String): BlockReason {
         val restriction = appRestrictionDao.getRestriction(packageName)
         if (restriction != null && restriction.isBlocked) return BlockReason.PARENT_BLOCK
@@ -307,21 +287,4 @@ class ScreenTimeManager @Inject constructor(
         return appRestrictionDao.getRestriction(packageName) != null
     }
 
-    companion object {
-        fun isTimeInRange(
-            hour: Int, minute: Int,
-            startHour: Int, startMinute: Int,
-            endHour: Int, endMinute: Int
-        ): Boolean {
-            val nowMinutes = hour * 60 + minute
-            val startMinutes = startHour * 60 + startMinute
-            val endMinutes = endHour * 60 + endMinute
-
-            return if (startMinutes <= endMinutes) {
-                nowMinutes in startMinutes..endMinutes
-            } else {
-                nowMinutes >= startMinutes || nowMinutes <= endMinutes
-            }
-        }
-    }
 }

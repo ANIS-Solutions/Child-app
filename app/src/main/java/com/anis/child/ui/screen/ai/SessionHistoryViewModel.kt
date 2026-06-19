@@ -4,7 +4,6 @@ import android.graphics.BitmapFactory
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anis.child.data.PreferenceManager
-import com.anis.child.data.local.AnalysisResultEntity
 import com.anis.child.data.local.SessionSyncDao
 import com.anis.child.data.local.SessionSyncEntity
 import com.anis.child.data.repository.SessionRepository
@@ -28,16 +27,6 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import javax.inject.Inject
-
-data class VoteAllState(
-    val status: VoteStatus = VoteStatus.Idle,
-    val selectedResults: List<AnalysisResultEntity> = emptyList(),
-    val allEmbeddings: List<AnalysisResultEntity> = emptyList(),
-    val selectedSessionIds: List<Long> = emptyList(),
-    val error: String? = null
-)
-
-enum class VoteStatus { Idle, Voting, Previewing, Sending, Sent }
 
 @HiltViewModel
 class SessionHistoryViewModel @Inject constructor(

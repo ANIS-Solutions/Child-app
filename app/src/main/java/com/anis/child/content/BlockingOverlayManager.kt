@@ -11,7 +11,7 @@ import android.view.WindowManager
 import android.widget.ImageView
 import android.widget.TextView
 import com.anis.child.R
-import com.anis.child.data.ScreenTimeManager.BlockReason
+import com.anis.child.data.BlockReason
 import com.anis.child.util.getAppLabel
 
 object BlockingOverlayManager {

@@ -4,7 +4,6 @@ import android.app.Application
 import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.anis.child.data.ChildData
 import com.anis.child.data.DailyUsageApp
 import com.anis.child.data.DailyUsageReport
 import com.anis.child.data.LogManager
@@ -29,13 +28,6 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import kotlin.coroutines.resume
-
-sealed class PairingUiState {
-    data object Scanning : PairingUiState()
-    data object Loading : PairingUiState()
-    data class Success(val childData: ChildData) : PairingUiState()
-    data class Error(val message: String, val details: String? = null) : PairingUiState()
-}
 
 @HiltViewModel
 class PairingViewModel @Inject constructor(

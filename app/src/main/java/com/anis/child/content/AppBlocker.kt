@@ -8,7 +8,7 @@ import com.anis.child.data.ContentFilterManager
 import com.anis.child.data.LogManager
 import com.anis.child.data.LogType
 import com.anis.child.data.ScreenTimeManager
-import com.anis.child.data.ScreenTimeManager.BlockReason
+import com.anis.child.data.BlockReason
 import com.anis.child.ui.screen.blocked.BlockedAppActivity
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
