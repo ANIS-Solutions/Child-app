@@ -1,6 +1,7 @@
 package com.anis.child
 
 import android.app.Application
+import android.content.Context
 import android.util.Log
 import androidx.work.Configuration
 import com.anis.child.data.PreferenceManager
@@ -10,6 +11,7 @@ import com.anis.child.security.IntegrityVerifier
 import com.anis.child.security.RootDetector
 import com.anis.child.security.SecurityState
 import com.anis.child.service.AppRestrictionService
+import com.anis.child.util.LocaleHelper
 import com.anis.child.worker.AppRestrictionWatchdogWorker
 import com.anis.child.worker.DailyUsageWorker
 import dagger.hilt.android.HiltAndroidApp

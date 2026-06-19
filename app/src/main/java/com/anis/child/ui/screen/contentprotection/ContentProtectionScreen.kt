@@ -49,6 +49,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
 import com.anis.child.ui.theme.LocalAppColors
+import com.anis.child.R
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun ContentProtectionScreen(
@@ -71,10 +73,10 @@ fun ContentProtectionScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, "Back", tint = appColors.textPrimary)
+                Icon(Icons.Default.ArrowBack, stringResource(R.string.back), tint = appColors.textPrimary)
             }
             Text(
-                text = "Content Protection",
+                text = stringResource(R.string.content_protection_title),
                 color = appColors.textPrimary,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
@@ -160,7 +162,7 @@ private fun AppCard(
                 onClick = { showLimitDialog = true },
                 modifier = Modifier.height(32.dp)
             ) {
-                Text("Limit", fontSize = 12.sp)
+                Text(stringResource(R.string.limit_btn), fontSize = 12.sp)
             }
 
             Spacer(Modifier.width(4.dp))
@@ -216,11 +218,11 @@ private fun LimitDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Set Daily Time Limit") },
+        title = { Text(stringResource(R.string.set_daily_time_limit_title)) },
         text = {
             Column {
                 Text(
-                    "Enter the maximum minutes this app can be used per day. Set to 0 to remove the limit.",
+                    stringResource(R.string.set_daily_time_limit_desc),
                     style = MaterialTheme.typography.bodySmall,
                     color = appColors.textSecondary
                 )
@@ -228,7 +230,7 @@ private fun LimitDialog(
                 OutlinedTextField(
                     value = text,
                     onValueChange = { text = it.filter { c -> c.isDigit() } },
-                    label = { Text("Minutes") },
+                    label = { Text(stringResource(R.string.minutes)) },
                     keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
@@ -237,12 +239,12 @@ private fun LimitDialog(
         },
         confirmButton = {
             TextButton(onClick = { onConfirm(text.toIntOrNull() ?: 0) }) {
-                Text("Set")
+                Text(stringResource(R.string.set))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(stringResource(R.string.cancel))
             }
         }
     )

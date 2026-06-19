@@ -34,6 +34,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anis.child.ui.theme.LocalAppColors
+import com.anis.child.R
+import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.delay
 
 @Composable
@@ -72,12 +74,12 @@ fun PinScreen(
             verticalArrangement = Arrangement.Center
         ) {
             val title = when (uiState) {
-                is PinUiState.Creating -> "Create PIN"
-                is PinUiState.ConfirmNew -> "Confirm PIN"
-                is PinUiState.Entry -> "Enter PIN"
-                is PinUiState.LockedOut -> "Too Many Attempts"
-                is PinUiState.Error -> "Enter PIN"
-                is PinUiState.Verified -> "Verified!"
+                is PinUiState.Creating -> stringResource(R.string.pin_create)
+                is PinUiState.ConfirmNew -> stringResource(R.string.pin_confirm)
+                is PinUiState.Entry -> stringResource(R.string.pin_enter)
+                is PinUiState.LockedOut -> stringResource(R.string.pin_locked_out)
+                is PinUiState.Error -> stringResource(R.string.pin_enter)
+                is PinUiState.Verified -> stringResource(R.string.pin_verified)
             }
 
             Text(
@@ -90,10 +92,10 @@ fun PinScreen(
             Spacer(modifier = Modifier.height(8.dp))
 
             val subtitle = when (uiState) {
-                is PinUiState.Creating -> "Set a 4-6 digit PIN to protect Settings"
-                is PinUiState.ConfirmNew -> "Re-enter your new PIN"
-                is PinUiState.Entry -> "Enter your PIN to access Settings"
-                is PinUiState.LockedOut -> "Please wait 30 seconds before trying again"
+                is PinUiState.Creating -> stringResource(R.string.pin_create_subtitle)
+                is PinUiState.ConfirmNew -> stringResource(R.string.pin_confirm_subtitle)
+                is PinUiState.Entry -> stringResource(R.string.pin_enter_subtitle)
+                is PinUiState.LockedOut -> stringResource(R.string.pin_locked_out_subtitle)
                 is PinUiState.Error -> (uiState as PinUiState.Error).message
                 is PinUiState.Verified -> ""
             }
@@ -129,7 +131,7 @@ fun PinScreen(
                         containerColor = appColors.error500
                     )
                 ) {
-                    Text("Cancel", color = appColors.darkTextPrimary)
+                    Text(stringResource(R.string.cancel), color = appColors.darkTextPrimary)
                 }
             }
 
@@ -141,7 +143,7 @@ fun PinScreen(
                         containerColor = appColors.primary01
                     )
                 ) {
-                    Text("Try Again", color = appColors.darkTextPrimary)
+                    Text(stringResource(R.string.try_again), color = appColors.darkTextPrimary)
                 }
             }
         }
@@ -220,7 +222,7 @@ private fun PinKeypad(
             ) {
                 Icon(
                     imageVector = Icons.Default.Backspace,
-                    contentDescription = "Delete",
+                    contentDescription = stringResource(R.string.delete),
                     tint = if (enabled) appColors.textPrimary else appColors.textDisabled,
                     modifier = Modifier.size(32.dp)
                 )

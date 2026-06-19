@@ -24,6 +24,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.anis.child.ui.theme.LocalAppColors
+import com.anis.child.R
+import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.delay
 
 @Composable
@@ -55,14 +57,14 @@ fun SplashScreen(
             modifier = Modifier.alpha(alphaAnim)
         ) {
             Text(
-                text = "ANIS",
+                text = stringResource(R.string.app_name),
                 style = MaterialTheme.typography.displayLarge,
                 color = appColors.darkTextPrimary,
                 fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "Child Safety",
+                text = stringResource(R.string.splash_child_safety),
                 style = MaterialTheme.typography.headlineSmall,
                 color = appColors.darkTextPrimary.copy(alpha = 0.8f)
             )

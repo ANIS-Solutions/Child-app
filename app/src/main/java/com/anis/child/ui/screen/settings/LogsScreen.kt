@@ -36,6 +36,8 @@ import com.anis.child.data.LogEntry
 import com.anis.child.data.LogManager
 import com.anis.child.data.LogType
 import com.anis.child.ui.theme.LocalAppColors
+import com.anis.child.R
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun LogsScreen(
@@ -62,10 +64,10 @@ fun LogsScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = appColors.textPrimary)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back), tint = appColors.textPrimary)
             }
             Text(
-                text = "Logs",
+                text = stringResource(R.string.logs_title),
                 color = appColors.textPrimary,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
@@ -78,7 +80,7 @@ fun LogsScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "No logs yet",
+                    text = stringResource(R.string.no_logs),
                     style = MaterialTheme.typography.bodySmall,
                     color = appColors.textDisabled
                 )

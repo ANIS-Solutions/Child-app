@@ -64,9 +64,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.anis.child.ai.SessionState
 import com.anis.child.ai.util.PermissionManager
+import com.anis.child.R
 import com.anis.child.ui.components.PermissionItem
 import com.anis.child.ui.screen.ai.AiSessionViewModel
 import com.anis.child.ui.theme.LocalAppColors
@@ -89,13 +91,9 @@ fun SettingsScreen(
     if (showDisableAiDialog) {
         AlertDialog(
             onDismissRequest = { showDisableAiDialog = false },
-            title = { Text("Disable AI Content Filtering?") },
+            title = { Text(stringResource(R.string.disable_ai_dialog_title)) },
             text = {
-                Text(
-                    "This is the only way to stop the filtering service. " +
-                    "Apps will no longer be monitored on boot and the app " +
-                    "lockdown will be removed."
-                )
+                Text(stringResource(R.string.disable_ai_dialog_text))
             },
             confirmButton = {
                 TextButton(
@@ -104,12 +102,12 @@ fun SettingsScreen(
                         showDisableAiDialog = false
                     }
                 ) {
-                    Text("Disable", color = appColors.error500)
+                    Text(stringResource(R.string.disable), color = appColors.error500)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDisableAiDialog = false }) {
-                    Text("Keep Enabled")
+                    Text(stringResource(R.string.keep_enabled))
                 }
             }
         )
@@ -128,10 +126,10 @@ fun SettingsScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = appColors.textPrimary)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back), tint = appColors.textPrimary)
             }
             Text(
-                text = "Settings",
+                text = stringResource(R.string.settings),
                 color = appColors.textPrimary,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
@@ -152,7 +150,9 @@ fun SettingsScreen(
                 onSendLocationClick = { viewModel.sendCurrentLocation() },
                 isSending = viewModel.isSending,
                 onSendAppsClick = { viewModel.sendInstalledApps() },
-                isSendingApps = viewModel.isSendingApps
+                isSendingApps = viewModel.isSendingApps,
+                isSendingUsage = viewModel.isSendingUsage,
+                onSendUsageClick = { viewModel.sendDailyUsage() }
             )
 
             ParentalControlsSection(
@@ -211,6 +211,8 @@ private fun MonitoringSection(
     isSending: Boolean,
     onSendAppsClick: () -> Unit,
     isSendingApps: Boolean,
+    isSendingUsage: Boolean = false,
+    onSendUsageClick: () -> Unit = {},
 ) {
     val appColors = LocalAppColors.current
     Card(
@@ -224,7 +226,7 @@ private fun MonitoringSection(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            SectionHeader("Monitoring")
+            SectionHeader(stringResource(R.string.monitoring_section))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -239,12 +241,12 @@ private fun MonitoringSection(
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "Location Monitoring",
+                        text = stringResource(R.string.location_monitoring),
                         style = MaterialTheme.typography.bodyLarge,
                         color = appColors.textPrimary
                     )
                     Text(
-                        text = "Share location with parent every hour",
+                        text = stringResource(R.string.location_monitoring_desc),
                         style = MaterialTheme.typography.bodySmall,
                         color = appColors.textSecondary
                     )
@@ -261,18 +263,26 @@ private fun MonitoringSection(
 
             ActionButton(
                 icon = Icons.Default.LocationOn,
-                label = "Send Location",
+                label = stringResource(R.string.send_location),
                 isLoading = isSending,
-                loadingLabel = "Sending Location...",
+                loadingLabel = stringResource(R.string.sending_location),
                 onClick = onSendLocationClick
             )
 
             ActionButton(
                 icon = Icons.Default.Apps,
-                label = "Send Apps",
+                label = stringResource(R.string.send_apps),
                 isLoading = isSendingApps,
-                loadingLabel = "Sending Apps...",
+                loadingLabel = stringResource(R.string.sending_apps),
                 onClick = onSendAppsClick
+            )
+
+            ActionButton(
+                icon = Icons.Default.Schedule,
+                label = stringResource(R.string.send_daily_usage),
+                isLoading = isSendingUsage,
+                loadingLabel = stringResource(R.string.sending_daily_usage),
+                onClick = onSendUsageClick
             )
         }
     }
@@ -372,11 +382,11 @@ private fun ParentalControlsSection(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            SectionHeader("Parental Controls")
+            SectionHeader(stringResource(R.string.parental_controls_section))
             SettingsNavRow(
                 icon = Icons.Default.Security,
-                title = "Content Protection",
-                description = "Block inappropriate content and websites",
+                title = stringResource(R.string.content_protection),
+                description = stringResource(R.string.content_protection_desc),
                 onClick = onContentProtectionClick
             )
 
@@ -395,12 +405,12 @@ private fun ParentalControlsSection(
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "AI Content Filtering",
+                        text = stringResource(R.string.ai_content_filtering),
                         style = MaterialTheme.typography.bodyLarge,
                         color = appColors.textPrimary
                     )
                     Text(
-                        text = "Auto-start on boot, blocks apps until permission granted",
+                        text = stringResource(R.string.ai_filtering_desc),
                         style = MaterialTheme.typography.bodySmall,
                         color = appColors.textSecondary
                     )
@@ -434,12 +444,12 @@ private fun ParentalControlsSection(
                     }
                     Text(
                         text = when (val state = sessionState) {
-                            is SessionState.Idle -> "Session Idle"
-                            is SessionState.Active -> "Active - Session #${state.sessionId}"
-                            is SessionState.PermissionRequired -> "Permissions Required"
-                            is SessionState.MediaProjectionRequired -> "Screen Recording Needed"
-                            is SessionState.NotificationPermissionRequired -> "Notification Permission Needed"
-                            is SessionState.Error -> "Error"
+                            is SessionState.Idle -> stringResource(R.string.session_idle)
+                            is SessionState.Active -> stringResource(R.string.session_active, state.sessionId.toString())
+                            is SessionState.PermissionRequired -> stringResource(R.string.session_permissions_required)
+                            is SessionState.MediaProjectionRequired -> stringResource(R.string.session_screen_recording_needed)
+                            is SessionState.NotificationPermissionRequired -> stringResource(R.string.session_notification_permission_needed)
+                            is SessionState.Error -> stringResource(R.string.error)
                         },
                         color = when (sessionState) {
                             is SessionState.Idle -> appColors.textSecondary
@@ -463,7 +473,7 @@ private fun ParentalControlsSection(
                         colors = ButtonDefaults.buttonColors(containerColor = appColors.primary01)
                     ) {
                         Icon(Icons.Default.PlayArrow, null, modifier = Modifier.size(20.dp))
-                        Text("Start Monitoring", color = appColors.darkTextPrimary, modifier = Modifier.padding(start = 8.dp))
+                        Text(stringResource(R.string.start_monitoring), color = appColors.darkTextPrimary, modifier = Modifier.padding(start = 8.dp))
                     }
                 }
 
@@ -474,13 +484,13 @@ private fun ParentalControlsSection(
                         colors = ButtonDefaults.buttonColors(containerColor = appColors.error500)
                     ) {
                         Icon(Icons.Default.Stop, null, modifier = Modifier.size(20.dp))
-                        Text("Stop Monitoring", color = appColors.darkTextPrimary, modifier = Modifier.padding(start = 8.dp))
+                        Text(stringResource(R.string.stop_monitoring), color = appColors.darkTextPrimary, modifier = Modifier.padding(start = 8.dp))
                     }
                 }
 
                 is SessionState.MediaProjectionRequired -> {
                     Text(
-                        text = "Screen recording permission is needed for content analysis.",
+                        text = stringResource(R.string.screen_recording_needed_desc),
                         color = appColors.textSecondary,
                         style = MaterialTheme.typography.bodySmall
                     )
@@ -490,13 +500,13 @@ private fun ParentalControlsSection(
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(containerColor = appColors.primary01)
                     ) {
-                        Text("Grant Screen Recording", color = appColors.darkTextPrimary)
+                        Text(stringResource(R.string.grant_screen_recording), color = appColors.darkTextPrimary)
                     }
                 }
 
                 is SessionState.PermissionRequired -> {
                     Text(
-                        text = "Required permissions are missing.",
+                        text = stringResource(R.string.permissions_missing),
                         color = appColors.error500,
                         style = MaterialTheme.typography.bodySmall
                     )
@@ -505,13 +515,13 @@ private fun ParentalControlsSection(
                         onClick = { sessionViewModel.clearPermissionState() },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Back")
+                        Text(stringResource(R.string.back))
                     }
                 }
 
                 is SessionState.Error -> {
                     Text(
-                        text = "Error: ${state.message}",
+                        text = stringResource(R.string.error_with_message, state.message),
                         color = appColors.error500,
                         style = MaterialTheme.typography.bodySmall
                     )
@@ -520,13 +530,13 @@ private fun ParentalControlsSection(
                         onClick = { sessionViewModel.clearPermissionState() },
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Retry")
+                        Text(stringResource(R.string.retry))
                     }
                 }
 
                 is SessionState.NotificationPermissionRequired -> {
                     Text(
-                        text = "Notification permission is needed.",
+                        text = stringResource(R.string.notification_permission_needed),
                         color = appColors.textSecondary,
                         style = MaterialTheme.typography.bodySmall
                     )
@@ -536,8 +546,8 @@ private fun ParentalControlsSection(
             Spacer(modifier = Modifier.height(8.dp))
 
             PermissionItem(
-                title = "Notification",
-                description = if (hasNotification.value) "Granted" else "Required for blocked content alerts",
+                title = stringResource(R.string.permission_notification),
+                description = if (hasNotification.value) stringResource(R.string.granted) else stringResource(R.string.notification_permission_desc),
                 isGranted = hasNotification.value,
                 onClick = {
                     if (activity != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -547,8 +557,8 @@ private fun ParentalControlsSection(
             )
 
             PermissionItem(
-                title = "Overlay",
-                description = if (hasOverlay.value) "Granted" else "Required for blocking overlay when content is detected",
+                title = stringResource(R.string.permission_overlay),
+                description = if (hasOverlay.value) stringResource(R.string.granted) else stringResource(R.string.overlay_permission_desc),
                 isGranted = hasOverlay.value,
                 onClick = {
                     if (activity != null) {
@@ -565,8 +575,8 @@ private fun ParentalControlsSection(
 
             SettingsNavRow(
                 icon = Icons.Default.Timeline,
-                title = "Session History",
-                description = "View past AI monitoring sessions",
+                title = stringResource(R.string.session_history),
+                description = stringResource(R.string.session_history_desc),
                 onClick = onSessionHistoryClick
             )
         }
@@ -589,11 +599,11 @@ private fun ActivityHistorySection(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            SectionHeader("Activity Logs")
+            SectionHeader(stringResource(R.string.activity_logs_section))
             SettingsNavRow(
                 icon = Icons.Default.Apps,
-                title = "App Logs",
-                description = "View internal app logs",
+                title = stringResource(R.string.app_logs),
+                description = stringResource(R.string.app_logs_desc),
                 onClick = onLogsClick
             )
         }
@@ -614,15 +624,15 @@ private fun DeviceInfoSection(childId: String?, childName: String?) {
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            SectionHeader("Device")
+            SectionHeader(stringResource(R.string.device_section))
             if (childName != null) {
-                InfoRow("Name", childName)
+                InfoRow(stringResource(R.string.device_name), childName)
             }
             if (childId != null) {
-                InfoRow("Child ID", childId.take(16) + "...")
+                InfoRow(stringResource(R.string.child_id), childId.take(16) + "...")
             }
-            InfoRow("Device", Build.MODEL)
-            InfoRow("Android", "${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})")
+            InfoRow(stringResource(R.string.device_model), Build.MODEL)
+            InfoRow(stringResource(R.string.android_version), "${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT})")
         }
     }
 }
@@ -643,13 +653,13 @@ private fun PermissionsSection() {
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            SectionHeader("Permissions")
+            SectionHeader(stringResource(R.string.permissions_section))
 
             val permissions = listOf(
-                Manifest.permission.CAMERA to "Camera",
-                Manifest.permission.ACCESS_FINE_LOCATION to "Precise Location",
-                Manifest.permission.ACCESS_COARSE_LOCATION to "Approximate Location",
-                Manifest.permission.INTERNET to "Internet"
+                Manifest.permission.CAMERA to stringResource(R.string.permission_camera),
+                Manifest.permission.ACCESS_FINE_LOCATION to stringResource(R.string.permission_precise_location),
+                Manifest.permission.ACCESS_COARSE_LOCATION to stringResource(R.string.permission_approx_location),
+                Manifest.permission.INTERNET to stringResource(R.string.permission_internet)
             )
 
             permissions.forEach { (permission, label) ->
@@ -679,7 +689,7 @@ private fun PermissionRow(name: String, isGranted: Boolean) {
             else appColors.error500.copy(alpha = 0.15f)
         ) {
             Text(
-                text = if (isGranted) "Granted" else "Denied",
+                text = if (isGranted) stringResource(R.string.granted) else stringResource(R.string.denied),
                 style = MaterialTheme.typography.labelSmall,
                 color = if (isGranted) appColors.success500 else appColors.error500,
                 fontWeight = FontWeight.SemiBold,
@@ -708,20 +718,20 @@ private fun AccountSection(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            SectionHeader("Account & Security")
+            SectionHeader(stringResource(R.string.account_security_section))
 
             ActionButton(
                 icon = Icons.Default.Person,
-                label = "Get Child Info",
+                label = stringResource(R.string.get_child_info),
                 isLoading = isFetchingChild,
-                loadingLabel = "Fetching...",
+                loadingLabel = stringResource(R.string.fetching),
                 onClick = onGetMeClick
             )
 
             SettingsNavRow(
                 icon = Icons.Default.Lock,
-                title = "Change PIN",
-                description = "Update your security PIN",
+                title = stringResource(R.string.change_pin),
+                description = stringResource(R.string.change_pin_desc),
                 onClick = onChangePin
             )
 
@@ -734,7 +744,7 @@ private fun AccountSection(
                 )
             ) {
                 Text(
-                    text = "Logout",
+                    text = stringResource(R.string.logout),
                     color = appColors.darkTextPrimary,
                     fontWeight = FontWeight.SemiBold
                 )

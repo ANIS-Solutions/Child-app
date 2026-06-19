@@ -40,6 +40,8 @@ import androidx.compose.ui.unit.dp
 import com.anis.child.data.local.RewardEntity
 import com.anis.child.ui.components.EmptyStateView
 import com.anis.child.ui.theme.LocalAppColors
+import com.anis.child.R
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun RewardScreen(
@@ -62,10 +64,10 @@ fun RewardScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, "Back", tint = appColors.textPrimary)
+                Icon(Icons.Default.ArrowBack, stringResource(R.string.back), tint = appColors.textPrimary)
             }
             Text(
-                text = "Rewards",
+                text = stringResource(R.string.rewards_title_screen),
                 color = appColors.textPrimary,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
@@ -90,7 +92,7 @@ fun RewardScreen(
                 item {
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        text = "Available Rewards",
+                        text = stringResource(R.string.available_rewards),
                         style = MaterialTheme.typography.titleMedium,
                         color = appColors.textPrimary,
                         fontWeight = FontWeight.Bold
@@ -100,7 +102,7 @@ fun RewardScreen(
                 val available = uiState.rewards.filter { it.state == "earned" }
                 if (available.isEmpty()) {
                     item {
-                        EmptyStateView(Icons.Default.CardGiftcard, "No rewards available", Modifier.fillMaxWidth().padding(32.dp))
+                        EmptyStateView(Icons.Default.CardGiftcard, stringResource(R.string.no_rewards), Modifier.fillMaxWidth().padding(32.dp))
                     }
                 } else {
                     items(available) { reward ->
@@ -117,7 +119,7 @@ fun RewardScreen(
                     item {
                         Spacer(Modifier.height(16.dp))
                         Text(
-                            text = "History",
+                            text = stringResource(R.string.rewards_history),
                             style = MaterialTheme.typography.titleMedium,
                             color = appColors.textPrimary,
                             fontWeight = FontWeight.Bold
@@ -156,7 +158,7 @@ private fun BalanceCard(balance: Int) {
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "Reward Points",
+                    text = stringResource(R.string.reward_points),
                     style = MaterialTheme.typography.bodyMedium,
                     color = appColors.darkTextPrimary.copy(alpha = 0.8f)
                 )
@@ -215,7 +217,7 @@ private fun RewardCard(
                         containerColor = if (canAfford) appColors.success500 else appColors.textDisabled.copy(alpha = 0.3f)
                     )
                 ) {
-                    Text("Claim", color = appColors.darkTextPrimary)
+                    Text(stringResource(R.string.claim), color = appColors.darkTextPrimary)
                 }
             }
         }

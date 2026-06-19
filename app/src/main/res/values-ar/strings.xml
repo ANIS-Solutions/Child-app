@@ -1,0 +1,202 @@
+<resources>
+    <string name="app_name">أنيس</string>
+    <string name="accessibility_service_description">أنيس خدمة حماية المحتوى - تراقب التطبيقات وتحظر المحتوى المقيد بناءً على إعدادات الوالدين. مطلوبة لحظر التطبيقات وميزات تصفية المحتوى.</string>
+
+    <!-- Splash -->
+    <string name="splash_child_safety">سلامة الطفل</string>
+
+    <!-- Pairing -->
+    <string name="camera_permission_rationale">إذن الكاميرا مطلوب لمسح رموز QR</string>
+    <string name="camera_permission_required">يرجى منح إذن الكاميرا للمتابعة</string>
+    <string name="grant_permission">منح الإذن</string>
+    <string name="scan_qr_instruction">وجّه الكاميرا نحو رمز QR</string>
+    <string name="pairing_device">جارٍ إقران الجهاز...</string>
+    <string name="pairing_successful">تم الإقران بنجاح!</string>
+    <string name="pairing_connected">متصل بـ %s</string>
+    <string name="continue_btn">متابعة</string>
+    <string name="pairing_failed">فشل الإقران</string>
+    <string name="try_again">حاول مرة أخرى</string>
+
+    <!-- PIN -->
+    <string name="pin_create">إنشاء رمز PIN</string>
+    <string name="pin_confirm">تأكيد رمز PIN</string>
+    <string name="pin_enter">إدخال رمز PIN</string>
+    <string name="pin_locked_out">محاولات كثيرة جداً</string>
+    <string name="pin_verified">تم التحقق!</string>
+    <string name="pin_create_subtitle">اختر رمز PIN من 4-6 أرقام لحماية الإعدادات</string>
+    <string name="pin_confirm_subtitle">أعد إدخال رمز PIN الجديد</string>
+    <string name="pin_enter_subtitle">أدخل رمز PIN للوصول إلى الإعدادات</string>
+    <string name="pin_locked_out_subtitle">يرجى الانتظار 30 ثانية قبل المحاولة مرة أخرى</string>
+    <string name="cancel">إلغاء</string>
+
+    <!-- Home -->
+    <string name="home_greeting">مرحباً، %s!</string>
+    <string name="home_subtitle">لنرى ماذا يحدث</string>
+    <string name="switch_to_light_mode">التبديل إلى الوضع الفاتح</string>
+    <string name="switch_to_dark_mode">التبديل إلى الوضع الداكن</string>
+    <string name="today_screen_time">وقت الشاشة اليوم</string>
+    <string name="daily_limit_exceeded">لقد تجاوزت الحد اليومي البالغ %s</string>
+    <string name="this_week">هذا الأسبوع</string>
+    <string name="daily_avg">المعدل اليومي</string>
+    <string name="top_apps_today">أفضل التطبيقات اليوم</string>
+    <string name="quests_title">اطلع على مهامك المخصصة</string>
+    <string name="quests_subtitle">أكمل المهام واكسب النقاط</string>
+    <string name="rewards_title">حان وقت مكافأة جديدة</string>
+    <string name="rewards_subtitle">أنفق نقاطك على المكافآت</string>
+    <string name="parent_pypass">PyPass للوالدين</string>
+    <string name="parent_pypass_subtitle">إدارة حساب طفلك وتفضيلاته</string>
+
+    <!-- Settings -->
+    <string name="settings">الإعدادات</string>
+    <string name="disable_ai_dialog_title">هل تريد تعطيل تصفية المحتوى بالذكاء الاصطناعي؟</string>
+    <string name="disable_ai_dialog_text">هذه هي الطريقة الوحيدة لإيقاف خدمة التصفية. لن تتم مراقبة التطبيقات عند التشغيل وستتم إزالة قفل التطبيق.</string>
+    <string name="disable">تعطيل</string>
+    <string name="keep_enabled">الابقاء مفعّلاً</string>
+    <string name="monitoring_section">المراقبة</string>
+    <string name="location_monitoring">مراقبة الموقع</string>
+    <string name="location_monitoring_desc">مشاركة الموقع مع الوالدين بصورة مستمرة</string>
+    <string name="send_location">إرسال الموقع</string>
+    <string name="sending_location">جارٍ إرسال الموقع...</string>
+    <string name="send_apps">إرسال التطبيقات</string>
+    <string name="sending_apps">جارٍ إرسال التطبيقات...</string>
+    <string name="send_daily_usage">إرسال الاستخدام اليومي</string>
+    <string name="sending_daily_usage">جارٍ إرسال الاستخدام...</string>
+    <string name="parental_controls_section">الرقابة الأبوية</string>
+    <string name="content_protection">حماية المحتوى</string>
+    <string name="content_protection_desc">حظر التطبيقات غير المناسبة </string>
+    <string name="ai_content_filtering">تصفية المحتوى بالذكاء الاصطناعي</string>
+    <string name="ai_filtering_desc">بدء تلقائي عند التشغيل، يحظر التطبيقات حتى منح الإذن</string>
+    <string name="session_idle">جلسة خاملة</string>
+    <string name="session_active">نشط - الجلسة #%s</string>
+    <string name="session_permissions_required">الأذونات مطلوبة</string>
+    <string name="session_screen_recording_needed">تسجيل الشاشة مطلوب</string>
+    <string name="session_notification_permission_needed">إذن الإشعارات مطلوب</string>
+    <string name="error">خطأ</string>
+    <string name="start_monitoring">بدء المراقبة</string>
+    <string name="stop_monitoring">إيقاف المراقبة</string>
+    <string name="screen_recording_needed_desc">إذن تسجيل الشاشة مطلوب لتحليل المحتوى.</string>
+    <string name="grant_screen_recording">منح تسجيل الشاشة</string>
+    <string name="permissions_missing">الأذونات المطلوبة مفقودة.</string>
+    <string name="back">رجوع</string>
+    <string name="error_with_message">خطأ: %s</string>
+    <string name="retry">إعادة المحاولة</string>
+    <string name="notification_permission_needed">إذن الإشعارات مطلوب.</string>
+    <string name="permission_notification">الإشعارات</string>
+    <string name="granted">ممنوح</string>
+    <string name="notification_permission_desc">مطلوب لتنبيهات المحتوى المحظور</string>
+    <string name="permission_overlay">التراكب</string>
+    <string name="overlay_permission_desc">مطلوب لتراكب الحظر عند اكتشاف محتوى</string>
+    <string name="session_history">سجل الجلسات</string>
+    <string name="session_history_desc">عرض جلسات مراقبة الذكاء الاصطناعي السابقة</string>
+    <string name="activity_logs_section">سجلات النشاط</string>
+    <string name="app_logs">سجلات التطبيق</string>
+    <string name="app_logs_desc">عرض سجلات التطبيق الداخلية</string>
+    <string name="device_section">الجهاز</string>
+    <string name="device_name">الاسم</string>
+    <string name="child_id">معرف الطفل</string>
+    <string name="device_model">الجهاز</string>
+    <string name="android_version">أندرويد</string>
+    <string name="permissions_section">الأذونات</string>
+    <string name="permission_camera">الكاميرا</string>
+    <string name="permission_precise_location">الموقع الدقيق</string>
+    <string name="permission_approx_location">الموقع التقريبي</string>
+    <string name="permission_internet">الإنترنت</string>
+    <string name="denied">مرفوض</string>
+    <string name="account_security_section">الحساب والأمان</string>
+    <string name="get_child_info">الحصول على معلومات الطفل</string>
+    <string name="fetching">جارٍ الجلب...</string>
+    <string name="change_pin">تغيير رمز PIN</string>
+    <string name="change_pin_desc">تحديث رمز PIN للأمان</string>
+    <string name="logout">تسجيل الخروج</string>
+
+    <!-- Quests -->
+    <string name="quests_title_screen">المهام</string>
+    <string name="no_quests">لا توجد مهام مخصصة بعد</string>
+
+    <!-- Rewards -->
+    <string name="rewards_title_screen">المكافآت</string>
+    <string name="available_rewards">المكافآت المتاحة</string>
+    <string name="no_rewards">لا توجد مكافآت متاحة</string>
+    <string name="rewards_history">السجل</string>
+    <string name="reward_points">نقاط المكافأة</string>
+    <string name="claim">استلام</string>
+
+    <!-- Content Protection -->
+    <string name="content_protection_title">حماية المحتوى</string>
+    <string name="set_daily_time_limit_title">تعيين الحد الزمني اليومي</string>
+    <string name="set_daily_time_limit_desc">أدخل الحد الأقصى للدقائق التي يمكن استخدام هذا التطبيق فيها يومياً. اضبط 0 لإزالة الحد.</string>
+    <string name="minutes">دقائق</string>
+    <string name="set">تعيين</string>
+    <string name="limit_btn">حد</string>
+
+    <!-- Session History -->
+    <string name="session_history_title">سجل الجلسات</string>
+    <string name="no_sessions">لا توجد جلسات بعد</string>
+    <string name="no_sessions_desc">ابدأ جلسة مراقبة لرؤية السجل هنا</string>
+    <string name="unsynced_count">%d جلسات غير متزامنة</string>
+    <string name="unsynced_sessions_desc">تشغيل محرك التكثيف عبر جميع الجلسات لاختيار أفضل الإطارات الرئيسية</string>
+    <string name="vote_all_sessions">التصويت على جميع الجلسات</string>
+    <string name="voting">جارٍ التصويت...</string>
+    <string name="send_to_server">إرسال إلى الخادم</string>
+    <string name="sending_to_server">جارٍ الإرسال إلى الخادم...</string>
+    <string name="data_sent_success">تم إرسال البيانات بنجاح</string>
+    <string name="done">تم</string>
+    <string name="no_image">لا توجد صورة</string>
+    <string name="status">الحالة</string>
+    <string name="interval">الفاصل</string>
+    <string name="captures">اللقطات</string>
+    <string name="blocked">محظور</string>
+    <string name="safe">آمن</string>
+    <string name="delete">حذف</string>
+
+    <!-- Session Detail -->
+    <string name="session_details_title">تفاصيل الجلسة</string>
+    <string name="export">تصدير</string>
+    <string name="export_session_zip">تصدير الجلسة (ZIP)</string>
+    <string name="no_analysis_results">لا توجد نتائج تحليل بعد</string>
+    <string name="analysis_log">سجل التحليل</string>
+    <string name="session_number">الجلسة #%d</string>
+    <string name="started">بدأت</string>
+    <string name="ended">انتهت</string>
+    <string name="interval_label">الفاصل</string>
+    <string name="total">المجموع</string>
+    <string name="device_usage">استخدام الجهاز</string>
+    <string name="battery_charging">البطارية ⚡</string>
+    <string name="battery">البطارية</string>
+    <string name="cpu">المعالج</string>
+    <string name="ram">الذاكرة</string>
+    <string name="keyframes_count">الصور الرئيسية (%d)</string>
+    <string name="keyframes_desc">الصور الأكثر تمثيلاً من هذه الجلسة</string>
+    <string name="keyframe">صورة رئيسية</string>
+    <string name="captured_image">صورة ملتقطة</string>
+
+    <!-- Screen Time -->
+    <string name="screen_time_title">وقت الشاشة</string>
+    <string name="usage_access_required">إذن الوصول إلى الاستخدام مطلوب</string>
+    <string name="usage_access_desc">يحتاج أنيس إلى إذن الوصول إلى الاستخدام لتتبع وقت الشاشة وتطبيق قيود التطبيقات.</string>
+    <string name="todays_usage">استخدام اليوم</string>
+    <string name="used">المستخدم</string>
+    <string name="limit">الحد</string>
+    <string name="remaining">المتبقي</string>
+    <string name="limit_reached">تم الوصول للحد</string>
+    <string name="within_limit">ضمن الحد</string>
+    <string name="bedtime">وقت النوم</string>
+    <string name="not_bedtime">ليس وقت النوم</string>
+    <string name="study_time">وقت الدراسة</string>
+    <string name="free_time">وقت حر</string>
+    <string name="app_usage_today">استخدام التطبيقات اليوم</string>
+    <string name="no_usage_data">لا توجد بيانات استخدام متاحة</string>
+    <string name="restriction_controls">ضوابط التقييد</string>
+    <string name="app_restriction_service">خدمة تقييد التطبيقات</string>
+    <string name="restriction_service_not_running">غير قيد التشغيل — لم يتم تطبيق التقييدات</string>
+    <string name="start">بدء</string>
+
+    <!-- Logs -->
+    <string name="logs_title">السجلات</string>
+    <string name="no_logs">لا توجد سجلات بعد</string>
+
+    <!-- Language -->
+    <string name="language">اللغة</string>
+    <string name="language_en">English</string>
+    <string name="language_ar">العربية</string>
+</resources>

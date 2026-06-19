@@ -19,6 +19,8 @@ class PreferenceManager(context: Context) {
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
     )
 
+    private val simplePrefs: SharedPreferences = context.getSharedPreferences(SIMPLE_PREFS_NAME, Context.MODE_PRIVATE)
+
     var accessToken: String?
         get() = sharedPreferences.getString(KEY_ACCESS_TOKEN, null)
         set(value) = sharedPreferences.edit().putString(KEY_ACCESS_TOKEN, value).apply()
@@ -107,12 +109,17 @@ class PreferenceManager(context: Context) {
         get() = sharedPreferences.getBoolean(KEY_IS_DARK_THEME, false)
         set(value) = sharedPreferences.edit().putBoolean(KEY_IS_DARK_THEME, value).apply()
 
+    var localeLanguage: String
+        get() = simplePrefs.getString(KEY_LOCALE_LANGUAGE, "en") ?: "en"
+        set(value) = simplePrefs.edit().putString(KEY_LOCALE_LANGUAGE, value).apply()
+
     fun hasIsAiFilteringEnabled(): Boolean {
         return sharedPreferences.contains(KEY_IS_AI_FILTERING_ENABLED)
     }
 
     companion object {
         const val PREFS_NAME = "anis_secure_prefs"
+        private const val SIMPLE_PREFS_NAME = "anis_simple_prefs"
         private const val KEY_ACCESS_TOKEN = "access_token"
         private const val KEY_IS_LOGGED_IN = "is_logged_in"
         private const val KEY_CHILD_ID = "child_id"
@@ -134,5 +141,6 @@ class PreferenceManager(context: Context) {
         private const val KEY_PROMPTS_EMBEDDING_ID = "prompts_embedding_id"
         private const val KEY_PROMPTS_EMBEDDING_VERSION = "prompts_embedding_version"
         private const val KEY_IS_DARK_THEME = "is_dark_theme"
+        private const val KEY_LOCALE_LANGUAGE = "locale_language"
     }
 }

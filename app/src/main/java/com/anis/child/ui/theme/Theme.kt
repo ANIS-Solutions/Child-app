@@ -3,6 +3,7 @@ package com.anis.child.ui.theme
 import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -11,6 +12,8 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
+import java.util.Locale
 
 private val DarkColorScheme = darkColorScheme(
     primary = DarkAppColors.primary01,
@@ -63,7 +66,15 @@ fun ANISTheme(
     }
     val appColors = if (darkTheme) DarkAppColors else LightAppColors
 
-    CompositionLocalProvider(LocalAppColors provides appColors) {
+    val layoutDirection = when (Locale.getDefault().language) {
+        "ar" -> LayoutDirection.Rtl
+        else -> LayoutDirection.Ltr
+    }
+
+    CompositionLocalProvider(
+        LocalAppColors provides appColors,
+        LocalLayoutDirection provides layoutDirection
+    ) {
         MaterialTheme(
             colorScheme = colorScheme,
             typography = Typography,

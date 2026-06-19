@@ -36,6 +36,8 @@ import androidx.compose.ui.unit.dp
 import com.anis.child.data.local.TaskEntity
 import com.anis.child.ui.components.EmptyStateView
 import com.anis.child.ui.theme.LocalAppColors
+import com.anis.child.R
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun QuestScreen(
@@ -58,10 +60,10 @@ fun QuestScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, "Back", tint = appColors.textPrimary)
+                Icon(Icons.Default.ArrowBack, stringResource(R.string.back), tint = appColors.textPrimary)
             }
             Text(
-                text = "Quests",
+                text = stringResource(R.string.quests_title_screen),
                 color = appColors.textPrimary,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
@@ -69,7 +71,7 @@ fun QuestScreen(
         }
 
         if (tasks.isEmpty()) {
-            EmptyStateView(Icons.Default.TaskAlt, "No quests assigned yet", Modifier.fillMaxSize())
+            EmptyStateView(Icons.Default.TaskAlt, stringResource(R.string.no_quests), Modifier.fillMaxSize())
         } else {
             LazyColumn(
                 modifier = Modifier

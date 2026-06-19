@@ -27,36 +27,48 @@ import androidx.compose.material.icons.filled.TaskAlt
 import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.anis.child.data.AppUsageInfo
 import com.anis.child.ui.theme.LocalAppColors
 import com.anis.child.ui.theme.ThemeManager
+import com.anis.child.R
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun HomeScreen(
     childName: String,
     homeViewModel: HomeViewModel,
+    currentLanguage: String = "en",
     onSettingsClick: () -> Unit,
     onTaskClick: () -> Unit = {},
-    onRewardClick: () -> Unit = {}
+    onRewardClick: () -> Unit = {},
+    onLanguageChange: (String) -> Unit = {}
 ) {
     val appColors = LocalAppColors.current
     val homeData by homeViewModel.homeData.collectAsState()
+    var showLanguageDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -87,26 +99,80 @@ fun HomeScreen(
             Spacer(Modifier.width(12.dp))
             Column {
                 Text(
-                    text = "Hi, $childName!",
+                    text = stringResource(R.string.home_greeting, childName),
                     color = appColors.textPrimary,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "Let's see what's happening",
+                    text = stringResource(R.string.home_subtitle),
                     color = appColors.textSecondary,
                     style = MaterialTheme.typography.bodySmall
                 )
             }
             Spacer(Modifier.weight(1f))
+
+            IconButton(onClick = { showLanguageDialog = true }) {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(appColors.primary01.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = if (currentLanguage == "ar") "ع" else "EN",
+                        color = appColors.primary01,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+
             IconButton(onClick = { ThemeManager.toggle() }) {
                 Icon(
                     imageVector = if (ThemeManager.isDarkMode) Icons.Default.LightMode else Icons.Default.DarkMode,
-                    contentDescription = if (ThemeManager.isDarkMode) "Switch to Light Mode" else "Switch to Dark Mode",
+                    contentDescription = if (ThemeManager.isDarkMode) stringResource(R.string.switch_to_light_mode) else stringResource(R.string.switch_to_dark_mode),
                     tint = appColors.textSecondary
                 )
             }
-            
+        }
+
+        if (showLanguageDialog) {
+            AlertDialog(
+                onDismissRequest = { showLanguageDialog = false },
+                title = { Text(stringResource(R.string.language)) },
+                text = {
+                    Column {
+                        TextButton(
+                            onClick = {
+                                onLanguageChange("en")
+                                showLanguageDialog = false
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = stringResource(R.string.language_en),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                        TextButton(
+                            onClick = {
+                                onLanguageChange("ar")
+                                showLanguageDialog = false
+                            },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = stringResource(R.string.language_ar),
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
+                },
+                confirmButton = {}
+            )
         }
 
         Column(
@@ -127,7 +193,7 @@ fun HomeScreen(
             )
 
             TopAppsCard(
-                title = "Top Apps Today",
+                title = stringResource(R.string.top_apps_today),
                 apps = homeData.topApps
             )
 
@@ -135,24 +201,24 @@ fun HomeScreen(
 
             ActionCard(
                 icon = Icons.Default.TaskAlt,
-                title = "See what's your assigned quests",
-                subtitle = "Complete quests and earn points",
+                title = stringResource(R.string.quests_title),
+                subtitle = stringResource(R.string.quests_subtitle),
                 color = appColors.entertainment500,
                 onClick = onTaskClick
             )
 
             ActionCard(
                 icon = Icons.Default.CardGiftcard,
-                title = "It's time for a new reward",
-                subtitle = "Spend your points on rewards",
+                title = stringResource(R.string.rewards_title),
+                subtitle = stringResource(R.string.rewards_subtitle),
                 color = Color(0xFFFF9800),
                 onClick = onRewardClick
             )
 
             ActionCard(
                 icon = Icons.Default.Settings,
-                title = "Parent PyPass",
-                subtitle = "Manage your child's account and preferences",
+                title = stringResource(R.string.parent_pypass),
+                subtitle = stringResource(R.string.parent_pypass_subtitle),
                 color = Color(0xFFD3D3D3),
                 onClick = onSettingsClick
             )
@@ -184,7 +250,7 @@ private fun TodayScreenTimeCard(todayMinutes: Int, dailyLimit: Int) {
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    text = "Today's Screen Time",
+                    text = stringResource(R.string.today_screen_time),
                     style = MaterialTheme.typography.bodyLarge,
                     color = appColors.textPrimary,
                     fontWeight = FontWeight.Bold
@@ -208,7 +274,7 @@ private fun TodayScreenTimeCard(todayMinutes: Int, dailyLimit: Int) {
                     )
                     Spacer(Modifier.width(4.dp))
                     Text(
-                        text = "You've exceeded your daily limit of ${dailyLimit}m",
+                        text = stringResource(R.string.daily_limit_exceeded, "${dailyLimit}m"),
                         style = MaterialTheme.typography.bodySmall,
                         color = appColors.error500,
                         fontWeight = FontWeight.Medium
@@ -243,7 +309,7 @@ private fun WeeklyCard(weeklyTotal: Int, weeklyAverage: Int) {
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = "This Week",
+                    text = stringResource(R.string.this_week),
                     style = MaterialTheme.typography.bodySmall,
                     color = appColors.textSecondary
                 )
@@ -263,7 +329,7 @@ private fun WeeklyCard(weeklyTotal: Int, weeklyAverage: Int) {
                 )
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text = "Daily Avg",
+                    text = stringResource(R.string.daily_avg),
                     style = MaterialTheme.typography.bodySmall,
                     color = appColors.textSecondary
                 )

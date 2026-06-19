@@ -2,6 +2,7 @@ package com.anis.child
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.media.projection.MediaProjectionManager
@@ -56,6 +57,7 @@ import com.anis.child.ui.screen.task.QuestScreen
 import com.anis.child.ui.screen.task.QuestViewModel
 import com.anis.child.ui.theme.ANISTheme
 import com.anis.child.ui.theme.ThemeManager
+import com.anis.child.util.LocaleHelper
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -97,6 +99,12 @@ class MainActivity : ComponentActivity() {
                 logManager.log("Location monitoring started", LogType.INFO)
             }
         }
+    }
+
+    override fun attachBaseContext(base: Context) {
+        val prefs = base.getSharedPreferences("anis_simple_prefs", Context.MODE_PRIVATE)
+        val lang = prefs.getString("locale_language", "en") ?: "en"
+        super.attachBaseContext(LocaleHelper.setLocale(base, lang))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -188,9 +196,14 @@ class MainActivity : ComponentActivity() {
                         HomeScreen(
                             childName = preferenceManager.childName ?: "Child",
                             homeViewModel = homeViewModel,
+                            currentLanguage = preferenceManager.localeLanguage,
                             onSettingsClick = { navigateToProtected("settings") },
                             onTaskClick = { navController.navigate("quest") },
-                            onRewardClick = { navController.navigate("reward") }
+                            onRewardClick = { navController.navigate("reward") },
+                            onLanguageChange = { languageCode ->
+                                preferenceManager.localeLanguage = languageCode
+                                recreate()
+                            }
                         )
                     }
 

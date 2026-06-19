@@ -31,6 +31,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.anis.child.ui.theme.LocalAppColors
+import com.anis.child.R
+import androidx.compose.ui.res.stringResource
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
@@ -101,9 +103,9 @@ fun PairingScreen(
             ) {
                 Text(
                     text = if (cameraPermissionState.status.shouldShowRationale) {
-                        "Camera permission is required to scan QR codes"
+                        stringResource(R.string.camera_permission_rationale)
                     } else {
-                        "Please grant camera permission to continue"
+                        stringResource(R.string.camera_permission_required)
                     },
                     style = MaterialTheme.typography.bodyLarge,
                     color = appColors.textPrimary,
@@ -114,7 +116,7 @@ fun PairingScreen(
                     onClick = { cameraPermissionState.launchPermissionRequest() },
                     modifier = Modifier.padding(top = 24.dp)
                 ) {
-                    Text("Grant Permission")
+                    Text(stringResource(R.string.grant_permission))
                 }
             }
         }
@@ -210,7 +212,7 @@ private fun QrScannerContent(
             contentAlignment = Alignment.BottomCenter
         ) {
             Text(
-                text = "Point camera at QR code",
+                text = stringResource(R.string.scan_qr_instruction),
                 color = appColors.textPrimary,
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier
@@ -241,7 +243,7 @@ private fun LoadingOverlay() {
                 color = appColors.primary01
             )
             Text(
-                text = "Pairing device...",
+                text = stringResource(R.string.pairing_device),
                 style = MaterialTheme.typography.bodyLarge,
                 color = appColors.textPrimary,
                 modifier = Modifier.padding(top = 16.dp)
@@ -279,13 +281,13 @@ private fun SuccessContent(
                 )
             }
             Text(
-                text = "Pairing Successful!",
+                text = stringResource(R.string.pairing_successful),
                 style = MaterialTheme.typography.headlineSmall,
                 color = appColors.textPrimary,
                 modifier = Modifier.padding(top = 24.dp)
             )
             Text(
-                text = "Connected to $childName",
+                text = stringResource(R.string.pairing_connected, childName),
                 style = MaterialTheme.typography.bodyLarge,
                 color = appColors.textSecondary,
                 modifier = Modifier.padding(top = 8.dp)
@@ -294,7 +296,7 @@ private fun SuccessContent(
                 onClick = onContinue,
                 modifier = Modifier.padding(top = 32.dp)
             ) {
-                Text("Continue")
+                Text(stringResource(R.string.continue_btn))
             }
         }
     }
@@ -332,7 +334,7 @@ private fun ErrorContent(
                 )
             }
             Text(
-                text = "Pairing Failed",
+                text = stringResource(R.string.pairing_failed),
                 style = MaterialTheme.typography.headlineSmall,
                 color = appColors.textPrimary,
                 modifier = Modifier.padding(top = 24.dp)
@@ -356,7 +358,7 @@ private fun ErrorContent(
                 onClick = onRetry,
                 modifier = Modifier.padding(top = 32.dp)
             ) {
-                Text("Try Again")
+                Text(stringResource(R.string.try_again))
             }
         }
     }

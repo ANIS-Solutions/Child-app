@@ -54,6 +54,8 @@ import com.anis.child.data.local.AnalysisResultEntity
 import com.anis.child.data.local.SessionEntity
 import com.anis.child.ui.theme.LocalAppColors
 import java.io.File
+import com.anis.child.R
+import androidx.compose.ui.res.stringResource
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -82,10 +84,10 @@ fun SessionHistoryScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onNavigateBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = appColors.textPrimary)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back), tint = appColors.textPrimary)
             }
             Text(
-                text = "Session History",
+                text = stringResource(R.string.session_history_title),
                 color = appColors.textPrimary,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
@@ -124,13 +126,13 @@ fun SessionHistoryScreen(
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "No sessions yet",
+                        text = stringResource(R.string.no_sessions),
                         style = MaterialTheme.typography.titleMedium,
                         color = appColors.textSecondary
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Start a monitoring session to see history here",
+                        text = stringResource(R.string.no_sessions_desc),
                         style = MaterialTheme.typography.bodyMedium,
                         color = appColors.textSecondary
                     )
@@ -180,14 +182,14 @@ private fun SyncCard(
             when (voteState.status) {
                 VoteStatus.Idle, VoteStatus.Voting -> {
                     Text(
-                        text = "$unsyncedCount unsynced sessions",
+                        text = stringResource(R.string.unsynced_count, unsyncedCount),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                         color = appColors.textPrimary
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Run CondensationEngine across all sessions to select best keyframes",
+                        text = stringResource(R.string.unsynced_sessions_desc),
                         style = MaterialTheme.typography.bodySmall,
                         color = appColors.textSecondary
                     )
@@ -219,7 +221,7 @@ private fun SyncCard(
                             Spacer(modifier = Modifier.width(8.dp))
                         }
                         Text(
-                            text = if (voteState.status == VoteStatus.Voting) "Voting..." else "Vote All Sessions",
+                            text = if (voteState.status == VoteStatus.Voting) stringResource(R.string.voting) else stringResource(R.string.vote_all_sessions),
                             color = appColors.darkTextPrimary
                         )
                     }
@@ -262,7 +264,7 @@ private fun SyncCard(
                             containerColor = appColors.primary01
                         )
                     ) {
-                        Text("Send to Server", color = appColors.darkTextPrimary)
+                        Text(stringResource(R.string.send_to_server), color = appColors.darkTextPrimary)
                     }
                 }
 
@@ -275,7 +277,7 @@ private fun SyncCard(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Sending to server...",
+                            text = stringResource(R.string.sending_to_server),
                             style = MaterialTheme.typography.bodyMedium,
                             color = appColors.textPrimary
                         )
@@ -307,7 +309,7 @@ private fun SyncSentCard(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Data sent successfully",
+                text = stringResource(R.string.data_sent_success),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
                 color = appColors.textPrimary
@@ -319,7 +321,7 @@ private fun SyncSentCard(
                     containerColor = appColors.success500
                 )
             ) {
-                Text("Done", color = appColors.darkTextPrimary)
+                Text(stringResource(R.string.done), color = appColors.darkTextPrimary)
             }
         }
     }
@@ -356,8 +358,8 @@ private fun KeyframeThumbnail(result: AnalysisResultEntity) {
                 .background(appColors.darkSurface.copy(alpha = 0.2f)),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = "No image",
+                Text(
+                    text = stringResource(R.string.no_image),
                 style = MaterialTheme.typography.labelSmall,
                 color = appColors.textSecondary
             )
@@ -399,7 +401,7 @@ private fun SessionHistoryItem(
                 IconButton(onClick = onDelete) {
                     Icon(
                         Icons.Default.Delete,
-                        contentDescription = "Delete",
+                        contentDescription = stringResource(R.string.delete),
                         tint = appColors.error500
                     )
                 }
@@ -413,7 +415,7 @@ private fun SessionHistoryItem(
             ) {
                 Column {
                     Text(
-                        text = "Status",
+                        text = stringResource(R.string.status),
                         style = MaterialTheme.typography.bodySmall,
                         color = appColors.textSecondary
                     )
@@ -429,7 +431,7 @@ private fun SessionHistoryItem(
                 }
                 Column {
                     Text(
-                        text = "Interval",
+                        text = stringResource(R.string.interval),
                         style = MaterialTheme.typography.bodySmall,
                         color = appColors.textSecondary
                     )
@@ -441,7 +443,7 @@ private fun SessionHistoryItem(
                 }
                 Column {
                     Text(
-                        text = "Captures",
+                        text = stringResource(R.string.captures),
                         style = MaterialTheme.typography.bodySmall,
                         color = appColors.textSecondary
                     )
@@ -461,14 +463,14 @@ private fun SessionHistoryItem(
                 ) {
                     AssistChip(
                         onClick = {},
-                        label = { Text("Blocked: ${session.blockedCount}") },
+                        label = { Text("${stringResource(R.string.blocked)}: ${session.blockedCount}") },
                         colors = AssistChipDefaults.assistChipColors(
                             containerColor = appColors.error500.copy(alpha = 0.2f)
                         )
                     )
                     AssistChip(
                         onClick = {},
-                        label = { Text("Safe: ${session.safeCount}") },
+                        label = { Text("${stringResource(R.string.safe)}: ${session.safeCount}") },
                         colors = AssistChipDefaults.assistChipColors(
                             containerColor = appColors.success500.copy(alpha = 0.2f)
                         )

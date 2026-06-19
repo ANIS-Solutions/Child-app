@@ -45,6 +45,8 @@ import androidx.compose.ui.unit.dp
 import com.anis.child.data.AppUsageInfo
 import com.anis.child.data.ScreenTimeSummary
 import com.anis.child.ui.theme.LocalAppColors
+import com.anis.child.R
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun ScreenTimeScreen(
@@ -67,10 +69,10 @@ fun ScreenTimeScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.Default.ArrowBack, "Back", tint = appColors.textPrimary)
+                Icon(Icons.Default.ArrowBack, stringResource(R.string.back), tint = appColors.textPrimary)
             }
             Text(
-                text = "Screen Time",
+                text = stringResource(R.string.screen_time_title),
                 color = appColors.textPrimary,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
@@ -106,7 +108,7 @@ fun ScreenTimeScreen(
 
                 item {
                     Text(
-                        text = "App Usage Today",
+                        text = stringResource(R.string.app_usage_today),
                         style = MaterialTheme.typography.titleMedium,
                         color = appColors.textPrimary,
                         fontWeight = FontWeight.Bold
@@ -115,8 +117,8 @@ fun ScreenTimeScreen(
 
                 if (uiState.appUsage.isEmpty()) {
                     item {
-                        Text(
-                            text = "No usage data available",
+                    Text(
+                        text = stringResource(R.string.no_usage_data),
                             style = MaterialTheme.typography.bodyMedium,
                             color = appColors.textSecondary,
                             modifier = Modifier.padding(vertical = 16.dp)
@@ -131,7 +133,7 @@ fun ScreenTimeScreen(
                 item {
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Restriction Controls",
+                        text = stringResource(R.string.restriction_controls),
                         style = MaterialTheme.typography.titleMedium,
                         color = appColors.textPrimary,
                         fontWeight = FontWeight.Bold
@@ -161,7 +163,7 @@ private fun PermissionBanner(onOpenSettings: () -> Unit) {
                 Icon(Icons.Default.Warning, null, tint = appColors.warning500, modifier = Modifier.size(24.dp))
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Usage Access Required",
+                    text = stringResource(R.string.usage_access_required),
                     style = MaterialTheme.typography.bodyLarge,
                     color = appColors.textPrimary,
                     fontWeight = FontWeight.Bold
@@ -169,7 +171,7 @@ private fun PermissionBanner(onOpenSettings: () -> Unit) {
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "ANIS needs usage access permission to track screen time and enforce app restrictions.",
+                text = stringResource(R.string.usage_access_desc),
                 style = MaterialTheme.typography.bodySmall,
                 color = appColors.textSecondary
             )
@@ -178,7 +180,7 @@ private fun PermissionBanner(onOpenSettings: () -> Unit) {
                 onClick = onOpenSettings,
                 colors = ButtonDefaults.buttonColors(containerColor = appColors.primary01)
             ) {
-                Text("Grant Permission", color = appColors.darkTextPrimary)
+                Text(stringResource(R.string.grant_permission), color = appColors.darkTextPrimary)
             }
         }
     }
@@ -192,8 +194,8 @@ private fun SummaryCard(summary: ScreenTimeSummary) {
         colors = CardDefaults.cardColors(containerColor = appColors.darkSurface.copy(alpha = 0.08f))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = "Today's Usage",
+                Text(
+                    text = stringResource(R.string.todays_usage),
                 style = MaterialTheme.typography.bodyLarge,
                 color = appColors.textPrimary,
                 fontWeight = FontWeight.Bold
@@ -204,10 +206,10 @@ private fun SummaryCard(summary: ScreenTimeSummary) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                StatItem("Used", "${summary.todayTotalMinutes}m", appColors.primary01)
+                StatItem(stringResource(R.string.used), "${summary.todayTotalMinutes}m", appColors.primary01)
                 if (summary.dailyLimitMinutes > 0) {
-                    StatItem("Limit", "${summary.dailyLimitMinutes}m", appColors.warning500)
-                    StatItem("Remaining", "${summary.remainingMinutes}m",
+                    StatItem(stringResource(R.string.limit), "${summary.dailyLimitMinutes}m", appColors.warning500)
+                    StatItem(stringResource(R.string.remaining), "${summary.remainingMinutes}m",
                         if (summary.isLimitReached) appColors.error500 else appColors.success500)
                 }
             }
@@ -235,19 +237,19 @@ private fun TimeStatusRow(summary: ScreenTimeSummary) {
     ) {
         StatusChip(
             modifier = Modifier.weight(1f),
-            label = if (summary.isLimitReached) "Limit Reached" else "Within Limit",
+            label = if (summary.isLimitReached) stringResource(R.string.limit_reached) else stringResource(R.string.within_limit),
             icon = if (summary.isLimitReached) Icons.Default.Block else Icons.Default.CheckCircle,
             color = if (summary.isLimitReached) appColors.error500 else appColors.success500
         )
         StatusChip(
             modifier = Modifier.weight(1f),
-            label = if (summary.isBedtime) "Bedtime" else "Not Bedtime",
+            label = if (summary.isBedtime) stringResource(R.string.bedtime) else stringResource(R.string.not_bedtime),
             icon = Icons.Default.Schedule,
             color = if (summary.isBedtime) appColors.warning500 else appColors.success500
         )
         StatusChip(
             modifier = Modifier.weight(1f),
-            label = if (summary.isStudyHours) "Study Time" else "Free Time",
+            label = if (summary.isStudyHours) stringResource(R.string.study_time) else stringResource(R.string.free_time),
             icon = Icons.Default.Timer,
             color = if (summary.isStudyHours) appColors.primary01 else appColors.textSecondary
         )
@@ -337,13 +339,13 @@ private fun RestrictionControls(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "App Restriction Service",
+                        text = stringResource(R.string.app_restriction_service),
                         style = MaterialTheme.typography.bodyLarge,
                         color = appColors.textPrimary,
                         fontWeight = FontWeight.Medium
                     )
                     Text(
-                        text = "Not running — restrictions not enforced",
+                        text = stringResource(R.string.restriction_service_not_running),
                         style = MaterialTheme.typography.bodySmall,
                         color = appColors.textSecondary
                     )
@@ -355,7 +357,7 @@ private fun RestrictionControls(
                     )
                 ) {
                     Text(
-                        text = "Start",
+                        text = stringResource(R.string.start),
                         color = appColors.darkTextPrimary
                     )
                 }

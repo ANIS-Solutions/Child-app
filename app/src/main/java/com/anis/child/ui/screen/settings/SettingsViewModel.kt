@@ -9,9 +9,12 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.anis.child.ai.service.AiFilteringService
+import com.anis.child.data.DailyUsageApp
+import com.anis.child.data.DailyUsageReport
 import com.anis.child.data.LogManager
 import com.anis.child.data.LogType
 import com.anis.child.data.PreferenceManager
+import com.anis.child.data.ScreenTimeManager
 import com.anis.child.data.TelemetryManager
 import com.anis.child.data.local.AppDatabase
 import com.anis.child.worker.AiFilterWatchdogWorker
@@ -38,6 +41,7 @@ class SettingsViewModel @Inject constructor(
     private val telemetryManager: TelemetryManager,
     private val locationRepository: LocationRepository,
     private val appsRepository: AppsRepository,
+    private val screenTimeManager: ScreenTimeManager,
     private val apiService: ApiService,
     private val appDatabase: AppDatabase,
 ) : ViewModel() {
@@ -61,6 +65,14 @@ class SettingsViewModel @Inject constructor(
         private set
 
     var isAiFilteringEnabled by mutableStateOf(preferenceManager.isAiFilteringEnabled)
+
+    var localeLanguage by mutableStateOf(preferenceManager.localeLanguage)
+        private set
+
+    fun setLanguage(languageCode: String) {
+        preferenceManager.localeLanguage = languageCode
+        localeLanguage = languageCode
+    }
 
     fun onAiFilteringToggled(enabled: Boolean) {
         if (enabled) {
@@ -157,6 +169,38 @@ class SettingsViewModel @Inject constructor(
                 logManager.log("Apps error: ${e.message}", LogType.ERROR)
             } finally {
                 isSendingApps = false
+            }
+        }
+    }
+
+    var isSendingUsage by mutableStateOf(false)
+        private set
+
+    fun sendDailyUsage() {
+        if (isSendingUsage) return
+        isSendingUsage = true
+        viewModelScope.launch {
+            try {
+                val totalMinutes = screenTimeManager.getTodayScreenTimeMinutes()
+                val apps = screenTimeManager.getAppUsageToday()
+                    .filter { it.totalTimeInForegroundMs >= 60_000 }
+                    .map { DailyUsageApp(it.packageName, (it.totalTimeInForegroundMs / 60000).toInt()) }
+                val report = DailyUsageReport(
+                    date = System.currentTimeMillis(),
+                    totalScreenTimeMinutes = totalMinutes,
+                    apps = apps
+                )
+                val response = apiService.sendDailyUsage(report)
+                if (response.isSuccessful) {
+                    logManager.log("Daily usage sent manually", LogType.SUCCESS)
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    logManager.log("Daily usage failed: HTTP ${response.code()} ${errorBody ?: ""}", LogType.ERROR)
+                }
+            } catch (e: Exception) {
+                logManager.log("Daily usage error: ${e.message}", LogType.ERROR)
+            } finally {
+                isSendingUsage = false
             }
         }
     }

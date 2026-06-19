@@ -56,6 +56,8 @@ import com.anis.child.ai.util.ImageStorageManager
 import com.anis.child.data.local.AnalysisResultEntity
 import com.anis.child.data.local.SessionEntity
 import com.anis.child.ui.theme.LocalAppColors
+import com.anis.child.R
+import androidx.compose.ui.res.stringResource
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -84,7 +86,7 @@ fun SessionDetailScreen(
                 putExtra(Intent.EXTRA_STREAM, uri)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
-            context.startActivity(Intent.createChooser(intent, "Export Session (ZIP)"))
+            context.startActivity(Intent.createChooser(intent, context.getString(R.string.export_session_zip)))
             viewModel.clearExportUri()
         }
     }
@@ -102,17 +104,17 @@ fun SessionDetailScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onNavigateBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = appColors.textPrimary)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back), tint = appColors.textPrimary)
             }
             Text(
-                text = "Session Details",
+                text = stringResource(R.string.session_details_title),
                 color = appColors.textPrimary,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.weight(1f)
             )
             IconButton(onClick = { viewModel.exportSession() }) {
-                Icon(Icons.Default.Share, contentDescription = "Export", tint = appColors.textPrimary)
+                Icon(Icons.Default.Share, contentDescription = stringResource(R.string.export), tint = appColors.textPrimary)
             }
         }
 
@@ -143,7 +145,7 @@ fun SessionDetailScreen(
 
                 item {
                     Text(
-                        text = "Analysis Log",
+                        text = stringResource(R.string.analysis_log),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = appColors.textPrimary,
@@ -166,7 +168,7 @@ fun SessionDetailScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "No analysis results yet",
+                                    text = stringResource(R.string.no_analysis_results),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = appColors.textSecondary
                                 )
@@ -200,7 +202,7 @@ private fun SessionSummaryCard(session: SessionEntity) {
                 .padding(16.dp)
         ) {
             Text(
-                text = "Session #${session.id}",
+                text = stringResource(R.string.session_number, session.id),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = appColors.textPrimary
@@ -214,7 +216,7 @@ private fun SessionSummaryCard(session: SessionEntity) {
             ) {
                 Column {
                     Text(
-                        text = "Started",
+                        text = stringResource(R.string.started),
                         style = MaterialTheme.typography.bodySmall,
                         color = appColors.textSecondary
                     )
@@ -228,7 +230,7 @@ private fun SessionSummaryCard(session: SessionEntity) {
                 if (session.endTime != null) {
                     Column {
                         Text(
-                            text = "Ended",
+                            text = stringResource(R.string.ended),
                             style = MaterialTheme.typography.bodySmall,
                             color = appColors.textSecondary
                         )
@@ -247,16 +249,16 @@ private fun SessionSummaryCard(session: SessionEntity) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                StatItem(label = "Interval", value = "${session.intervalMs}ms")
-                StatItem(label = "Total", value = "${session.totalCaptures}")
-                StatItem(label = "Blocked", value = "${session.blockedCount}")
-                StatItem(label = "Safe", value = "${session.safeCount}")
+                StatItem(label = stringResource(R.string.interval_label), value = "${session.intervalMs}ms")
+                StatItem(label = stringResource(R.string.total), value = "${session.totalCaptures}")
+                StatItem(label = stringResource(R.string.blocked), value = "${session.blockedCount}")
+                StatItem(label = stringResource(R.string.safe), value = "${session.safeCount}")
             }
 
             if (session.endTime != null && session.batteryStart > 0) {
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
-                    text = "Device Usage",
+                    text = stringResource(R.string.device_usage),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = appColors.textSecondary
@@ -268,17 +270,17 @@ private fun SessionSummaryCard(session: SessionEntity) {
                 ) {
                     val batteryStr = "${session.batteryStart}% \u2192 ${session.batteryEnd}%"
                     val batteryDelta = session.batteryStart - session.batteryEnd
-                    val batteryLabel = if (session.batteryCharging) "Battery \u26a1" else "Battery"
+                    val batteryLabel = if (session.batteryCharging) stringResource(R.string.battery_charging) else stringResource(R.string.battery)
                     StatItem(
                         label = batteryLabel,
                         value = if (batteryDelta > 0) "$batteryStr (-$batteryDelta%)" else batteryStr
                     )
                     StatItem(
-                        label = "CPU",
+                        label = stringResource(R.string.cpu),
                         value = "${"%.1f".format(session.cpuUsagePercent)}%"
                     )
                     StatItem(
-                        label = "RAM",
+                        label = stringResource(R.string.ram),
                         value = "${"%.0f".format(session.ramPssMb)} MB"
                     )
                 }
@@ -310,7 +312,7 @@ private fun KeyframeSection(keyframeResults: List<AnalysisResultEntity>) {
     val appColors = LocalAppColors.current
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "Keyframes (${keyframeResults.size})",
+            text = stringResource(R.string.keyframes_count, keyframeResults.size),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = appColors.textPrimary,
@@ -325,7 +327,7 @@ private fun KeyframeSection(keyframeResults: List<AnalysisResultEntity>) {
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
                 Text(
-                    text = "Most representative frames from this session",
+                    text = stringResource(R.string.keyframes_desc),
                     style = MaterialTheme.typography.bodySmall,
                     color = appColors.textSecondary,
                     modifier = Modifier.padding(bottom = 8.dp)
@@ -367,7 +369,7 @@ private fun KeyframeThumbnail(result: AnalysisResultEntity) {
             bitmap?.let { bmp ->
                 Image(
                     bitmap = bmp.asImageBitmap(),
-                    contentDescription = "Keyframe",
+                    contentDescription = stringResource(R.string.keyframe),
                     modifier = Modifier
                         .fillMaxWidth()
                         .aspectRatio(1f)
@@ -383,7 +385,7 @@ private fun KeyframeThumbnail(result: AnalysisResultEntity) {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "No image",
+                    text = stringResource(R.string.no_image),
                     style = MaterialTheme.typography.labelSmall,
                     color = appColors.textSecondary
                 )
@@ -455,7 +457,7 @@ private fun AnalysisResultItem(result: AnalysisResultEntity) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Image(
                     bitmap = bmp.asImageBitmap(),
-                    contentDescription = "Captured image",
+                    contentDescription = stringResource(R.string.captured_image),
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(max = 200.dp)
