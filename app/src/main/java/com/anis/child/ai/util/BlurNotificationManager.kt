@@ -5,6 +5,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -49,10 +50,15 @@ object BlurNotificationManager {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
+        val largeIcon = try {
+            context.assets.open("blocked_content.png").use { BitmapFactory.decodeStream(it) }
+        } catch (_: Exception) { null }
+
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setContentTitle("CONTENT BLOCKED")
             .setContentText("Inappropriate content detected")
             .setSmallIcon(android.R.drawable.ic_dialog_alert)
+            .setLargeIcon(largeIcon)
             .setContentIntent(pendingIntent)
             .setFullScreenIntent(fullScreenIntent, true)
             .setAutoCancel(true)

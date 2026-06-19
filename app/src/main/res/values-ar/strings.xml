@@ -38,7 +38,7 @@
     <string name="daily_limit_exceeded">لقد تجاوزت الحد اليومي البالغ %s</string>
     <string name="this_week">هذا الأسبوع</string>
     <string name="daily_avg">المعدل اليومي</string>
-    <string name="top_apps_today">أفضل التطبيقات اليوم</string>
+    <string name="top_apps_today">اكثر التطبيقات استعمالا اليوم</string>
     <string name="quests_title">اطلع على مهامك المخصصة</string>
     <string name="quests_subtitle">أكمل المهام واكسب النقاط</string>
     <string name="rewards_title">حان وقت مكافأة جديدة</string>

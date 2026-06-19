@@ -49,7 +49,7 @@ import com.anis.child.ui.screen.pin.PinScreen
 import com.anis.child.ui.screen.pin.PinViewModel
 import com.anis.child.ui.screen.reward.RewardScreen
 import com.anis.child.ui.screen.reward.RewardViewModel
-import com.anis.child.ui.screen.settings.LogsScreen
+import com.anis.child.ui.screen.settings.components.LogsScreen
 import com.anis.child.ui.screen.settings.SettingsScreen
 import com.anis.child.ui.screen.settings.SettingsViewModel
 import com.anis.child.ui.screen.splash.SplashScreen

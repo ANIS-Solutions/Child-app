@@ -39,7 +39,7 @@ object BlockingOverlayManager {
             overlayView?.findViewById<TextView>(R.id.blocked_app_name)?.text = label
 
             val isTimeLimit = reason == BlockReason.TIME_LIMIT
-            val assetName = if (isTimeLimit) "TimeLimit_app.png" else "Blocked_app.png"
+            val assetName = if (isTimeLimit) "time_limit.png" else "blocked_app.png"
 
             try {
                 val bmp = context.assets.open(assetName).use { BitmapFactory.decodeStream(it) }

@@ -1,5 +1,6 @@
 package com.anis.child.ui.screen.ai
 
+import com.anis.child.ui.screen.ai.components.*
 import android.Manifest
 import android.app.Activity
 import android.content.Intent
@@ -11,27 +12,15 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
+
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
+
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,7 +28,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -83,23 +71,7 @@ fun PermissionsCheckScreen(
             .fillMaxSize()
             .background(appColors.surface50)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 4.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = appColors.textPrimary)
-            }
-            Text(
-                text = "Permissions",
-                color = appColors.textPrimary,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-        }
+        PermissionsCheckTopBar(onBack = onBack)
 
         Column(
             modifier = Modifier
@@ -167,83 +139,21 @@ fun PermissionsCheckScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = if (allGranted) {
-                        appColors.success500.copy(alpha = 0.15f)
-                    } else {
-                        appColors.warning500.copy(alpha = 0.15f)
-                    }
-                )
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Icon(
-                        imageVector = if (allGranted) Icons.Default.CheckCircle else Icons.Default.Warning,
-                        contentDescription = null,
-                        tint = if (allGranted) appColors.success500 else appColors.warning500,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Text(
-                        text = if (allGranted) {
-                            "All permissions granted!"
-                        } else {
-                            "Please grant all permissions to continue"
-                        },
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = if (allGranted) appColors.success500 else appColors.warning500
-                    )
-                }
-            }
+            PermissionCheckStatusCard(allGranted = allGranted)
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Button(
+            ContinueButton(
+                allGranted = allGranted,
                 onClick = {
                     refreshPermissions()
                     if (allGranted) {
                         onContinue()
                     }
-                },
-                enabled = allGranted,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = appColors.primary01,
-                    disabledContainerColor = appColors.textSecondary.copy(alpha = 0.3f)
-                )
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
-                Text(
-                    text = "Continue",
-                    color = appColors.darkTextPrimary,
-                    modifier = Modifier.padding(start = 8.dp)
-                )
-            }
+                }
+            )
 
-            Button(
-                onClick = onHistoryClick,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = appColors.darkSurface.copy(alpha = 0.2f)
-                )
-            ) {
-                Text(
-                    text = "View Session History",
-                    color = appColors.textPrimary
-                )
-            }
+            ViewHistoryButton(onClick = onHistoryClick)
         }
     }
 }
