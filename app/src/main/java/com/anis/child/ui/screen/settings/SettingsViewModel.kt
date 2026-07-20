@@ -24,6 +24,9 @@ import com.anis.child.network.ApiResult
 import com.anis.child.network.ApiService
 import com.anis.child.network.safeApiCall
 import com.google.android.gms.location.LocationServices
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -185,8 +188,9 @@ class SettingsViewModel @Inject constructor(
                 val apps = screenTimeManager.getAppUsageToday()
                     .filter { it.totalTimeInForegroundMs >= 60_000 }
                     .map { DailyUsageApp(it.packageName, (it.totalTimeInForegroundMs / 60000).toInt()) }
+                val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                 val report = DailyUsageReport(
-                    date = System.currentTimeMillis(),
+                    date = dateFormat.format(Date(System.currentTimeMillis())),
                     totalScreenTimeMinutes = totalMinutes,
                     apps = apps
                 )

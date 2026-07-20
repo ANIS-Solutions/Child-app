@@ -19,6 +19,9 @@ import com.anis.child.network.ApiService
 import com.anis.child.worker.DailyUsageWorker
 import com.google.firebase.messaging.FirebaseMessaging
 import com.anis.child.util.resolveDeviceId
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -133,8 +136,9 @@ class PairingViewModel @Inject constructor(
             val apps = screenTimeManager.getAppUsageToday()
                 .filter { it.totalTimeInForegroundMs >= 60_000 }
                 .map { DailyUsageApp(it.packageName, (it.totalTimeInForegroundMs / 60000).toInt()) }
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
             val report = DailyUsageReport(
-                date = System.currentTimeMillis(),
+                date = dateFormat.format(Date(System.currentTimeMillis())),
                 totalScreenTimeMinutes = totalMinutes,
                 apps = apps
             )

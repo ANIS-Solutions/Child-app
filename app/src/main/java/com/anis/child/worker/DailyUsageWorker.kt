@@ -15,7 +15,10 @@ import com.anis.child.data.LogManager
 import com.anis.child.data.LogType
 import com.anis.child.data.ScreenTimeManager
 import com.anis.child.network.ApiService
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 class DailyUsageWorker(
@@ -33,8 +36,9 @@ class DailyUsageWorker(
                 .filter { it.totalTimeInForegroundMs >= 60_000 }
                 .map { DailyUsageApp(it.packageName, (it.totalTimeInForegroundMs / 60000).toInt()) }
 
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
             val report = DailyUsageReport(
-                date = System.currentTimeMillis(),
+                date = dateFormat.format(Date(System.currentTimeMillis())),
                 totalScreenTimeMinutes = totalMinutes,
                 apps = apps
             )

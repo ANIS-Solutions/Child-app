@@ -11,7 +11,7 @@ data class DailyUsageApp(
 
 @Serializable
 data class DailyUsageReport(
-    @SerialName("date") val date: Long,
+    @SerialName("date") val date: String,
     @SerialName("totalScreenTimeMinutes") val totalScreenTimeMinutes: Int,
     @SerialName("apps") val apps: List<DailyUsageApp>
 )
